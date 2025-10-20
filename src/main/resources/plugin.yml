@@ -1,0 +1,11 @@
+name: xiaojie-gui
+version: 1.0-SNAPSHOT
+main: io.github.heyhey123.xiaojiegui.XiaojieGUI
+description: A Menu plugin for Skript, aimed at providing a user-friendly & high performance interface for Skript users to create and manage GUIs.
+author: heyhey123
+api-version: '1.21.8'
+depend:
+  - Skript
+  - packetevents
+softdepend:
+  - SkBee

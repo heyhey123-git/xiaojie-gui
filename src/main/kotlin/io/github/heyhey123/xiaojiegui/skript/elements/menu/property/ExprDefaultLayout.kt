@@ -1,0 +1,72 @@
+package io.github.heyhey123.xiaojiegui.skript.elements.menu.property
+
+import ch.njol.skript.Skript
+import ch.njol.skript.classes.Changer
+import ch.njol.skript.doc.Description
+import ch.njol.skript.doc.Examples
+import ch.njol.skript.doc.Name
+import ch.njol.skript.doc.Since
+import ch.njol.skript.lang.Expression
+import ch.njol.skript.lang.ExpressionType
+import ch.njol.skript.lang.util.SimpleExpression
+import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import org.bukkit.event.Event
+
+
+@Name("Default Layout")
+@Description("The default layout of a menu.")
+@Examples("set the default layout of menu with id \"main_menu\" to \"xxxxxxxxx, xooooooxx, xxxxxxxox\"")
+@Since("1.0-SNAPSHOT")
+class ExprDefaultLayout : SimpleExpression<String>() {
+    companion object {
+        init {
+            Skript.registerExpression(
+                ExprDefaultLayout::class.java,
+                String::class.java,
+                ExpressionType.PROPERTY,
+                "[the] default layout of [the] [(menu|gui)] %menu%",
+                "%menu%'[s] default layout",
+            )
+        }
+    }
+
+    private lateinit var menu: Expression<Menu>
+
+    override fun getReturnType() = String::class.java
+
+    override fun isSingle() = false
+
+    @Suppress("UNCHECKED_CAST")
+    override fun init(
+        exprs: Array<out Expression<*>>?,
+        matchedPattern: Int,
+        isDelayed: ch.njol.util.Kleenean?,
+        parseResult: ch.njol.skript.lang.SkriptParser.ParseResult?
+    ): Boolean {
+        menu = exprs?.get(0) as Expression<Menu>
+        return true
+    }
+
+    override fun get(event: Event?): Array<String>? {
+        val menu = menu.getSingle(event) ?: return null
+        return menu.properties.defaultLayout.toTypedArray()
+    }
+
+    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
+        if (mode == Changer.ChangeMode.SET) arrayOf(Array<String>::class.java) else null
+
+    @Suppress("UNCHECKED_CAST")
+    override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
+        if (mode != Changer.ChangeMode.SET) return
+        val menu = menu.getSingle(event) ?: return
+        val arr = delta ?: return
+        if (arr.any { it !is String }) return
+        menu.properties.defaultLayout = arr.map { it as String }
+
+        menu.properties.defaultLayout = arr.toList() as List<String>
+    }
+
+    override fun toString(event: Event?, debug: Boolean): String =
+        "the default layout of the menu ${menu.toString(event, debug)}"
+
+}

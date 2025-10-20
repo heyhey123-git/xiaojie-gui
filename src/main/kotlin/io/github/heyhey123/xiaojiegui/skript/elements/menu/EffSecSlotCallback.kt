@@ -1,0 +1,125 @@
+package io.github.heyhey123.xiaojiegui.skript.elements.menu
+
+import ch.njol.skript.Skript
+import ch.njol.skript.config.SectionNode
+import ch.njol.skript.doc.Description
+import ch.njol.skript.doc.Examples
+import ch.njol.skript.doc.Name
+import ch.njol.skript.doc.Since
+import ch.njol.skript.lang.EffectSection
+import ch.njol.skript.lang.Expression
+import ch.njol.skript.lang.SkriptParser
+import ch.njol.skript.lang.TriggerItem
+import ch.njol.skript.lang.util.SectionUtils
+import ch.njol.skript.variables.Variables
+import ch.njol.util.Kleenean
+import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
+import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import org.bukkit.event.Event
+
+
+@Name("Set Slot Callback")
+@Description(
+    "Set a callback for a specific slot in a specific page of a menu.",
+    "You must provide a section to handle click events on the specified slot."
+)
+@Examples(
+    "when slot 0 in page 1 of menu {_menu} is clicked:",
+    "send \"You clicked the slot!\" to player"
+)
+@Since("1.0-SNAPSHOT")
+class EffSecSlotCallback : EffectSection() {
+
+    companion object {
+        init {
+            Skript.registerSection(
+                EffSecSlotCallback::class.java,
+                "(when|on) slot %number% " +
+                        "in page [(number|index)] %number% " +
+                        "of [(menu|gui)] %menu% " +
+                        "[is] (clicked|interacted|pressed)"
+            )
+        }
+    }
+
+    private var trigger: TriggerItem? = null
+
+    private lateinit var slot: Expression<Number>
+
+    private lateinit var page: Expression<Number>
+
+    private lateinit var menu: Expression<Menu>
+
+    @Suppress("UNCHECKED_CAST")
+    override fun init(
+        expressions: Array<out Expression<*>?>?,
+        matchedPattern: Int,
+        isDelayed: Kleenean?,
+        parseResult: SkriptParser.ParseResult?,
+        sectionNode: SectionNode?,
+        triggerItems: List<TriggerItem?>?
+    ): Boolean {
+        slot = expressions!![0] as Expression<Number>
+        page = expressions[1] as Expression<Number>
+        menu = expressions[2] as Expression<Menu>
+
+        if (!hasSection()) {
+            Skript.error("You must provide a section to handle the slot click event.")
+            return false
+        }
+
+        trigger = SectionUtils.loadLinkedCode(
+            "slot callback"
+        ) { beforeLoading: Runnable?, afterLoading: Runnable? ->
+            loadCode(
+                sectionNode,
+                "create menu",
+                beforeLoading,
+                afterLoading,
+                MenuInteractEvent::class.java
+            )
+        }
+
+        this.trigger = trigger ?: return false
+
+        return true
+    }
+
+    override fun walk(event: Event?): TriggerItem? {
+        if (!hasSection()) return walk(event, false)
+
+        val menu = this.menu.getSingle(event) ?: return walk(event, false)
+        val slot = this.slot.getAll(event)
+        val page = this.page.getAll(event)
+
+        if (slot.isEmpty()) {
+            Skript.error("Slot cannot be empty.")
+            return walk(event, false)
+        }
+
+        if (page.isEmpty()) {
+            Skript.error("Page cannot be empty.")
+            return walk(event, false)
+        }
+
+        for (singlePage in page) {
+            for (singleSlot in slot) {
+                menu.setSlotCallback(
+                    singlePage.toInt(),
+                    singleSlot.toInt()
+                ) { menuEvent: MenuInteractEvent ->
+                    Variables.withLocalVariables(event, menuEvent) {
+                        TriggerItem.walk(trigger, menuEvent)
+                    }
+                }
+            }
+        }
+
+        return walk(event, false)
+    }
+
+    override fun toString(event: Event?, debug: Boolean): String? {
+        TODO("Not yet implemented")
+    }
+
+}
