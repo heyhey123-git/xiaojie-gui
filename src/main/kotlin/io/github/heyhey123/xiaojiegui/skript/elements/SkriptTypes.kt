@@ -27,7 +27,7 @@ object SkriptTypes {
 
         Classes.registerClass(
             ClassInfo(MenuSession::class.java, "menusession")
-                .user("menu sessions?", "session")
+                .user("menu ?sessions?", "sessions?")
                 .name("Menu Session")
                 .description(
                     "Represents a specific interaction session a player has with a menu.",
@@ -45,7 +45,7 @@ object SkriptTypes {
                 "receptaclemode",
                 "receptacle mode"
             )
-                .user("receptacle modes?", "modes?")
+                .user("receptacle ?modes?", "modes?")
                 .name("Receptacle Mode")
                 .description(
                     "Represents the underlying implementation mode of a receptacle, which defines how player interactions are handled.",
@@ -71,7 +71,7 @@ object SkriptTypes {
                 "menuclicktype",
                 "menu click type"
             )
-                .user("menu click types?")
+                .user("menu ?click ?types?")
                 .name("Menu Click Type")
                 .documentationId("Menu Click Type")
                 .description("Represents different types of clicks in a GUI menu.")
@@ -90,125 +90,10 @@ object SkriptTypes {
                 "menuclickmode",
                 "menu click mode"
             )
-                .user("menu click modes?", "click modes?")
+                .user("menu ?click ?modes?", "click ?modes?")
                 .name("Menu Click Mode")
                 .description("Represents different click modes in a GUI menu.")
                 .since("1.0-SNAPSHOT")
         )
-
-        Classes.registerClass(
-            ClassInfo(Page::class.java, "page")
-                .user("pages?")
-                .name("Page")
-                .description("Represents a page in a GUI menu.")
-                .since("1.0-SNAPSHOT")
-        )
-
-        Converters.registerConverter(
-            Page::class.java,
-            Int::class.java,
-            Page::convert
-        )
-
-        Classes.registerClass(
-            ClassInfo(Slot::class.java, "menuslot")
-                .user("menu slots?", "slots?")
-                .name("Menu Slot")
-                .description(
-                    "Represents a slot in a GUI menu.",
-                    "Tips: Skript doesn't like \"Slot\"."
-                )
-                .documentationId("Menu　Slot")
-                .since("1.0-SNAPSHOT")
-        )
-
-        Converters.registerConverter(
-            Slot::class.java,
-            Int::class.java,
-            Slot::convert
-        )
-
-        Classes.registerClass(
-            ClassInfo(Icon::class.java, "icon")
-                .user("icons?")
-                .name("Icon")
-                .description("Represents an icon (item) in a GUI menu.")
-                .since("1.0-SNAPSHOT")
-        )
-
-        Converters.registerConverter(
-            Icon::class.java,
-            ItemStack::class.java,
-            Icon::convert
-        )
-
-        Classes.registerClass(
-            ClassInfo(Title::class.java, "menutitle")
-                .user("menu titles?", "titles?")
-                .name("Menu Title")
-                .description("Represents a title in a GUI menu.")
-                .since("1.0-SNAPSHOT")
-        )
-
-        @Suppress("UNCHECKED_CAST")
-        Converters.registerConverter(
-            Title::class.java,
-            ComponentHelper.componentWrapperType::class.java as Class<Any>,
-            Title::convert
-        )
-
     }
 }
-
-/**
- * A generic wrapper class for syntax elements used in Skript.
- *
- * @param T the type of the wrapped value
- */
-abstract class SyntaxWrapper<T> {
-
-    /**
-     * The wrapped value.
-     */
-    abstract val value: T
-
-    /**
-     * Converts the wrapped value to its underlying type.
-     *
-     * @return the underlying value
-     */
-    fun convert(): T? = value
-
-    override fun toString() = value.toString()
-}
-
-/**
- * Represents a page in a GUI menu.
- * Used for add syntactic sugar in Skript.
- *
- * @property value the page number
- */
-class Page(override val value: Int) : SyntaxWrapper<Int>()
-
-/**
- * Represents a slot in a GUI menu.
- * Used for add syntactic sugar in Skript.
- *
- * @property value the slot number
- */
-class Slot(override val value: Int) : SyntaxWrapper<Int>()
-
-/**
- * Represents an icon (item) in a GUI menu.
- * Used for add syntactic sugar in Skript.
- *
- * @property value the ItemStack representing the icon
- */
-class Icon(override val value: ItemStack?) : SyntaxWrapper<ItemStack?>()
-
-/**
- * Represents a title in a GUI menu.
- *
- * @property value the title. Can be `String` or `ComponentWrapper` in SkBee.
- */
-class Title(override val value: Any) : SyntaxWrapper<Any>()

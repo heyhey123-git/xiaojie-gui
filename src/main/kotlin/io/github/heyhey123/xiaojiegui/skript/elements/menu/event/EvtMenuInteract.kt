@@ -13,9 +13,6 @@ import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
-import io.github.heyhey123.xiaojiegui.skript.elements.Icon
-import io.github.heyhey123.xiaojiegui.skript.elements.Page
-import io.github.heyhey123.xiaojiegui.skript.elements.Slot
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 
@@ -58,21 +55,6 @@ class EvtMenuInteract : SkriptEvent() {
                 Player::class.java,
                 MenuInteractEvent::viewer
             )
-
-            EventValues.registerEventValue(
-                MenuInteractEvent::class.java,
-                Page::class.java
-            ) { event -> Page(event.page) }
-
-            EventValues.registerEventValue(
-                MenuInteractEvent::class.java,
-                Slot::class.java
-            ) { event -> Slot(event.slot) }
-
-            EventValues.registerEventValue(
-                MenuInteractEvent::class.java,
-                Icon::class.java
-            ) { event -> Icon(event.icon) }
 
             EventValues.registerEventValue(
                 MenuInteractEvent::class.java,

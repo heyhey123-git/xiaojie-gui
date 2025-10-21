@@ -12,7 +12,6 @@ import ch.njol.skript.registrations.EventValues
 import io.github.heyhey123.xiaojiegui.gui.event.MenuOpenEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
-import io.github.heyhey123.xiaojiegui.skript.elements.Page
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 
@@ -43,11 +42,6 @@ class EvtMenuOpen : SkriptEvent() {
                 Menu::class.java,
                 MenuOpenEvent::menu
             )
-
-            EventValues.registerEventValue(
-                MenuOpenEvent::class.java,
-                Page::class.java
-            ) { event -> Page(event.page) }
 
             EventValues.registerEventValue(
                 MenuOpenEvent::class.java,

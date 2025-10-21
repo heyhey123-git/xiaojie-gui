@@ -11,11 +11,9 @@ import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.registrations.EventValues
 import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
-import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
-import io.github.heyhey123.xiaojiegui.skript.elements.Page
-import io.github.heyhey123.xiaojiegui.skript.elements.Title
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
+import kotlin.jvm.java
 
 
 @Name("Page Turn")
@@ -47,31 +45,8 @@ class EvtPageTurn : SkriptEvent() {
 
             EventValues.registerEventValue(
                 PageTurnEvent::class.java,
-                Page::class.java,
-                { event -> Page(event.from) },
-                EventValues.TIME_PAST
-            )
-
-            EventValues.registerEventValue(
-                PageTurnEvent::class.java,
-                Page::class.java,
-                { event -> Page(event.to) },
-                EventValues.TIME_FUTURE
-            )
-
-            EventValues.registerEventValue(
-                PageTurnEvent::class.java,
                 Player::class.java
             ) { event -> event.session.viewer }
-
-            @Suppress("UNCHECKED_CAST")
-            EventValues.registerEventValue(
-                PageTurnEvent::class.java,
-                Title::class.java
-            ) { event ->
-                Title(value = ComponentHelper.wrapComponent(event.title))
-            }
-
         }
     }
 
