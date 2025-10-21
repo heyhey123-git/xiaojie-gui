@@ -68,8 +68,6 @@ tasks {
         //relocate Kotlin
         relocate("kotlin.", "${rootProject.group}.kotlin${kotlinEscapedVersion}.")
         relocate("org.jetbrains.annotations.", "${rootProject.group}.org.jetbrains.annotations2602.")
-        relocate("xyz.jpenilla.reflectionremapper", "${rootProject.group}.xyz.jpenilla.reflectionremapper013")
-        relocate("net.fabricmc.mappingio.", "${rootProject.group}.net.fabricmc.mappingio071.")
     }
     build {
         dependsOn(shadowJar)

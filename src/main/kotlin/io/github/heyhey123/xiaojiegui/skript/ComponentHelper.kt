@@ -37,7 +37,7 @@ object ComponentHelper {
         }
     }
 
-    fun extractComponent(obj: Any, event: Event?): Component? {
+    fun extractComponent(obj: Any): Component? {
         when {
             obj is String -> {
                 val str = obj as String?
@@ -79,7 +79,7 @@ object ComponentHelper {
     val skbeeComponentWrapper: Class<*>? = run {
         try {
             return@run Class.forName("com.shanebeestudios.skbee.api.wrapper.ComponentWrapper")
-        } catch (e: Throwable) {
+        } catch (_: Throwable) {
             return@run null
         }
     }
