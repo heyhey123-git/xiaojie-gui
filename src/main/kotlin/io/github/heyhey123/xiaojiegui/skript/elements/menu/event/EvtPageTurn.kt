@@ -13,7 +13,6 @@ import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
-import kotlin.jvm.java
 
 
 @Name("Page Turn")

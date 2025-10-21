@@ -10,8 +10,6 @@ import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
-import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
-import org.bukkit.inventory.ItemStack
 import org.skriptlang.skript.lang.converter.Converters
 
 object SkriptTypes {
