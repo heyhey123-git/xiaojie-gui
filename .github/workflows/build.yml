@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    paths:
+      - build.gradle.kts
+      - src/**
+      - .github/workflows/build.yml
+  pull_request:
+    paths:
+      - build.gradle.kts
+      - src/**
+      - .github/workflows/build.yml
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: build
+        run: |
+          gradlew.bat clean build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xiaojiegui-ubuntu-latest-${{ github.sha }}
+          include-hidden-files: true
+          path: |
+           build/dist/
