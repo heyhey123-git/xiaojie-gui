@@ -10,9 +10,11 @@ import ch.njol.skript.lang.SkriptEvent
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.registrations.EventValues
 import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
+import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
+import kotlin.jvm.java
 
 
 @Name("Page Turn")
@@ -44,8 +46,14 @@ class EvtPageTurn : SkriptEvent() {
 
             EventValues.registerEventValue(
                 PageTurnEvent::class.java,
-                Player::class.java
-            ) { event -> event.session.viewer }
+                Player::class.java,
+                PageTurnEvent::viewer
+            )
+            EventValues.registerEventValue(
+                PageTurnEvent::class.java,
+                Menu::class.java,
+                PageTurnEvent::menu
+            )
         }
     }
 

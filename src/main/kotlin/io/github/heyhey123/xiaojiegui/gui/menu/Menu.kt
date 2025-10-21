@@ -133,7 +133,7 @@ class Menu(
 
         val titleToSet = newTitle ?: pages[page].title
 
-        val event = PageTurnEvent(session, session.page, page, titleToSet)
+        val event = PageTurnEvent(session, viewer, this, session.page, page, titleToSet)
         if (!event.callEvent()) return
 
         newTitle?.also {
