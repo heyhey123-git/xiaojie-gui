@@ -20,9 +20,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup java
+        uses: useblacksmith/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: build
         run: |
-          gradlew.bat clean build
+          ./gradlew clean build
 
       - uses: actions/upload-artifact@v4
         with:
