@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript.elements.menu.property
+package io.github.heyhey123.xiaojiegui.skript.elements.menu.properties
 
 import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description

@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript.elements.menu
+package io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions
 
 import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
@@ -13,26 +13,26 @@ import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import org.bukkit.event.Event
 
-@Name("Get All Menus")
+@Name("Get All Menu IDs")
 @Description(
-    "Get all menus.",
-    "This expression returns a list of all menus that have been created.",
-    "Tips: This expression only returns the menus have ids."
+    "Get all menu IDs.",
+    "This expression returns a list of all menu IDs that have been created.",
+    "Tips: This expression only returns the ids of menus have ids."
 )
 @Examples(
-    "loop all menus:",
-    "broadcast the id of \"%loop-menu%\""
+    "loop all menu ids:",
+    "broadcast loop-value"
 )
 @Since("1.0-SNAPSHOT")
-class ExprAllMenus : SimpleExpression<Menu>() {
+class ExprAllMenuIds : SimpleExpression<String>() {
 
     companion object {
         init {
             Skript.registerExpression(
-                ExprAllMenus::class.java,
-                Menu::class.java,
+                ExprAllMenuIds::class.java,
+                String::class.java,
                 ExpressionType.SIMPLE,
-                "all [the] (menu|gui)[s]"
+                "all [the] (menu|gui) id[s]"
             )
         }
     }
@@ -42,15 +42,15 @@ class ExprAllMenus : SimpleExpression<Menu>() {
         matchedPattern: Int,
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
-    ): Boolean = true
+    ) = true
 
-    override fun get(event: Event?): Array<Menu> =
-        Menu.menus.values.toTypedArray()
+    override fun get(event: Event?): Array<String> =
+        Menu.menus.keys.toTypedArray()
 
-    override fun toString(event: Event?, debug: Boolean) =
-        "all menus"
+    override fun toString(event: Event?, debug: Boolean) = "all menu ids"
 
     override fun isSingle() = false
 
-    override fun getReturnType() = Menu::class.java
+    override fun getReturnType() = String::class.java
+
 }

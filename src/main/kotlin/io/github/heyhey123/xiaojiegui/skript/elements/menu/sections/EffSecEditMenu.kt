@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript.elements.menu
+package io.github.heyhey123.xiaojiegui.skript.elements.menu.sections
 
 import ch.njol.skript.Skript
 import ch.njol.skript.config.SectionNode
@@ -80,7 +80,7 @@ class EffSecEditMenu : EffectSection() {
         if (trigger != null) {
             val menuProvider = ProvideMenuEvent(menu)
             Variables.withLocalVariables(event, menuProvider) {
-                TriggerItem.walk(trigger, menuProvider)
+                walk(trigger, menuProvider)
             }
         }
 

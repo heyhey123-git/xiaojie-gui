@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript.elements.session.property
+package io.github.heyhey123.xiaojiegui.skript.elements.session.properties
 
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description

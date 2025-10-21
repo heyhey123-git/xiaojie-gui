@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript.elements.menu
+package io.github.heyhey123.xiaojiegui.skript.elements.menu.sections
 
 import ch.njol.skript.Skript
 import ch.njol.skript.config.SectionNode
@@ -141,7 +141,7 @@ class EffSecOverrideSlot : EffectSection() {
                 ) { menuEvent ->
                     try {
                         Variables.withLocalVariables(event, menuEvent) {
-                            TriggerItem.walk(trigger, menuEvent)
+                            walk(trigger, menuEvent)
                         }
                     } catch (e: Throwable) {
                         val id = menu.id ?: "<unnamed>"
