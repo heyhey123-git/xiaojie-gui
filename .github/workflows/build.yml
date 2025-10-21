@@ -13,7 +13,7 @@ on:
       - .github/workflows/build.yml
 
 jobs:
-  build-and-publish:
+  build:
     runs-on: ubuntu-latest
     permissions: write-all
 
