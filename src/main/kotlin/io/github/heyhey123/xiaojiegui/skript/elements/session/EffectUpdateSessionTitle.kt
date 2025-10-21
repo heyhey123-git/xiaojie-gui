@@ -59,7 +59,7 @@ class EffectUpdateSessionTitle : Effect() {
         val session = session.getSingle(event) ?: return
         val title = title.getSingle(event) ?: return
 
-        val component = ComponentHelper.extractComponent(title, event) ?: return
+        val component = ComponentHelper.extractComponent(title) ?: return
         session.title(component, refresh)
     }
 

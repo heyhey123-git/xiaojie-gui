@@ -76,12 +76,12 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
         return slot.map { session.getIcon(it.toInt()) }.toTypedArray()
     }
 
-    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
+    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
         when (mode) {
             Changer.ChangeMode.SET,
             Changer.ChangeMode.DELETE -> arrayOf(ItemStack::class.java)
 
-            else -> null
+            else -> arrayOf()
         }
 
     override fun change(event: Event?, delta: Array<out Any>?, mode: Changer.ChangeMode?) {

@@ -40,14 +40,15 @@ class ExprDefaultTitle : SimplePropertyExpression<Menu, Any>() {
 
     override fun getReturnType() = ComponentHelper.componentWrapperType
 
-    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
-        if (mode == Changer.ChangeMode.SET) arrayOf(ComponentHelper.componentWrapperType) else null
+    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
+        if (mode == Changer.ChangeMode.SET) arrayOf(ComponentHelper.componentWrapperType)
+        else arrayOf()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return
         val menu = expr.getSingle(event) ?: return
         val newTitle = delta?.get(0) ?: return
-        val component = ComponentHelper.extractComponent(newTitle, event) ?: return
+        val component = ComponentHelper.extractComponent(newTitle) ?: return
         menu.properties.defaultTitle = component
     }
 }

@@ -62,7 +62,7 @@ class EffUpdatePageTitle : Effect() {
         val menu = menu.getSingle(event) ?: return
         val page = page.getAll(event)
         val title = title.getSingle(event) ?: return
-        val component = ComponentHelper.extractComponent(title, event) ?: return
+        val component = ComponentHelper.extractComponent(title) ?: return
 
         page.forEach { singlePage ->
             if (singlePage !in 0..<menu.size) return@forEach

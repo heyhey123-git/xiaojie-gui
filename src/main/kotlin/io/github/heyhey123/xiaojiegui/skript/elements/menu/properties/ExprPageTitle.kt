@@ -65,14 +65,14 @@ class ExprPageTitle : SimpleExpression<Any?>() {
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
         if (mode == Changer.ChangeMode.SET) arrayOf(ComponentHelper.componentWrapperType::class.java)
-        else null
+        else arrayOf()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return
         val menu = menu.getSingle(event) ?: return
         val pages = page.getAll(event)
         val component = delta?.get(0) ?: return
-        val wrapped = ComponentHelper.extractComponent(component, event) ?: return
+        val wrapped = ComponentHelper.extractComponent(component) ?: return
         for (singlePage in pages) {
             val singlePage = singlePage.toInt()
             if (singlePage !in 0..<menu.size) continue

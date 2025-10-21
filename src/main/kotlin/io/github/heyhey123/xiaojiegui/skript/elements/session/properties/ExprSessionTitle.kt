@@ -41,15 +41,15 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
             ComponentHelper.wrapComponent(it)
         }
 
-    override fun acceptChange(mode: Changer.ChangeMode?) =
+    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
         if (mode == Changer.ChangeMode.SET) arrayOf(ComponentHelper.componentWrapperType::class.java)
-        else null
+        else arrayOf()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return
         val session = expr.getSingle(event) ?: return
         val newTitle = delta?.get(0) ?: return
-        val component = ComponentHelper.extractComponent(newTitle, event) ?: return
+        val component = ComponentHelper.extractComponent(newTitle) ?: return
         session.title(component, true)
     }
 
