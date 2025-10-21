@@ -31,7 +31,7 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
                 ExprSessionTitle::class.java,
                 ComponentHelper.componentWrapperType::class.java as Class<Any>,
                 "title",
-                "menu session"
+                "menusession"
             )
         }
     }

@@ -26,7 +26,7 @@ class ExprSessionMenu : SimplePropertyExpression<MenuSession, Menu>() {
                 ExprSessionMenu::class.java,
                 Menu::class.java,
                 "menu",
-                "menu session"
+                "menusession"
             )
         }
     }

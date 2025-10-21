@@ -26,7 +26,7 @@ class ExprSessionViewer : SimplePropertyExpression<MenuSession, Player>() {
                 ExprSessionViewer::class.java,
                 Player::class.java,
                 "viewer",
-                "menu session"
+                "menusession"
             )
         }
     }
