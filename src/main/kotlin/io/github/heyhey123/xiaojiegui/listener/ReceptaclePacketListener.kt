@@ -22,9 +22,9 @@ object ReceptaclePacketListener :
     }
 
     override fun onPacketReceive(event: PacketReceiveEvent) {
-        val playerId = event.user.uuid
-        val receptacle = MenuSession.SESSIONS[playerId]?.receptacle
-        if (receptacle?.mode != Receptacle.Mode.PHANTOM) return
+        val playerId = event.user.uuid ?: return
+        val receptacle = MenuSession.querySession(playerId)?.receptacle ?: return
+        if (receptacle.mode != Receptacle.Mode.PHANTOM) return
 
         when (event.packetType) {
             PacketType.Play.Client.CLICK_WINDOW -> {
