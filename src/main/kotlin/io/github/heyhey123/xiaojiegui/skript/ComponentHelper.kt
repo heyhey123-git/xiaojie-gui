@@ -45,9 +45,7 @@ object ComponentHelper {
             }
 
             obj::class.java.name == "com.shanebeestudios.skbee.api.wrapper.ComponentWrapper" -> {
-                val field = obj::class.java.getDeclaredField("component")
-                field.isAccessible = true
-                return field.get(obj) as Component?
+                return filedComponent!!.get(obj) as Component?
             }
 
             else -> {
@@ -62,16 +60,9 @@ object ComponentHelper {
      * @param component the Component to wrap
      * @return the wrapped object, either a ComponentWrapper (if skbee is present) or a legacy string
      */
-    fun wrapComponent(component: Component): Any {
-        if (hasSkBee) {
-            val wrapperClass = skbeeComponentWrapper!!
-            val method = wrapperClass.getDeclaredMethod("fromComponent", Component::class.java)
-            method.isAccessible = true
-            return method.invoke(null, component)
-        }
-
-        return LegacyComponentSerializer.legacySection().serialize(component)
-    }
+    fun wrapComponent(component: Component): Any =
+        if (hasSkBee) methodFromComponent!!.invoke(null, component)
+        else LegacyComponentSerializer.legacySection().serialize(component)
 
     /**
      * The SKBee ComponentWrapper class, or null if SKBee is not present.
@@ -89,6 +80,24 @@ object ComponentHelper {
      * Either ComponentWrapper (if skbee is present) or String.
      */
     val componentWrapperType: Class<*> = skbeeComponentWrapper ?: String::class.java
+
+    /**
+     * The "fromComponent" method in the ComponentWrapper class, or null if SkBee is not present.
+     */
+    private val methodFromComponent by lazy {
+        val method = skbeeComponentWrapper?.getDeclaredMethod("fromComponent", Component::class.java)
+        method?.isAccessible = true
+        method
+    }
+
+    /**
+     * The "component" field in the ComponentWrapper class, or null if SkBee is not present.
+     */
+    private val filedComponent by lazy {
+        val field = skbeeComponentWrapper?.getDeclaredField("component")
+        field?.isAccessible = true
+        field
+    }
 
     /**
      * Whether SKBee is present in the server.

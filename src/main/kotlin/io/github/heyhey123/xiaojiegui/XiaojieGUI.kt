@@ -32,6 +32,7 @@ class XiaojieGUI : JavaPlugin() {
         skriptAddon = Skript.registerAddon(this).apply {
             loadClasses("io.github.heyhey123.xiaojiegui.skript", "elements")
         }
+        logger.info("XiaojieGUI has been enabled!")
     }
 
     override fun onDisable() {
@@ -44,5 +45,6 @@ class XiaojieGUI : JavaPlugin() {
         BukkitInventoryListener.unregister()
         PlayerQuitListener.unregister()
         StaticInventoryListener.unregister()
+        logger.info("XiaojieGUI has been disabled!")
     }
 }
