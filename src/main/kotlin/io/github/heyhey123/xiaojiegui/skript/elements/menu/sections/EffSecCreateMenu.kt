@@ -25,12 +25,13 @@ import org.bukkit.event.inventory.InventoryType
 @Description(
     "Create a menu.",
     "You can define the menu's properties, such as its inventory type, title, id, layout, page, click delay, and whether to hide the player's inventory.",
-    "You can also define the menu's contents and behavior in the section below this effect."
+    "You can also define the menu's contents and behavior in the section below this effect.",
+    "Tips: If you provide a default layout and do not specify a default page, the layout will be used to create page 0 automatically."
 )
 @Examples(
     "create phantom menu with chest inventory titled \"Main Menu\" with id \"main_menu\" with layout \"xxxxxxxxx, xooooooxx, xxxxxxxox\" with page 0 with 500 ms click delay with hide player inventory:",
-    "set slot 0 of menu to stone named \"Click me!\"",
-    "set slot 1 of menu to dirt named \"No, click me!\"",
+    "set slot 0 in page 0 of menu to stone named \"Click me!\"",
+    "set slot 1 in page 0 of menu to dirt named \"No, click me!\"",
     "open menu for player"
 )
 @Since("1.0-SNAPSHOT")
@@ -40,8 +41,8 @@ class EffSecCreateMenu : EffectSection() {
         init {
             Skript.registerSection(
                 EffSecCreateMenu::class.java,
-                "create [a] [phantom|static] menu" +
-                        "with %inventorytype% inventory " +
+                "create [a] [phantom|static] menu " +
+                        "with %inventorytype% " +
                         "titled %object% " +
                         "[with id %-string%] " +
                         "[with layout %-string%] " +
@@ -68,7 +69,7 @@ class EffSecCreateMenu : EffectSection() {
 
     private var minClickDelay: Expression<Number>? = null
 
-    private var hidePlayerInventory: Boolean = false
+    private var hidePlayerInventory: Boolean = true
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
