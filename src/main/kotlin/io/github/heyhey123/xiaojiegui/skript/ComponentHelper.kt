@@ -24,9 +24,7 @@ object ComponentHelper {
 
             expr.returnType.name == "com.shanebeestudios.skbee.api.wrapper.ComponentWrapper" -> {
                 val wrapper = expr.getSingle(event)
-                val field = wrapper?.javaClass?.getDeclaredField("component")
-                field?.isAccessible = true
-                return field?.get(wrapper) as Component?
+                return fieldComponent!!.get(wrapper) as Component?
             }
 
             else -> {
@@ -45,7 +43,7 @@ object ComponentHelper {
             }
 
             obj::class.java.name == "com.shanebeestudios.skbee.api.wrapper.ComponentWrapper" -> {
-                return filedComponent!!.get(obj) as Component?
+                return fieldComponent!!.get(obj) as Component?
             }
 
             else -> {
@@ -93,7 +91,7 @@ object ComponentHelper {
     /**
      * The "component" field in the ComponentWrapper class, or null if SkBee is not present.
      */
-    private val filedComponent by lazy {
+    private val fieldComponent by lazy {
         val field = skbeeComponentWrapper?.getDeclaredField("component")
         field?.isAccessible = true
         field
