@@ -106,9 +106,9 @@ abstract class Receptacle(title: Component, val layout: Layout, val mode: Mode) 
     /**
      * Set the handler to be executed when a player interacts with the receptacle.
      *
-     * @param clickEvent the handler function to be executed
+     * @param handler the handler function to be executed
      */
-    fun onClick(clickEvent: (event: ReceptacleInteractEvent) -> Unit) {
-        this.onClick = clickEvent
+    fun onClick(handler: (event: ReceptacleInteractEvent) -> Unit) {
+        this.onClick = handler
     }
 }

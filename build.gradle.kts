@@ -62,7 +62,6 @@ tasks {
         archiveVersion.set(version as String)
         destinationDirectory.set(file("$rootDir/build/dist"))
 
-        exclude("io.github.heyhey123.xiaojiegui/testing/**") // please comment out in production
         minimize()
 
         //relocate Kotlin
