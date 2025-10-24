@@ -3,7 +3,7 @@ package io.github.heyhey123.xiaojiegui.it
 import io.github.heyhey123.xiaojiegui.it.command.CommandsRegistry
 import org.bukkit.plugin.java.JavaPlugin
 
-class ItPlugin: JavaPlugin() {
+class ItPlugin : JavaPlugin() {
     companion object {
         lateinit var instance: ItPlugin
     }

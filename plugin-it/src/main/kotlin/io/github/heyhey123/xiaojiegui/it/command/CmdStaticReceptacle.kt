@@ -3,7 +3,6 @@ package io.github.heyhey123.xiaojiegui.it.command
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
-import io.github.heyhey123.xiaojiegui.gui.receptacle.PhantomReceptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.StaticReceptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
 import io.github.heyhey123.xiaojiegui.it.command.CommandsRegistry.subcommand
@@ -13,7 +12,7 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
-object CmdStaticReceptacle: Subcommand {
+object CmdStaticReceptacle : Subcommand {
     override fun attach(root: LiteralArgumentBuilder<CommandSourceStack>) {
         root.subcommand("strec").apply {
             subcommand("open", ::`create & open a new receptacle`)
