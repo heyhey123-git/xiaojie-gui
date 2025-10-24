@@ -37,8 +37,8 @@ class EffSecOverrideSlot : EffectSection() {
                 "(override|set) slot %number% " +
                         "in page [(number|index)] %number% " +
                         "of [(menu|gui)] %menu% to %itemstack%" +
-                        "[(and|with) (refresh|update)]" +
-                        "[and when (clicked|interacted|pressed)]"
+                        "[refresh:((and|with) (refresh|update))]" +
+                        "[when:(and when (clicked|interacted|pressed))]"
             )
         }
     }

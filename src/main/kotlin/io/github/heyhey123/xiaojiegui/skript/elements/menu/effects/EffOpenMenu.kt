@@ -10,7 +10,9 @@ import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
+import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
@@ -32,12 +34,12 @@ class EffOpenMenu : Effect() {
         init {
             Skript.registerEffect(
                 EffOpenMenu::class.java,
-                "(open|show) [the] (menu|gui) %menu% (for|to) %player% [and (turn to|go to|on) page %-number%]"
+                "(open|show) [the] (menu|gui) [%-menu%] (for|to) %player% [and (turn to|go to|on) page %-number%]"
             )
         }
     }
 
-    private lateinit var menu: Expression<Menu>
+    private var menu: Expression<Menu>? = null
 
     private lateinit var player: Expression<Player>
 
@@ -50,21 +52,43 @@ class EffOpenMenu : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        menu = expressions?.get(0) as Expression<Menu>
-        player = expressions[1] as Expression<Player>
+        menu = expressions?.get(0) as Expression<Menu>?
+        if (menu == null && !parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)) {
+            Skript.error("Menu expression is required if the current event is not a menu-related event.")
+            return false
+        }
+        player = expressions!![1] as Expression<Player>
         page = expressions[2] as Expression<Number>?
         return true
     }
 
     override fun execute(event: Event?) {
-        val menu = menu.getSingle(event) ?: return
-        val player = player.getSingle(event) ?: return
+        val menu = menu?.getSingle(event) ?: when (event) {
+            is MenuEvent -> event.menu
+            is ProvideMenuEvent -> event.menu
+            else -> null
+        }
+
+        if (menu == null) {
+            Skript.error("Failed to get the menu to open. Please check your code.")
+            return
+        }
+        val player = player.getSingle(event)
+        if (player == null) {
+            Skript.error(
+                "Player expression returned null. Cannot open menu."
+            )
+            return
+        }
+
         val pageNum = page?.getSingle(event)?.toInt()
 
-        check(!enableAsyncCheck || Bukkit.isPrimaryThread()) {
-            "Menu can only be opened from the main server thread, " +
-                    "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
-                    "current statement: ${this.toString(event, true)}"
+        if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
+            Skript.error(
+                "Menu can only be opened from the main server thread, " +
+                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                        "current statement: ${this.toString(event, true)}"
+            )
         }
 
         if (pageNum != null) {
@@ -75,7 +99,7 @@ class EffOpenMenu : Effect() {
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
-        val str = "open menu ${menu.toString(event, debug)} for ${player.toString(event, debug)}"
+        val str = "open menu ${menu?.toString(event, debug)} for ${player.toString(event, debug)}"
         return if (page != null) "$str and go to page ${page.toString()}" else str
     }
 

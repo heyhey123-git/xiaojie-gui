@@ -47,8 +47,8 @@ class ExprDefaultLayout : SimpleExpression<String>() {
         return true
     }
 
-    override fun get(event: Event?): Array<String>? {
-        val menu = menu.getSingle(event) ?: return null
+    override fun get(event: Event?): Array<String> {
+        val menu = menu.getSingle(event) ?: return arrayOf()
         return menu.properties.defaultLayout.toTypedArray()
     }
 

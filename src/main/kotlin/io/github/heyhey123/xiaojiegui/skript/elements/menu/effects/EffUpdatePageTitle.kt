@@ -9,9 +9,11 @@ import ch.njol.skript.lang.Effect
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
+import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.event.Event
 
 
@@ -30,14 +32,14 @@ class EffUpdatePageTitle : Effect() {
         init {
             Skript.registerEffect(
                 EffUpdatePageTitle::class.java,
-                "update title of page %number% in %menu% to %object% [and refresh]"
+                "update title of page %number% [in %-menu%] to %object% [refresh:(and refresh)]"
             )
         }
     }
 
     private lateinit var page: Expression<Number>
 
-    private lateinit var menu: Expression<Menu>
+    private var menu: Expression<Menu>? = null
 
     private lateinit var title: Expression<Any>
 
@@ -51,17 +53,36 @@ class EffUpdatePageTitle : Effect() {
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
         page = expressions?.get(0) as Expression<Number>
-        menu = expressions[1] as Expression<Menu>
+        menu = expressions[1] as Expression<Menu>?
+        if (menu == null && !parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)) {
+            Skript.error("Menu expression is required if the current event is not a menu-related event.")
+            return false
+        }
         title = expressions[2] as Expression<Any>
-        refresh = parseResult?.hasTag("and refresh") ?: false
+        refresh = parseResult?.hasTag("refresh") ?: false
 
         return true
     }
 
     override fun execute(event: Event?) {
-        val menu = menu.getSingle(event) ?: return
+        val menu = menu?.getSingle(event) ?: when (event) {
+            is MenuEvent -> event.menu
+            is ProvideMenuEvent -> event.menu
+            else -> {
+                Skript.error("Menu cannot be null.")
+                return
+            }
+        }
+
         val page = page.getAll(event)
-        val title = title.getSingle(event) ?: return
+        val title = title.getSingle(event)
+        if (title == null) {
+            Skript.error(
+                "Title cannot be null."
+            )
+            return
+        }
+
         val component = ComponentHelper.extractComponent(title) ?: return
 
         page.forEach { singlePage ->
@@ -78,7 +99,7 @@ class EffUpdatePageTitle : Effect() {
 
     override fun toString(event: Event?, debug: Boolean) =
         "update title of page ${page.toString(event, debug)} in ${
-            menu.toString(
+            menu?.toString(
                 event,
                 debug
             )

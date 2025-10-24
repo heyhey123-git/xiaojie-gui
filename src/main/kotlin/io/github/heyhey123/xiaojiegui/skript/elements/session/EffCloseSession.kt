@@ -48,12 +48,20 @@ class EffCloseSession : Effect() {
     }
 
     override fun execute(event: Event?) {
-        val session = session.getSingle(event) ?: return
+        val session = session.getSingle(event)
+        if (session == null) {
+            Skript.error(
+                "Menu session cannot be null: ${this.toString(event, true)}"
+            )
+            return
+        }
 
-        check(!enableAsyncCheck || Bukkit.isPrimaryThread()) {
-            "Menu session can only be closed from the main server thread, " +
-                    "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
-                    "current statement: ${this.toString(event, true)}"
+        if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
+            Skript.error(
+                "Menu session can only be closed from the main server thread, " +
+                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                        "current statement: ${this.toString(event, true)}"
+            )
         }
 
         session.close()

@@ -84,9 +84,14 @@ class SecCreateGUI : EffectSection() {
             }
 
             val invContents = inv.contents
-            val id = if (this.id != null) this.id!!.getSingle(e) else null
-            val shape = if (this.shape != null) this.shape!!.getAll(e) else null
-            check(!shape.isNullOrEmpty()) { "Shape cannot be empty if provided." }
+            val id = this.id?.getSingle(e)
+            val shape = this.shape?.getAll(e)
+            if (shape.isNullOrEmpty()) {
+                Skript.error(
+                    "Shape cannot be empty if provided."
+                )
+                return walk(e, false)
+            }
             val mode = if (removableItems) Receptacle.Mode.STATIC else Receptacle.Mode.PHANTOM
             val properties = MenuProperties(
                 Component.text(id ?: "gui_${System.currentTimeMillis()}"),

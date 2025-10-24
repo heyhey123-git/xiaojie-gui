@@ -48,7 +48,7 @@ class EffSecCreateMenu : EffectSection() {
                         "[with layout %-string%] " +
                         "[with page %-number%] " +
                         "[with %-number% ms click delay] " +
-                        "[(with|without) hide player inventory]"
+                        "[(with|:without) hide player inventory]"
             )
         }
     }

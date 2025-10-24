@@ -70,8 +70,8 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
         return true
     }
 
-    override fun get(event: Event?): Array<ItemStack?>? {
-        val session = session.getSingle(event) ?: return null
+    override fun get(event: Event?): Array<ItemStack?> {
+        val session = session.getSingle(event) ?: return arrayOf()
         val slot = slot.getAll(event)
         return slot.map { session.getIcon(it.toInt()) }.toTypedArray()
     }
@@ -88,10 +88,12 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
         val session = session.getSingle(event) ?: return
         val slots = slot.getAll(event).map { it.toInt() }
 
-        check(!enableAsyncCheck || Bukkit.isPrimaryThread()) {
-            "Menu session icons can only be modified from the main server thread, " +
-                    "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
-                    "current statement: ${this.toString(event, true)}"
+        if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
+            Skript.error(
+                "Menu session icons can only be modified from the main server thread, " +
+                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                        "current statement: ${this.toString(event, true)}"
+            )
         }
 
         when (mode) {

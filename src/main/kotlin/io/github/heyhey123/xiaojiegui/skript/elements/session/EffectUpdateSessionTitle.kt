@@ -30,7 +30,7 @@ class EffectUpdateSessionTitle : Effect() {
         init {
             Skript.registerEffect(
                 EffectUpdateSessionTitle::class.java,
-                "update title of %menusession% to %object% [and refresh]"
+                "update title of %menusession% to %object% [refresh:(and refresh)]"
             )
         }
     }
@@ -50,7 +50,7 @@ class EffectUpdateSessionTitle : Effect() {
     ): Boolean {
         session = expressions?.get(0) as Expression<MenuSession>
         title = expressions[1] as Expression<Any>
-        refresh = parseResult?.hasTag("and refresh") ?: false
+        refresh = parseResult?.hasTag("refresh") ?: false
 
         return true
     }

@@ -118,8 +118,7 @@ class EffSecSlotCallback : EffectSection() {
         return walk(event, false)
     }
 
-    override fun toString(event: Event?, debug: Boolean): String? {
-        TODO("Not yet implemented")
-    }
+    override fun toString(event: Event?, debug: Boolean) =
+        "set slot callback for slot ${slot.toString(event, debug)} in page ${page.toString(event, debug)} of menu ${menu.toString(event, debug)}"
 
 }

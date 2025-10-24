@@ -54,8 +54,8 @@ class ExprPageTitle : SimpleExpression<Any?>() {
         return true
     }
 
-    override fun get(event: Event?): Array<out Any?>? {
-        val menu = menu.getSingle(event) ?: return null
+    override fun get(event: Event?): Array<out Any?> {
+        val menu = menu.getSingle(event) ?: return arrayOf()
         val page = page.getAll(event)
         return page.map { singlePage ->
             val title = menu.pages[singlePage.toInt()].title
