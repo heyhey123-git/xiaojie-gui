@@ -5,8 +5,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
 import io.github.heyhey123.xiaojiegui.gui.receptacle.StaticReceptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
-import io.github.heyhey123.xiaojiegui.it.command.CommandsRegistry.subcommand
 import io.papermc.paper.command.brigadier.CommandSourceStack
+import io.papermc.paper.command.brigadier.Commands
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -14,12 +14,13 @@ import org.bukkit.inventory.ItemStack
 
 object CmdStaticReceptacle : Subcommand {
     override fun attach(root: LiteralArgumentBuilder<CommandSourceStack>) {
-        root.subcommand("strec").apply {
-            subcommand("open", ::`create & open a new receptacle`)
-            subcommand("title", ::`set a new title and render`)
-            subcommand("setitem", ::`set an element`)
-            subcommand("clear", ::`clear and refresh contents`)
-        }
+        root.then(
+            Commands.literal("strec")
+                .then(Commands.literal("open").executes(::`create & open a new receptacle`))
+                .then(Commands.literal("title").executes(::`set a new title and render`))
+                .then(Commands.literal("setitem").executes(::`set an element`))
+                .then(Commands.literal("clear").executes(::`clear and refresh contents`))
+        )
     }
 
     private lateinit var receptacle: StaticReceptacle

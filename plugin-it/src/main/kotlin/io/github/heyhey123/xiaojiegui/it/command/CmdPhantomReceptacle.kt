@@ -5,8 +5,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
 import io.github.heyhey123.xiaojiegui.gui.receptacle.PhantomReceptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
-import io.github.heyhey123.xiaojiegui.it.command.CommandsRegistry.subcommand
 import io.papermc.paper.command.brigadier.CommandSourceStack
+import io.papermc.paper.command.brigadier.Commands
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -14,14 +14,21 @@ import org.bukkit.inventory.ItemStack
 
 object CmdPhantomReceptacle : Subcommand {
     override fun attach(root: LiteralArgumentBuilder<CommandSourceStack>) {
-        root.subcommand("ptrec", null).apply {
-            subcommand("openhidepi", ::`create & open a new receptacle and hide player inv`)
-            subcommand("opennohidepi", ::`create & open a new receptacle and no hide player inv`)
-            subcommand("title", ::`set a new title and render`)
-            subcommand("refreshsingle", ::`set an element and refresh single slot`)
-            subcommand("refreshmultiple", ::`do something and refresh contents`)
-            subcommand("close", ::`close receptacle`)
-        }
+        root.then(
+            Commands.literal("ptrec")
+                .then(Commands.literal("openhidepi").executes(::`create & open a new receptacle and hide player inv`))
+                .then(
+                    Commands.literal("opennohidepi").executes(::`create & open a new receptacle and no hide player inv`)
+                )
+//                .then(
+//                    Commands.literal("openinterruptclick")
+//                        .executes(::`create & open a new receptacle and interrupt all click`)
+//                )
+                .then(Commands.literal("title").executes(::`set a new title and render`))
+                .then(Commands.literal("refreshsingle").executes(::`set an element and refresh single slot`))
+                .then(Commands.literal("refreshmultiple").executes(::`do something and refresh contents`))
+                .then(Commands.literal("close").executes(::`close receptacle`))
+        )
     }
 
     private lateinit var receptacle: PhantomReceptacle
@@ -68,6 +75,36 @@ object CmdPhantomReceptacle : Subcommand {
         ctx.source.sender.sendMessage("Opened a phantom receptacle.")
         return Command.SINGLE_SUCCESS
     }
+
+//    private fun `create & open a new receptacle and interrupt all click`(ctx: CommandContext<CommandSourceStack>): Int {
+//        receptacle = PhantomReceptacle(
+//            Component.text("Test Phantom Receptacle"),
+//            ViewLayout.Chest.GENERIC_9X3
+//        ).apply {
+//            setElement(10, ItemStack(Material.GOLDEN_APPLE))
+//            setElement(15, ItemStack(Material.DIAMOND_SWORD))
+//            setElement(25, ItemStack(Material.SHIELD))
+//
+//        }
+//        receptacle.onClick { e ->
+//            if (e.clickType.isItemMoveable()) {
+//                receptacle.refresh()
+//            } else {
+//                receptacle.refresh(e.slot)
+//            }
+//        }
+//        // use `executor` to ensure /execute works correctly
+//        val player = ctx.source.executor as? Player
+//        if (player == null) {
+//            ctx.source.sender.sendMessage("This command can only be executed by a player.")
+//            return 0
+//        }
+//
+//        receptacle.open(player)
+//        ctx.source.sender.sendMessage("Opened a phantom receptacle.")
+//        return Command.SINGLE_SUCCESS
+//    }
+    // occurred an unexplained issue, this test cannot be run expectedly
 
     private fun `set a new title and render`(ctx: CommandContext<CommandSourceStack>): Int {
         receptacle.title(Component.text("New Title!"), true)
