@@ -26,5 +26,6 @@ class ReceptacleInteractEvent(
 
     companion object {
         private val HANDLERS = HandlerList()
+        fun getHandlerList() = HANDLERS
     }
 }

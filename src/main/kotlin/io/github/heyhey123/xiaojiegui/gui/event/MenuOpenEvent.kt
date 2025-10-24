@@ -4,15 +4,14 @@ import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable
-import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 
 class MenuOpenEvent(
-    val session: MenuSession,
-    val viewer: Player,
-    val menu: Menu,
+    override val session: MenuSession,
+    override val viewer: Player,
+    override val menu: Menu,
     val page: Int
-) : Event(), Cancellable {
+) : MenuEvent(), Cancellable {
 
     companion object {
         private val HANDLERS = HandlerList()

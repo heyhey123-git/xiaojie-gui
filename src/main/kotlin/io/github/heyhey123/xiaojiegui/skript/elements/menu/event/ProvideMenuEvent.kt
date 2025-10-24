@@ -10,18 +10,16 @@ import org.bukkit.event.HandlerList
  *
  * @property menu The menu that is being provided.
  */
-class ProvideMenuEvent(private val menu: Menu) : Event() {
+class ProvideMenuEvent(val menu: Menu) : Event() {
     companion object {
         init {
             EventValues.registerEventValue(
                 ProvideMenuEvent::class.java,
                 Menu::class.java,
-                ProvideMenuEvent::getMenu
+                ProvideMenuEvent::menu
             )
         }
     }
-
-    fun getMenu(): Menu = menu
 
     override fun getHandlers(): HandlerList =
         throw UnsupportedOperationException("Illegal Access to HandlerList of ProvideMenuEvent")

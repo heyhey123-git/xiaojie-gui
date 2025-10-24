@@ -5,7 +5,6 @@ import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable
-import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 
 /**
@@ -17,13 +16,13 @@ import org.bukkit.event.HandlerList
  * @param title The title of the menu for the new page.
  */
 class PageTurnEvent(
-    val session: MenuSession,
-    val viewer: Player,
-    val menu: Menu,
+    override val session: MenuSession,
+    override val viewer: Player,
+    override val menu: Menu,
     val from: Int,
     val to: Int,
     var title: Component
-) : Event(), Cancellable {
+) : MenuEvent(), Cancellable {
 
     companion object {
 

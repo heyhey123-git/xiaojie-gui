@@ -12,7 +12,7 @@ class ReceptacleCloseEvent(
 
     companion object {
         private val HANDLERS = HandlerList()
-        fun getHandlers() = HANDLERS
+        fun getHandlerList() = HANDLERS
     }
 
     override fun getHandlers() = HANDLERS

@@ -5,7 +5,6 @@ import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable
-import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 import org.bukkit.inventory.ItemStack
 
@@ -20,20 +19,20 @@ import org.bukkit.inventory.ItemStack
  * @property icon The icon that was interacted with, or null if the slot is empty.
  */
 class MenuInteractEvent(
-    val session: MenuSession,
-    val viewer: Player,
-    val menu: Menu,
+    override val session: MenuSession,
+    override val viewer: Player,
+    override val menu: Menu,
     val page: Int,
     val slot: Int,
     val icon: ItemStack?,
     val clickType: ClickType
-) : Event(), Cancellable {
+) : MenuEvent(), Cancellable {
 
     companion object {
 
         private val HANDLERS = HandlerList()
 
-        fun getHandlers() = HANDLERS
+        fun getHandlerList() = HANDLERS
     }
 
     private var cancelled = false
