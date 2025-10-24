@@ -20,6 +20,7 @@ object CmdPhantomReceptacle : Subcommand {
             subcommand("title", ::`set a new title and render`)
             subcommand("refreshsingle", ::`set an element and refresh single slot`)
             subcommand("refreshmultiple", ::`do something and refresh contents`)
+            subcommand("close", ::`close receptacle`)
         }
     }
 
