@@ -69,10 +69,18 @@ tasks {
         relocate("kotlin.", "${rootProject.group}.kotlin${kotlinEscapedVersion}.")
         relocate("org.jetbrains.annotations.", "${rootProject.group}.org.jetbrains.annotations2602.")
     }
+
     build {
         dependsOn(shadowJar)
     }
+
     test {
         useJUnitPlatform()
+    }
+
+    register("rootBuild") {
+        group = "build"
+        description = "Build root project only"
+        dependsOn(":build")
     }
 }

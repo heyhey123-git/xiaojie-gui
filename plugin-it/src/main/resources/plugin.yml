@@ -1,0 +1,8 @@
+name: xiaojie-gui-it
+version: 1.0-SNAPSHOT
+main: io.github.heyhey123.xiaojiegui.it.ItPlugin
+description: Integration test for xiaojie-gui
+author: heyhey123
+api-version: '1.21.8'
+depend:
+  - xiaojie-gui
