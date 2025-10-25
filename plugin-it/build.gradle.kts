@@ -17,8 +17,7 @@ repositories {
 
 dependencies {
     compileOnly(project(":"))
-    implementation(kotlin("stdlib"))
-    implementation(kotlin("test"))
+    compileOnly(kotlin("stdlib"))
 
     compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
 
@@ -46,8 +45,8 @@ tasks {
 //        relocate("org.opentest4j", "io.github.heyhey123.it.shaded.opentest4j")
 //        relocate("org.apiguardian", "io.github.heyhey123.it.shaded.apiguardian")
 
-        relocate("kotlin.", "${project.group}.kotlin${kotlinEscapedVersion}.")
-        relocate("org.jetbrains.annotations.", "${project.group}.org.jetbrains.annotations2602.")
+        relocate("kotlin.", "${rootProject.group}.kotlin${kotlinEscapedVersion}.")
+        relocate("org.jetbrains.annotations.", "${rootProject.group}.org.jetbrains.annotations2602.")
     }
 
     build {
