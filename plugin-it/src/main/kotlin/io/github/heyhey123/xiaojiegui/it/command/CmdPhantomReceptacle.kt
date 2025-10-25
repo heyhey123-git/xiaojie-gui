@@ -3,6 +3,7 @@ package io.github.heyhey123.xiaojiegui.it.command
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
+import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.gui.receptacle.PhantomReceptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
 import io.papermc.paper.command.brigadier.CommandSourceStack
@@ -20,10 +21,10 @@ object CmdPhantomReceptacle : Subcommand {
                 .then(
                     Commands.literal("opennohidepi").executes(::`create & open a new receptacle and no hide player inv`)
                 )
-//                .then(
-//                    Commands.literal("openinterruptclick")
-//                        .executes(::`create & open a new receptacle and interrupt all click`)
-//                )
+                .then(
+                    Commands.literal("openinterruptclick")
+                        .executes(::`create & open a new receptacle and interrupt all click`)
+                )
                 .then(Commands.literal("title").executes(::`set a new title and render`))
                 .then(Commands.literal("refreshsingle").executes(::`set an element and refresh single slot`))
                 .then(Commands.literal("refreshmultiple").executes(::`do something and refresh contents`))
@@ -76,35 +77,33 @@ object CmdPhantomReceptacle : Subcommand {
         return Command.SINGLE_SUCCESS
     }
 
-//    private fun `create & open a new receptacle and interrupt all click`(ctx: CommandContext<CommandSourceStack>): Int {
-//        receptacle = PhantomReceptacle(
-//            Component.text("Test Phantom Receptacle"),
-//            ViewLayout.Chest.GENERIC_9X3
-//        ).apply {
-//            setElement(10, ItemStack(Material.GOLDEN_APPLE))
-//            setElement(15, ItemStack(Material.DIAMOND_SWORD))
-//            setElement(25, ItemStack(Material.SHIELD))
-//
-//        }
-//        receptacle.onClick { e ->
-//            if (e.clickType.isItemMoveable()) {
-//                receptacle.refresh()
-//            } else {
-//                receptacle.refresh(e.slot)
-//            }
-//        }
-//        // use `executor` to ensure /execute works correctly
-//        val player = ctx.source.executor as? Player
-//        if (player == null) {
-//            ctx.source.sender.sendMessage("This command can only be executed by a player.")
-//            return 0
-//        }
-//
-//        receptacle.open(player)
-//        ctx.source.sender.sendMessage("Opened a phantom receptacle.")
-//        return Command.SINGLE_SUCCESS
-//    }
-    // occurred an unexplained issue, this test cannot be run expectedly
+    private fun `create & open a new receptacle and interrupt all click`(ctx: CommandContext<CommandSourceStack>): Int {
+        receptacle = PhantomReceptacle(
+            Component.text("Test Phantom Receptacle"),
+            ViewLayout.Chest.GENERIC_9X3
+        ).apply {
+            setElement(10, ItemStack(Material.GOLDEN_APPLE))
+            setElement(15, ItemStack(Material.DIAMOND_SWORD))
+            setElement(25, ItemStack(Material.SHIELD))
+
+        }
+        receptacle.onClick { e ->
+            receptacle.interruptItemDrag(e)
+        }
+
+        // use `executor` to ensure /execute works correctly
+        val player = ctx.source.executor as? Player
+        if (player == null) {
+            ctx.source.sender.sendMessage("This command can only be executed by a player.")
+            return 0
+        }
+
+        receptacle.open(player)
+        MenuSession.getSession(player).receptacle = receptacle
+        // in order to be able to retrieve the receptacle from the session when received click packets
+        ctx.source.sender.sendMessage("Opened a phantom receptacle.")
+        return Command.SINGLE_SUCCESS
+    }
 
     private fun `set a new title and render`(ctx: CommandContext<CommandSourceStack>): Int {
         receptacle.title(Component.text("New Title!"), true)
