@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
+import io.github.heyhey123.xiaojiegui.utils.TaskUtil
 
 object ReceptaclePacketListener :
     PacketListenerAbstract(PacketListenerPriority.NORMAL), BaseListener {
@@ -36,12 +37,14 @@ object ReceptaclePacketListener :
                     slot = slot
                 )
                     ?: throw IllegalArgumentException("Unknown click type: ${packet.windowClickType} with button ${packet.button} at slot $slot")
-                receptacle.clicked(clickType, slot, null)
+                TaskUtil.sync {
+                    receptacle.clicked(clickType, slot, null)
+                }
                 event.isCancelled = true
             }
 
             PacketType.Play.Client.CLOSE_WINDOW -> {
-                receptacle.closed()
+                TaskUtil.sync { receptacle.closed() }
                 event.isCancelled = true
             }
 
