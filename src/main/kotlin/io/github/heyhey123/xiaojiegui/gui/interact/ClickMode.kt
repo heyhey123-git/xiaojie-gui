@@ -18,6 +18,8 @@ enum class ClickMode(val id: Int) {
 
     QUICK_CRAFT(5),
 
+    PICK_UP_ALL(6),
+
     UNKNOWN(-1);
 
     override fun toString(): String =

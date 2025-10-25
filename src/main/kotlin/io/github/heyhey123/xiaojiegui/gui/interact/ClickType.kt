@@ -66,7 +66,7 @@ enum class ClickType(
 
     MIDDLE_MOUSE_DRAG_ADD(ClickMode.QUICK_CRAFT, 9, null),
 
-    DOUBLE_CLICK(ClickMode.CLONE, 0, BukkitClickType.DOUBLE_CLICK),
+    DOUBLE_CLICK(ClickMode.PICK_UP_ALL, 0, BukkitClickType.DOUBLE_CLICK),
 
     UNKNOWN(ClickMode.UNKNOWN, -1, BukkitClickType.UNKNOWN);
 
