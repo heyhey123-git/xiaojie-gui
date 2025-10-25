@@ -23,7 +23,7 @@ object TaskUtil {
     ): BukkitTask {
         val scheduler = Bukkit.getScheduler()
         if (period <= 0L) {
-            return scheduler.runTaskLater(XiaojieGUI.Companion.instance, Runnable {
+            return scheduler.runTaskLater(XiaojieGUI.instance, Runnable {
                 val task = object : Cancellable() {
                     override fun run() {
                         block()
@@ -32,7 +32,7 @@ object TaskUtil {
                 task.run()
             }, delay)
         }
-        return scheduler.runTaskTimer(XiaojieGUI.Companion.instance, Runnable {
+        return scheduler.runTaskTimer(XiaojieGUI.instance, Runnable {
             val task = object : Cancellable() {
                 override fun run() {
                     block()
@@ -50,7 +50,7 @@ object TaskUtil {
     ): BukkitTask {
         val scheduler = Bukkit.getScheduler()
         if (period <= 0L) {
-            return scheduler.runTaskLaterAsynchronously(XiaojieGUI.Companion.instance, Runnable {
+            return scheduler.runTaskLaterAsynchronously(XiaojieGUI.instance, Runnable {
                 val task = object : Cancellable() {
                     override fun run() {
                         block()
@@ -59,7 +59,7 @@ object TaskUtil {
                 task.run()
             }, delay)
         }
-        return scheduler.runTaskTimerAsynchronously(XiaojieGUI.Companion.instance, Runnable {
+        return scheduler.runTaskTimerAsynchronously(XiaojieGUI.instance, Runnable {
             val task = object : Cancellable() {
                 override fun run() {
                     block()
