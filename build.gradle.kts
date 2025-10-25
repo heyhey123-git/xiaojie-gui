@@ -55,6 +55,10 @@ kotlin {
 }
 
 tasks {
+    base {
+        archivesName.set("xiaojiegui")
+    }
+
     withType<ShadowJar> {
         val kotlinEscapedVersion = kotlinVersion.filter { it != '.' }
         archiveAppendix.set("")

@@ -31,6 +31,9 @@ kotlin {
 }
 
 tasks {
+    base {
+        archivesName.set("pluginit")
+    }
     withType<ShadowJar> {
         archiveAppendix.set("")
         archiveClassifier.set("")
