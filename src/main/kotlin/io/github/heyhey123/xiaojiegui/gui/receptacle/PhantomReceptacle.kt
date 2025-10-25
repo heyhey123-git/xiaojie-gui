@@ -56,6 +56,22 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
         } else {
             refresh(event.slot)
         }
+
+        if (event.clickType == ClickType.SWAP_OFFHAND) {
+            PacketHelper.instance.sendContainerSetSlot(
+                player = viewer!!,
+                windowId = 0,
+                slot = 45,
+                item = viewer!!.equipment?.itemInOffHand
+            )
+        } else {
+            PacketHelper.instance.sendContainerSetSlot(
+                player = viewer!!,
+                windowId = -1,
+                slot = -1,
+                item = null
+            )
+        }
     }
 
     override fun refresh(slot: Int) {
