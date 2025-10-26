@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.gui.receptacle
 
-import io.github.heyhey123.xiaojiegui.gui.IPacketHelper
 import io.github.heyhey123.xiaojiegui.gui.PacketHelper
 import io.github.heyhey123.xiaojiegui.utils.TaskUtil
 import io.mockk.*
@@ -15,11 +14,11 @@ import kotlin.test.Test
 
 class PhantomReceptacleTest {
 
-    private lateinit var mockedPacketHelper: IPacketHelper
+    private lateinit var mockedPacketHelper: PacketHelper
 
     @BeforeEach
     fun setUp() {
-        mockedPacketHelper = mockk<IPacketHelper>()
+        mockedPacketHelper = mockk<PacketHelper>()
         mockkObject(PacketHelper.Companion)
         every { PacketHelper.instance } returns mockedPacketHelper
         every { mockedPacketHelper.generateNextContainerId(any()) } returns 114
