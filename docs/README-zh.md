@@ -1,17 +1,14 @@
 # xiaojie-gui
 
-[English](../README.md)|简体中文
+[English](../README.md) | 简体中文
 
 一个为基于 Bukkit/Paper 的 Minecraft 服务器设计的物品栏 GUI 框架，使用 Kotlin 编写。它提供了一个简洁的 API，用于构建带有布局、页面、冷却和数据包级别容器的菜单用户界面，并包含一流的 Skript 集成。
 
-- Kotlin 优先的 API，兼容 Java
-- 基于物品栏的菜单，支持页面和布局
-- 静态和虚拟容器
-- 与玩家绑定的菜单会话和自定义事件
-- 用于菜单组件的冷却工具
-- 用于无代码使用的 Skript 效果/表达式
-- 针对布局、页面和容器进行了单元测试
-- 使用 `src/main` 和 `src/test` 分离的 Gradle 构建
+- **现代化的 API 设计**: 采用 Kotlin 优先的原则，提供富有表现力且简洁的 API，同时保持与 Java 的完全兼容。
+- **强大的菜单系统**: 支持声明式布局、多页面分页以及静态和虚拟容器，让复杂的 GUI 构建变得简单。
+- **会话与事件驱动**: 为每个玩家提供独立的菜单会话，并通过丰富的自定义事件（打开、关闭、交互等）实现精细的逻辑控制。
+- **深度 Skript 集成**: 提供一流的 Skript 支持，让不熟悉编程的用户也能通过简单的脚本创建和管理菜单。
+- **可靠且经过测试**: 核心功能均经过单元测试，确保框架的稳定性和可靠性。
 
 ## 要求
 
@@ -23,19 +20,19 @@
 - Windows (PowerShell 或命令提示符):
     - 构建并运行测试:
       ```bash
-      gradlew.bat clean build
+      gradlew.bat :clean :build
       ```
     - 运行测试:
       ```bash
-      gradlew.bat test
+      gradlew.bat :test
       ```
     - 构建（不含测试）:
       ```bash
-      gradlew.bat clean build -x test
+      gradlew.bat :clean :build -x test
       ```
       或
       ```bash
-      gradlew.bat clean shadowJar
+      gradlew.bat :clean :shadowJar
       ```
 - 构建产物位于 `build/dist` 目录中。
 

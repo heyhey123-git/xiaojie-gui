@@ -1,17 +1,14 @@
 # xiaojie-gui
 
-English|[简体中文](docs/README-zh.md)
+English | [简体中文](docs/README-zh.md)
 
 Inventory GUI framework for Bukkit/Paper-based Minecraft servers, written in Kotlin. It provides a clean API for building menu UIs with layouts, pages, cooldowns, and packet-level receptacles, and includes first-class Skript integration.
 
-- Kotlin-first API, Java compatible
-- Inventory-backed menus with pages and layouts
-- Static and phantom receptacles
-- Player-bounded menu sessions and custom events
-- Cooldown utilities for menu components
-- Skript effects/expressions for no-code usage
-- Tested with unit tests for layouts, pages, and receptacles
-- Gradle build with \`src/main\` and \`src/test\` separation
+- **Modern API Design**: A Kotlin-first approach provides an expressive and concise API while maintaining full compatibility with Java.
+- **Powerful Menu System**: Simplifies complex GUI construction with support for declarative layouts, multipage pagination, and both static and virtual receptacles.
+- **Session-based & Event-driven**: Provides independent menu sessions for each player and allows for fine-grained logical control through a rich set of custom events (open, close, interaction, etc.).
+- **Deep Skript Integration**: Offers first-class Skript support, enabling users without programming experience to create and manage menus through simple scripts.
+- **Reliable & Tested**: Core functionalities are unit-tested to ensure the framework's stability and reliability.
 
 ## Requirements
 
@@ -23,19 +20,19 @@ Inventory GUI framework for Bukkit/Paper-based Minecraft servers, written in Kot
 - Windows (PowerShell or Command Prompt):
     - Build and run tests:
       ```bash
-      gradlew.bat clean build
+      gradlew.bat :clean :build
       ```
     - Run tests:
       ```bash
-      gradlew.bat test
+      gradlew.bat :test
       ```
     - Build without tests:
       ```bash
-      gradlew.bat clean build -x test
+      gradlew.bat :clean :build -x test
       ```
       or
       ```bash
-      gradlew.bat clean shadowJar
+      gradlew.bat :clean :shadowJar
       ```
 - Artifacts are in 'build/dist'.
 
