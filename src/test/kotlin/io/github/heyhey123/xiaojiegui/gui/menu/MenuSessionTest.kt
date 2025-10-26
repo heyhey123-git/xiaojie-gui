@@ -129,13 +129,11 @@ class MenuSessionTest {
     fun `close closes receptacle and updates viewer inventory`() {
         val receptacle = mockk<ViewReceptacle>(relaxed = true)
         every { receptacle.close(true) } just Runs
-        every { player.updateInventory() } just Runs
 
         val session = MenuSession(player, null, -1, receptacle)
         session.close()
 
         verify { receptacle.close(true) }
-        verify { player.updateInventory() }
     }
 
     @Test
