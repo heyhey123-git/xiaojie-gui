@@ -52,6 +52,8 @@ object CmdPhantomReceptacle : Subcommand {
         }
 
         receptacle.open(player)
+        val session = MenuSession.getSession(player)
+        session.receptacle = this.receptacle
         ctx.source.sender.sendMessage("Opened a phantom receptacle.")
         return Command.SINGLE_SUCCESS
     }
@@ -73,6 +75,8 @@ object CmdPhantomReceptacle : Subcommand {
         }
 
         receptacle.open(player)
+        val session = MenuSession.getSession(player)
+        session.receptacle = this.receptacle
         ctx.source.sender.sendMessage("Opened a phantom receptacle.")
         return Command.SINGLE_SUCCESS
     }
@@ -99,7 +103,8 @@ object CmdPhantomReceptacle : Subcommand {
         }
 
         receptacle.open(player)
-        MenuSession.getSession(player).receptacle = receptacle
+        val session = MenuSession.getSession(player)
+        session.receptacle = this.receptacle
         // in order to be able to retrieve the receptacle from the session when received click packets
         ctx.source.sender.sendMessage("Opened a phantom receptacle.")
         return Command.SINGLE_SUCCESS
