@@ -131,22 +131,22 @@ class Menu(
             "Page $page does not exist in this menu."
         }
 
-        val titleToSet = newTitle ?: pages[page].title
+        var titleToSet = newTitle ?: pages[page].title
 
         val event = PageTurnEvent(session, viewer, this, session.page, page, titleToSet)
         if (!event.callEvent()) return
 
-        newTitle?.also {
-            pages[page].title = it
-        }
+        titleToSet = event.title
 
         receptacle!!.clear()
         session.page = page
 
         session.updatePlayerSlots()
+        val shouldUpdateTitle: Boolean = titleToSet != receptacle.title
+
         pages[page].loadInPage(session)
 
-        if (titleToSet != receptacle.title) {
+        if (shouldUpdateTitle) {
             receptacle.title(titleToSet, true)
             return
         }

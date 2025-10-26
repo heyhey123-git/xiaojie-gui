@@ -176,9 +176,10 @@ class Page(
         }
 
         receptacle.onClick { event ->
+            event.receptacle.interruptItemDrag(event)
+
             val doCancel = { // cancel if cooldown not passed
                 event.isCancelled = true
-                event.receptacle.interruptItemDrag(event)
             }
 
             val player = event.player

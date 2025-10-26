@@ -1,6 +1,6 @@
 package io.github.heyhey123.xiaojiegui.gui.menu
 
-import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle.Mode
+import io.github.heyhey123.xiaojiegui.gui.receptacle.PhantomReceptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
@@ -89,25 +89,9 @@ class MenuSession(
         menu ?: return
         receptacle ?: return
         if (!receptacle!!.hidePlayerInventory) return
-        if (receptacle!!.mode == Mode.STATIC) return
+        if (receptacle !is PhantomReceptacle) return
 
-        val layout = receptacle!!.layout
-
-        //          From Trmenu: by lilingfengdev
-//                2024/7/2 备注
-//                经过多次测试,显然,即使当前物品栏为null,也应该发包更新,但这样子会有多余更新(猜疑)
-//        或者更新上一个slot?
-
-        for ((index, item) in viewer.inventory.contents.withIndex()) {
-            val slot = when (index) {
-                in 0..8 -> layout.hotBarSlotRange[index]
-                in 9..35 -> layout.mainInvSlotRange[index - 9]
-                else -> -1
-            }
-            if (slot > 0) {
-                receptacle!!.setElement(slot, item)
-            }
-        }
+        (receptacle as PhantomReceptacle).setupPlayerInventory()
     }
 
     /**

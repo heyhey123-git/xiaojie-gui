@@ -72,7 +72,7 @@ object CmdMenu : Subcommand {
 
     private fun turnPage(ctx: CommandContext<CommandSourceStack>): Int {
         val session = MenuSession.querySession(player)
-        if (session == null|| session.menu != testMenu) {
+        if (session == null || session.menu != testMenu) {
             ctx.source.sender.sendMessage("You are not viewing the test menu.")
             return 0
         }

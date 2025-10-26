@@ -20,6 +20,7 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
 
     override fun getElement(slot: Int): ItemStack? {
         setupPlayerInventory()
+        // just follow trm, if this method called frequently, may cause performance issue
         return contents.getOrNull(slot)
     }
 
@@ -131,19 +132,6 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
 
         if (viewer != null) {
             onClick(event)
-        }
-
-        if (event.isCancelled) {
-            when (clickType) { //??
-                ClickType.SWAP_OFFHAND -> PacketHelper.instance.sendContainerSetSlot(
-                    viewer!!,
-                    windowId = 0,
-                    slot = 45,
-                    item = null
-                )
-
-                else -> PacketHelper.instance.sendContainerSetSlot(viewer!!, slot = -1, windowId = -1, item = null)
-            }
         }
     }
 
