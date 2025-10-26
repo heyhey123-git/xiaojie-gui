@@ -5,6 +5,8 @@ import io.github.heyhey123.xiaojiegui.gui.layout.Layout
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import java.util.function.BiConsumer
+import java.util.function.Consumer
 
 abstract class Receptacle(title: Component, val layout: Layout, val mode: Mode) {
 
@@ -111,4 +113,32 @@ abstract class Receptacle(title: Component, val layout: Layout, val mode: Mode) 
     fun onClick(handler: (event: ReceptacleInteractEvent) -> Unit) {
         this.onClick = handler
     }
+
+    /**
+     * Set the handler to be executed when the receptacle is opened by a player.
+     * This method accepts a BiConsumer to ensure compatibility with Java functional interfaces.
+     *
+     * @param handler the handler function to be executed
+     */
+    fun setOnOpen(handler: BiConsumer<Player, Receptacle>) =
+        onOpen { player, receptacle -> handler.accept(player, receptacle) }
+
+    /**
+     * Set the handler to be executed when the receptacle is closed by a player.
+     * This method accepts a BiConsumer to ensure compatibility with Java functional interfaces.
+     *
+     * @param handler the handler function to be executed
+     */
+    fun setOnClose(handler: BiConsumer<Player, Receptacle>) =
+        onClose { player, receptacle -> handler.accept(player, receptacle) }
+
+    /**
+     * Set the handler to be executed when a player interacts with the receptacle.
+     * This method accepts a Consumer to ensure compatibility with Java functional interfaces.
+     *
+     * @param handler the handler function to be executed
+     */
+    fun setOnClick(handler: Consumer<ReceptacleInteractEvent>) =
+        onClick { event -> handler.accept(event) }
+
 }
