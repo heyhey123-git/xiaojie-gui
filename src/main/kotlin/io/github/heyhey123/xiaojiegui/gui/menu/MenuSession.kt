@@ -100,7 +100,6 @@ class MenuSession(
      */
     fun close() {
         receptacle?.close(true)
-        viewer.updateInventory()
     }
 
     /**

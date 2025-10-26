@@ -86,7 +86,7 @@ class SecCreateGUI : EffectSection() {
             val invContents = inv.contents
             val id = this.id?.getSingle(e)
             val shape = this.shape?.getAll(e)
-            if (shape.isNullOrEmpty()) {
+            if (shape.isNullOrEmpty() && shape != null) {
                 Skript.error(
                     "Shape cannot be empty if provided."
                 )
@@ -99,7 +99,7 @@ class SecCreateGUI : EffectSection() {
                 mode,
                 0,
                 0,
-                shape.filterNotNull()
+                shape?.filterNotNull() ?: listOf()
             )
             val gui = Menu(id, properties, inventoryType = invType)
             gui.insertPage(

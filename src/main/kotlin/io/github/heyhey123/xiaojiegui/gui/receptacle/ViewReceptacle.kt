@@ -53,6 +53,7 @@ abstract class ViewReceptacle(
         if (render) {
             doClose()
         }
+        viewer!!.updateInventory()
     }
 
     /**
