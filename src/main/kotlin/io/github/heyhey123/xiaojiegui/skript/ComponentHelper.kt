@@ -15,7 +15,7 @@ object ComponentHelper {
      * @param event the event context
      * @return the extracted Component, or null if extraction fails
      */
-    fun extractComponent(expr: Expression<Any>, event: Event?): Component? {
+    fun extractComponent(expr: Expression<Any?>, event: Event?): Component? {
         when {
             expr.returnType == String::class.java -> {
                 val str = expr.getSingle(event) as String?
@@ -38,8 +38,7 @@ object ComponentHelper {
     fun extractComponent(obj: Any): Component? {
         when {
             obj is String -> {
-                val str = obj as String?
-                return str?.let { Component.text(it) }
+                return Component.text(obj)
             }
 
             obj::class.java.name == "com.shanebeestudios.skbee.api.wrapper.ComponentWrapper" -> {

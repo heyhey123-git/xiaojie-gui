@@ -71,7 +71,7 @@ class EffTurnPage : Effect() {
             Skript.error("Player $player does not have an open menu session.")
             return
         }
-        val title = newTitle?.let { ComponentHelper.extractComponent(it) }
+        val title = newTitle?.let { ComponentHelper.extractComponent(it, event) }
         menu.turnPage(player, page, title)
     }
 
