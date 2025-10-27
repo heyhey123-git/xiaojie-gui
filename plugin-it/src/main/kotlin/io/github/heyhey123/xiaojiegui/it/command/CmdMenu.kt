@@ -55,7 +55,7 @@ object CmdMenu : Subcommand {
         )
 
         testMenu = Menu(null, properties, InventoryType.CHEST).apply {
-            iconMapper["A"] = ItemStack(Material.STONE)
+            iconMapper["A"] = ItemStack(Material.STONE) to null
 
             insertPage(0, null, Component.text("Page 1"), null)
             insertPage(1, null, Component.text("Page 2"), null)
@@ -106,7 +106,7 @@ object CmdMenu : Subcommand {
             Component.text("Inserted Page"),
             null
         )
-        testMenu.iconMapper["B"] = ItemStack(Material.GOLD_BLOCK)
+        testMenu.iconMapper["B"] = ItemStack(Material.GOLD_BLOCK) to null
         ctx.source.sender.sendMessage("Inserted a new page.")
         return Command.SINGLE_SUCCESS
     }

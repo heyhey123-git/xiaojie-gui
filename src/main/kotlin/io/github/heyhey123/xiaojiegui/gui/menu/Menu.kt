@@ -60,9 +60,9 @@ class Menu(
         get() = pages.size
 
     /**
-     * A mapping of keys to ItemStacks for easy icon management.
+     * The icon mapper for the menu, mapping keys to ItemStacks and optional click callbacks.
      */
-    val iconMapper: ConcurrentHashMap<String, ItemStack> = ConcurrentHashMap()
+    val iconMapper: ConcurrentHashMap<String, Pair<ItemStack, ((MenuInteractEvent) -> Unit)?>> = ConcurrentHashMap()
     // key or value of a ConcurrentHashMap can be null,
     // but we can use ItemStack.empty() to represent null value
 
@@ -160,7 +160,7 @@ class Menu(
      * @param key The key to translate.
      * @return The corresponding ItemStack, or null if the key does not exist.
      */
-    fun translateIcon(key: String): ItemStack? = iconMapper[key]
+    fun translateIcon(key: String): ItemStack? = iconMapper[key]?.first
 
     /**
      * Update the ItemStack associated with a specific key in the icon mapper and refresh the viewers' inventories accordingly.
@@ -175,7 +175,7 @@ class Menu(
         refresh: Boolean,
         callback: ((event: MenuInteractEvent) -> Unit)? = null
     ) {
-        iconMapper[key] = item ?: ItemStack.empty()
+        iconMapper[key] = (item ?: ItemStack.empty()) to callback
         for (viewer in viewers) {
             val session = MenuSession.querySession(viewer)
             if (session?.menu != this) continue
@@ -280,6 +280,13 @@ class Menu(
             playerInventoryPattern ?: listOf(),
             properties
         )
+
+        pageInstance.keyToSlots.forEach { (key, slots) ->
+            val callback = iconMapper[key]?.second ?: return@forEach
+            slots.forEach { slot ->
+                pageInstance.clickCallbacks[slot] = callback
+            }
+        }
 
         if (page == null) {
             pages.add(pageInstance)
