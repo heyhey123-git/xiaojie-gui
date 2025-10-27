@@ -86,7 +86,7 @@ class SecCreateGUI : EffectSection() {
             val invContents = inv.contents
             val id = this.id?.getSingle(e)
             val shape = this.shape?.getAll(e)
-            if (shape.isNullOrEmpty() && shape != null) {
+            if (shape != null && shape.isEmpty()) {
                 Skript.error(
                     "Shape cannot be empty if provided."
                 )

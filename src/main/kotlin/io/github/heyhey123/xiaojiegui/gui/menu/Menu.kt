@@ -188,11 +188,14 @@ class Menu(
                 if (refresh) {
                     session.refresh(singleOrNull() ?: -1)
                 }
-                if (callback != null) {
-                    page.clickCallbacks.putAll(
-                        associateWith { callback }
-                    )
-                }
+            }
+        }
+
+        if (callback == null) return
+
+        for (singlePage in pages) {
+            singlePage.keyToSlots[key]?.forEach {
+                singlePage.clickCallbacks[it] = callback
             }
         }
     }
