@@ -160,7 +160,7 @@ class Menu(
      * @param key The key to translate.
      * @return The corresponding ItemStack, or null if the key does not exist.
      */
-    fun translateIcon(key: String): Pair<ItemStack?,((MenuInteractEvent) -> Unit)?>? = iconMapper[key]
+    fun translateIcon(key: String): Pair<ItemStack?, ((MenuInteractEvent) -> Unit)?>? = iconMapper[key]
 
     /**
      * Update the ItemStack associated with a specific key in the icon mapper and refresh the viewers' inventories accordingly.
