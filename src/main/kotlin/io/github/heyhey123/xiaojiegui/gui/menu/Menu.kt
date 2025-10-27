@@ -160,7 +160,7 @@ class Menu(
      * @param key The key to translate.
      * @return The corresponding ItemStack, or null if the key does not exist.
      */
-    fun translateIcon(key: String): ItemStack? = iconMapper[key]?.first
+    fun translateIcon(key: String): Pair<ItemStack?,((MenuInteractEvent) -> Unit)?>? = iconMapper[key]
 
     /**
      * Update the ItemStack associated with a specific key in the icon mapper and refresh the viewers' inventories accordingly.
@@ -280,13 +280,6 @@ class Menu(
             playerInventoryPattern ?: listOf(),
             properties
         )
-
-        pageInstance.keyToSlots.forEach { (key, slots) ->
-            val callback = iconMapper[key]?.second ?: return@forEach
-            slots.forEach { slot ->
-                pageInstance.clickCallbacks[slot] = callback
-            }
-        }
 
         if (page == null) {
             pages.add(pageInstance)

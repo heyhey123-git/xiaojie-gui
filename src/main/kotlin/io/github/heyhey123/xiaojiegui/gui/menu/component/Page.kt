@@ -218,7 +218,8 @@ class Page(
     }
 
     /**
-     * Computes the item stacks for the slots in the menu session based on the current menu's icons.
+     * Compute the item stacks for each slot in the menu session's receptacle,
+     * and populate the click callbacks accordingly.
      *
      * @param session The menu session for which to compute the slots.
      * @return An array of item stacks representing the items in each slot, or null if no item is set for a slot.
@@ -232,9 +233,12 @@ class Page(
         val slots: Array<ItemStack?> = arrayOfNulls(size)
 
         for ((key, slotSet) in keyToSlots) {
-            val item = menu.translateIcon(key)
+            val (item, callback) = menu.translateIcon(key) ?: continue
             slotSet.forEach { slot ->
                 slots[slot] = item?.clone()
+                if (callback != null) {
+                    clickCallbacks[slot] = callback
+                }
             }
         }
 
