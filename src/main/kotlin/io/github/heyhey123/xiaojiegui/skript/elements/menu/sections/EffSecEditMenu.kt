@@ -75,7 +75,10 @@ class EffSecEditMenu : EffectSection() {
 
     override fun walk(event: Event?): TriggerItem? {
         val menu = menuExpr.getSingle(event)
-        requireNotNull(menu)
+        if (menu == null) {
+            Skript.error("Menu cannot be null in edit menu effect.")
+            return walk(event, false)
+        }
 
         if (trigger != null) {
             val menuProvider = ProvideMenuEvent(menu)

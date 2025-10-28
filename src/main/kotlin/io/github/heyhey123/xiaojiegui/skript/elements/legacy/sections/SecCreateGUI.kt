@@ -65,7 +65,6 @@ class SecCreateGUI : EffectSection() {
         inception = parser.isCurrentSection(SecCreateGUI::class.java)
 
         if (hasSection()) {
-            checkNotNull(sectionNode)
             loadOptionalCode(sectionNode)
         }
 
