@@ -13,8 +13,10 @@ import ch.njol.skript.lang.TriggerItem
 import ch.njol.skript.lang.util.SectionUtils
 import ch.njol.skript.variables.Variables
 import ch.njol.util.Kleenean
+import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 
@@ -36,7 +38,7 @@ class EffSecOverrideSlot : EffectSection() {
                 EffSecOverrideSlot::class.java,
                 "(override|set) slot %number% " +
                         "in page [(number|index)] %number% " +
-                        "of [(menu|gui)] %menu% to %itemstack%" +
+                        "[of [(menu|gui)] %-menu%] to %itemstack%" +
                         "[refresh:((and|with) (refresh|update))]" +
                         "[when:(and when (clicked|interacted|pressed))]"
             )
@@ -45,15 +47,15 @@ class EffSecOverrideSlot : EffectSection() {
 
     private var trigger: TriggerItem? = null
 
-    private lateinit var slot: Expression<Number>
+    private lateinit var slotExpr: Expression<Number>
 
-    private lateinit var page: Expression<Number>
+    private lateinit var pageExpr: Expression<Number>
 
-    private lateinit var menu: Expression<Menu>
+    private var menuExpr: Expression<Menu>? = null
 
-    private lateinit var item: Expression<ItemStack>
+    private lateinit var itemExpr: Expression<ItemStack>
 
-    private var refresh: Boolean = false
+    private var refreshFlag: Boolean = false
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -64,13 +66,13 @@ class EffSecOverrideSlot : EffectSection() {
         sectionNode: SectionNode?,
         triggerItems: List<TriggerItem?>?
     ): Boolean {
-        slot = expressions!![0] as Expression<Number>
-        page = expressions[1] as Expression<Number>
-        menu = expressions[2] as Expression<Menu>
-        item = expressions[3] as Expression<ItemStack>
+        slotExpr = expressions!![0] as Expression<Number>
+        pageExpr = expressions[1] as Expression<Number>
+        menuExpr = expressions[2] as Expression<Menu>?
+        itemExpr = expressions[3] as Expression<ItemStack>
 
         if (parseResult!!.hasTag("refresh")) {
-            refresh = true
+            refreshFlag = true
         }
 
         if (parseResult.hasTag("when") && !hasSection()) {
@@ -96,34 +98,43 @@ class EffSecOverrideSlot : EffectSection() {
     }
 
     override fun walk(event: Event?): TriggerItem? {
-        val menu = menu.getSingle(event)
-        val slot = slot.getAll(event)
-        val page = page.getAll(event)
-        val item = item.getSingle(event)
-
+        val menu = menuExpr?.getSingle(event) ?: when (event) {
+            is MenuEvent -> event.menu
+            is ProvideMenuEvent -> event.menu
+            else -> null
+        }
         if (menu == null) {
             Skript.error("Menu cannot be null.")
             return walk(event, false)
         }
 
+        val slot = slotExpr.getAll(event)
         if (slot.isEmpty()) {
             Skript.error("Slot cannot be null.")
             return walk(event, false)
         }
 
-        if (page.isEmpty()) {
+        val pages = pageExpr.getAll(event)
+        if (pages.isEmpty()) {
             Skript.error("Page cannot be empty.")
             return walk(event, false)
         }
 
+        if (pages.any { it.toInt() !in 0..<menu.pages.size }) {
+            Skript.error("One or more page numbers are out of bounds for the menu.")
+            return walk(event, false)
+        }
+
+        val item = itemExpr.getSingle(event)
+
         if (trigger == null) {
-            for (singlePage in page) {
+            for (singlePage in pages) {
                 for (singleSlot in slot) {
                     menu.overrideSlot(
                         singleSlot.toInt(),
                         singlePage.toInt(),
                         item,
-                        refresh
+                        refreshFlag
                     )
                 }
 
@@ -131,13 +142,13 @@ class EffSecOverrideSlot : EffectSection() {
             return walk(event, false)
         }
 
-        for (singlePage in page) {
+        for (singlePage in pages) {
             for (singleSlot in slot) {
                 menu.overrideSlot(
                     singleSlot.toInt(),
                     singlePage.toInt(),
                     item,
-                    refresh
+                    refreshFlag
                 ) { menuEvent ->
                     try {
                         Variables.withLocalVariables(event, menuEvent) {
@@ -160,10 +171,10 @@ class EffSecOverrideSlot : EffectSection() {
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
-        val slotStr = slot.toString(event, debug)
-        val pageStr = page.toString(event, debug)
-        val menuStr = menu.toString(event, debug)
-        val itemStr = item.toString(event, debug)
+        val slotStr = slotExpr.toString(event, debug)
+        val pageStr = pageExpr.toString(event, debug)
+        val menuStr = menuExpr?.toString(event, debug)
+        val itemStr = itemExpr.toString(event, debug)
         val base = "override slot $slotStr in page $pageStr of menu $menuStr to $itemStr"
 
         return if (hasSection()) "$base and when clicked do ..." else base

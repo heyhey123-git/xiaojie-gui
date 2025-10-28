@@ -34,7 +34,7 @@ class ExprMenuViewers : SimpleExpression<Player>() {
         }
     }
 
-    private lateinit var menu: Expression<Menu>
+    private lateinit var menuExpr: Expression<Menu>
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -43,17 +43,17 @@ class ExprMenuViewers : SimpleExpression<Player>() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        menu = expressions?.get(0) as Expression<Menu>
+        menuExpr = expressions?.get(0) as Expression<Menu>
         return true
     }
 
     override fun get(event: Event?): Array<out Player> {
-        val menu = menu.getSingle(event) ?: return arrayOf()
+        val menu = menuExpr.getSingle(event) ?: return arrayOf()
         return menu.viewers.mapNotNull { uuid -> Bukkit.getPlayer(uuid) }.toTypedArray()
     }
 
     override fun toString(event: Event?, debug: Boolean): String =
-        "the viewers of the menu ${menu.toString(event, debug)}"
+        "the viewers of the menu ${menuExpr.toString(event, debug)}"
 
     override fun isSingle() = false
 

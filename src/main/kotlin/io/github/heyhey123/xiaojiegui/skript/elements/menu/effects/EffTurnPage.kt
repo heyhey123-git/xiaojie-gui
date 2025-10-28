@@ -11,6 +11,7 @@ import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.TitleType
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 
@@ -30,16 +31,20 @@ class EffTurnPage : Effect() {
         init {
             Skript.registerEffect(
                 EffTurnPage::class.java,
-                "turn to page %number% for %player% [with (new) title %-string%]"
+                "turn to page %number% for %player% [with (new) title (string:%-string%|component:%-textcomponent%)]"
             )
         }
     }
 
-    private lateinit var page: Expression<Number>
+    private lateinit var pageExPr: Expression<Number>
 
-    private lateinit var player: Expression<Player>
+    private lateinit var playerExpr: Expression<Player>
 
-    private var newTitle: Expression<Any?>? = null
+    private var newTitleStrExpr: Expression<String>? = null
+
+    private var newTitleComponentExpr: Expression<Any>? = null
+
+    private var titleType: TitleType? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -48,19 +53,24 @@ class EffTurnPage : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        page = expressions?.get(0) as Expression<Number>
-        player = expressions[1] as Expression<Player>
-        newTitle = expressions[2] as Expression<Any?>?
+        pageExPr = expressions?.get(0) as Expression<Number>
+        playerExpr = expressions[1] as Expression<Player>
+        if (parseResult!!.tags.isNotEmpty()) {
+            titleType = TitleType.fromStringTag(parseResult.tags[0])
+            newTitleStrExpr = expressions[2] as Expression<String>?
+            newTitleComponentExpr = expressions[3] as Expression<Any>?
+        }
+
         return true
     }
 
     override fun execute(event: Event?) {
-        val page = page.getSingle(event)?.toInt()
+        val page = pageExPr.getSingle(event)?.toInt()
         if (page == null) {
             Skript.error("Page number cannot be null.")
             return
         }
-        val player = player.getSingle(event)
+        val player = playerExpr.getSingle(event)
         if (player == null) {
             Skript.error("Player cannot be null.")
             return
@@ -71,11 +81,19 @@ class EffTurnPage : Effect() {
             Skript.error("Player $player does not have an open menu session.")
             return
         }
-        val title = newTitle?.let { ComponentHelper.extractComponent(it, event) }
+        val title = if (titleType != null) {
+            ComponentHelper.resolveTitleComponentOrNull(
+                newTitleStrExpr,
+                newTitleComponentExpr,
+                event,
+                titleType!!
+            )
+        } else null
+
         menu.turnPage(player, page, title)
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "turn page to page $page for $player with new title $newTitle"
+        "turn page to page $pageExPr for $playerExpr with new title ${newTitleStrExpr ?: newTitleComponentExpr}"
 
 }

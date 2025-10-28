@@ -13,8 +13,10 @@ import ch.njol.skript.lang.TriggerItem
 import ch.njol.skript.lang.util.SectionUtils
 import ch.njol.skript.variables.Variables
 import ch.njol.util.Kleenean
+import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.event.ReceptacleInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 
@@ -37,7 +39,7 @@ class EffSecMapKey2Icon : EffectSection() {
                 EffSecMapKey2Icon::class.java,
                 "map key %string% " +
                         "to (icon|item) %itemstack% " +
-                        "for [(menu|gui)] %menu% " +
+                        "[for [(menu|gui)] %-menu%] " +
                         "[refresh:(and (refresh|update))] " +
                         "[when:(and when clicked)]"
             )
@@ -46,13 +48,13 @@ class EffSecMapKey2Icon : EffectSection() {
 
     private var trigger: TriggerItem? = null
 
-    private lateinit var key: Expression<String>
+    private lateinit var keyExpr: Expression<String>
 
-    private lateinit var item: Expression<ItemStack>
+    private lateinit var itemExpr: Expression<ItemStack>
 
-    private lateinit var menu: Expression<Menu>
+    private var menuExpr: Expression<Menu>? = null
 
-    private var refresh: Boolean = false
+    private var refreshFlag: Boolean = false
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -63,12 +65,12 @@ class EffSecMapKey2Icon : EffectSection() {
         sectionNode: SectionNode?,
         triggerItems: List<TriggerItem?>?
     ): Boolean {
-        key = expressions!![0] as Expression<String>
-        item = expressions[1] as Expression<ItemStack>
-        menu = expressions[2] as Expression<Menu>
+        keyExpr = expressions!![0] as Expression<String>
+        itemExpr = expressions[1] as Expression<ItemStack>
+        menuExpr = expressions[2] as Expression<Menu>?
 
         if (parseResult!!.hasTag("refresh")) {
-            refresh = true
+            refreshFlag = true
         }
 
         if (parseResult.hasTag("when") && !hasSection()) {
@@ -96,31 +98,34 @@ class EffSecMapKey2Icon : EffectSection() {
     }
 
     override fun walk(event: Event?): TriggerItem? {
-        val key = key.getSingle(event)
-        val item = item.getSingle(event)
-        val menu = menu.getSingle(event)
-
+        val key = keyExpr.getSingle(event)
         if (key == null) {
             Skript.error("Key cannot be null.")
             return walk(event, false)
         }
 
+        val item = itemExpr.getSingle(event)
         if (item == null) {
             Skript.error("Item cannot be null.")
             return walk(event, false)
         }
 
+        val menu = menuExpr?.getSingle(event) ?: when (event) {
+            is MenuEvent -> event.menu
+            is ProvideMenuEvent -> event.menu
+            else -> null
+        }
         if (menu == null) {
             Skript.error("Menu cannot be null.")
             return walk(event, false)
         }
 
         if (trigger == null) {
-            menu.updateIconForKey(key, item, refresh)
+            menu.updateIconForKey(key, item, refreshFlag)
             return walk(event, false)
         }
 
-        menu.updateIconForKey(key, item, refresh) { menuEvent ->
+        menu.updateIconForKey(key, item, refreshFlag) { menuEvent ->
             try {
                 Variables.withLocalVariables(event, menuEvent) {
                     walk(trigger, menuEvent)
@@ -140,9 +145,9 @@ class EffSecMapKey2Icon : EffectSection() {
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
-        val keyStr = key.toString(event, debug)
-        val itemStr = item.toString(event, debug)
-        val menuStr = menu.toString(event, debug)
+        val keyStr = keyExpr.toString(event, debug)
+        val itemStr = itemExpr.toString(event, debug)
+        val menuStr = menuExpr?.toString(event, debug)
         val base = "map key $keyStr to item $itemStr for menu $menuStr"
 
         return if (hasSection()) "$base and when clicked do ..." else base

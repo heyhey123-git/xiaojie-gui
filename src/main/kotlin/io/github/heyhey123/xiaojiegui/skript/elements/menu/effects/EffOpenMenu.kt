@@ -39,11 +39,11 @@ class EffOpenMenu : Effect() {
         }
     }
 
-    private var menu: Expression<Menu>? = null
+    private var menuExpr: Expression<Menu>? = null
 
-    private lateinit var player: Expression<Player>
+    private lateinit var playerExpr: Expression<Player>
 
-    private var page: Expression<Number>? = null
+    private var pageExpr: Expression<Number>? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -52,18 +52,18 @@ class EffOpenMenu : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        menu = expressions?.get(0) as Expression<Menu>?
-        if (menu == null && !parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)) {
+        menuExpr = expressions?.get(0) as Expression<Menu>?
+        if (menuExpr == null && !parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)) {
             Skript.error("Menu expression is required if the current event is not a menu-related event.")
             return false
         }
-        player = expressions!![1] as Expression<Player>
-        page = expressions[2] as Expression<Number>?
+        playerExpr = expressions!![1] as Expression<Player>
+        pageExpr = expressions[2] as Expression<Number>?
         return true
     }
 
     override fun execute(event: Event?) {
-        val menu = menu?.getSingle(event) ?: when (event) {
+        val menu = menuExpr?.getSingle(event) ?: when (event) {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> null
@@ -73,7 +73,7 @@ class EffOpenMenu : Effect() {
             Skript.error("Failed to get the menu to open. Please check your code.")
             return
         }
-        val player = player.getSingle(event)
+        val player = playerExpr.getSingle(event)
         if (player == null) {
             Skript.error(
                 "Player expression returned null. Cannot open menu."
@@ -81,7 +81,7 @@ class EffOpenMenu : Effect() {
             return
         }
 
-        val pageNum = page?.getSingle(event)?.toInt()
+        val pageNum = pageExpr?.getSingle(event)?.toInt()
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
@@ -99,8 +99,8 @@ class EffOpenMenu : Effect() {
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
-        val str = "open menu ${menu?.toString(event, debug)} for ${player.toString(event, debug)}"
-        return if (page != null) "$str and go to page ${page.toString()}" else str
+        val str = "open menu ${menuExpr?.toString(event, debug)} for ${playerExpr.toString(event, debug)}"
+        return if (pageExpr != null) "$str and go to page ${pageExpr.toString()}" else str
     }
 
 }

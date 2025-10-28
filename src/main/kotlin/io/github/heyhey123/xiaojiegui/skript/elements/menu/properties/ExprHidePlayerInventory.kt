@@ -1,5 +1,6 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.properties
 
+import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -39,9 +40,15 @@ class ExprHidePlayerInventory : SimplePropertyExpression<Menu, Boolean>() {
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return
         val menu = expr.getSingle(event) ?: return
-        val newValue = delta?.get(0) ?: return
-        if (newValue !is Boolean) return
-        menu.properties.hidePlayerInventory = newValue
+        val hidePlayerInventoryInput = delta?.firstOrNull()
+        if (hidePlayerInventoryInput == null) {
+            Skript.error("Value for hide player inventory cannot be null")
+        }
+        if (hidePlayerInventoryInput !is Boolean) {
+            Skript.error("A boolean value is required for hide player inventory")
+            return
+        }
+        menu.properties.hidePlayerInventory = hidePlayerInventoryInput
     }
 
 }

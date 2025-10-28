@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript.elements.session
+package io.github.heyhey123.xiaojiegui.skript.elements.session.expressions
 
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -7,7 +7,6 @@ import ch.njol.skript.doc.Since
 import ch.njol.skript.expressions.base.SimplePropertyExpression
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import org.bukkit.entity.Player
-
 
 @Name("Get Player's Menu Session")
 @Description(

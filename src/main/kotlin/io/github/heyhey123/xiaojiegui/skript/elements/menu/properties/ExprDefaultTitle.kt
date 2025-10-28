@@ -1,5 +1,6 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.properties
 
+import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -25,7 +26,7 @@ class ExprDefaultTitle : SimplePropertyExpression<Menu, Any>() {
             @Suppress("UNCHECKED_CAST")
             register(
                 ExprDefaultTitle::class.java,
-                ComponentHelper.componentWrapperType as Class<Any>,
+                ComponentHelper.titleReturnType as Class<Any>,
                 "default title",
                 "menu"
             )
@@ -33,22 +34,32 @@ class ExprDefaultTitle : SimplePropertyExpression<Menu, Any>() {
     }
 
     override fun convert(from: Menu?): Any? =
-        from?.properties?.defaultTitle?.let { ComponentHelper.wrapComponent(it) }
+        from?.properties?.defaultTitle?.let { ComponentHelper.wrapComponentOrString(it) }
 
     override fun getPropertyName() =
         "default title"
 
-    override fun getReturnType() = ComponentHelper.componentWrapperType
+    override fun getReturnType() = ComponentHelper.titleReturnType
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
-        if (mode == Changer.ChangeMode.SET) arrayOf(ComponentHelper.componentWrapperType)
+        if (mode == Changer.ChangeMode.SET) ComponentHelper.titleReturnTypes
         else arrayOf()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return
         val menu = expr.getSingle(event) ?: return
-        val newTitle = delta?.get(0) ?: return
-        val component = ComponentHelper.extractComponent(newTitle) ?: return
-        menu.properties.defaultTitle = component
+        val titleArg = delta?.get(0)
+        if (titleArg == null) {
+            Skript.error("Title cannot be null")
+            return
+        }
+
+        val title = ComponentHelper.extractComponentOrNull(titleArg)
+        if (title == null) {
+            Skript.error("Valid title required.")
+            return
+        }
+
+        menu.properties.defaultTitle = title
     }
 }

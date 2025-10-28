@@ -30,7 +30,7 @@ class ExprPageTitle : SimpleExpression<Any?>() {
             @Suppress("UNCHECKED_CAST")
             Skript.registerExpression(
                 ExprPageTitle::class.java,
-                ComponentHelper.componentWrapperType as Class<Any>,
+                ComponentHelper.titleReturnType as Class<Any>,
                 ExpressionType.COMBINED,
                 "[the] title of page [(number|index)] %number% in [(menu|gui)] %menu%"
             )
@@ -56,34 +56,57 @@ class ExprPageTitle : SimpleExpression<Any?>() {
 
     override fun get(event: Event?): Array<out Any?> {
         val menu = menu.getSingle(event) ?: return arrayOf()
-        val page = page.getAll(event)
-        return page.map { singlePage ->
-            val title = menu.pages[singlePage.toInt()].title
-            ComponentHelper.wrapComponent(title)
-        }.toTypedArray()
+        val page = page.getSingle(event) ?: return arrayOf()
+        if (page !in 0..<menu.pages.size) {
+            Skript.error("Page number ${page.toInt()} is out of bounds for the menu.")
+            return arrayOf()
+        }
+        val title = menu.pages[page.toInt()].title
+        return arrayOf(title)
     }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
-        if (mode == Changer.ChangeMode.SET) arrayOf(ComponentHelper.componentWrapperType::class.java)
+        if (mode == Changer.ChangeMode.SET) ComponentHelper.titleReturnTypes
         else arrayOf()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return
-        val menu = menu.getSingle(event) ?: return
-        val pages = page.getAll(event)
-        val component = delta?.get(0) ?: return
-        val wrapped = ComponentHelper.extractComponent(component) ?: return
-        for (singlePage in pages) {
-            val singlePage = singlePage.toInt()
-            if (singlePage !in 0..<menu.size) continue
-            menu.pages[singlePage].title = wrapped
+        val menu = menu.getSingle(event)
+        if (menu == null) {
+            Skript.error("Menu cannot be null.")
+            return
         }
+
+        val page = page.getSingle(event)
+        if (page == null) {
+            Skript.error("Page number cannot be null.")
+            return
+        }
+
+        val newTitleInput = delta?.firstOrNull()
+        if (newTitleInput == null) {
+            Skript.error("Title cannot be null.")
+            return
+        }
+
+        val title = ComponentHelper.extractComponentOrNull(newTitleInput)
+        if (title == null) {
+            Skript.error("Valid title is required.")
+            return
+        }
+
+        if (page !in 0..<menu.pages.size) {
+            Skript.error("Page number ${page.toInt()} is out of bounds for the menu.")
+            return
+        }
+
+        menu.pages[page.toInt()].title = title
     }
 
     override fun toString(event: Event?, debug: Boolean) =
         "the title of page [(number|index)] $page in [(menu|gui)] $menu"
 
-    override fun isSingle() = false
+    override fun isSingle() = true
 
-    override fun getReturnType() = ComponentHelper.componentWrapperType
+    override fun getReturnType() = ComponentHelper.titleReturnType
 }

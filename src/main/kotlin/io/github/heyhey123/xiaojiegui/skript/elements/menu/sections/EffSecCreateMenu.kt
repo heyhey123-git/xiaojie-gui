@@ -17,7 +17,9 @@ import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.TitleType
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
+import net.kyori.adventure.text.Component
 import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryType
 
@@ -41,9 +43,9 @@ class EffSecCreateMenu : EffectSection() {
         init {
             Skript.registerSection(
                 EffSecCreateMenu::class.java,
-                "create [a] [phantom|static] menu " +
+                "create [a] [:phantom|:static] menu " +
                         "with %inventorytype% " +
-                        "titled %object% " +
+                        "titled (string:%-string%|component:%-textcomponent%) " +
                         "[with id %-string%] " +
                         "[with layout %-string%] " +
                         "[with page %-number%] " +
@@ -57,19 +59,23 @@ class EffSecCreateMenu : EffectSection() {
 
     private lateinit var mode: Receptacle.Mode
 
-    private lateinit var inventoryType: Expression<InventoryType>
+    private lateinit var inventoryTypeExpr: Expression<InventoryType>
 
-    private lateinit var title: Expression<Any>
+    private var titleStrExpr: Expression<String>? = null
 
-    private var id: Expression<String>? = null
+    private var titleComponentExpr: Expression<Any>? = null
 
-    private var layout: Expression<String>? = null
+    private lateinit var titleType: TitleType
 
-    private var page: Expression<Number>? = null
+    private var idExpr: Expression<String>? = null
 
-    private var minClickDelay: Expression<Number>? = null
+    private var layoutExpr: Expression<String>? = null
 
-    private var hidePlayerInventory: Boolean = true
+    private var pageExpr: Expression<Number>? = null
+
+    private var minClickDelayExpr: Expression<Number>? = null
+
+    private var hidePlayerInventoryFlag: Boolean = true
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -81,13 +87,15 @@ class EffSecCreateMenu : EffectSection() {
         triggerItems: List<TriggerItem?>?
     ): Boolean {
         mode = if (parseResult!!.hasTag("static")) Receptacle.Mode.STATIC else Receptacle.Mode.PHANTOM
-        inventoryType = expressions!![0] as Expression<InventoryType>
-        title = expressions[1] as Expression<Any>
-        id = expressions[2] as Expression<String>?
-        layout = expressions[3] as Expression<String>?
-        page = expressions[4] as Expression<Number>?
-        minClickDelay = expressions[5] as Expression<Number>?
-        hidePlayerInventory = !parseResult.hasTag("without")
+        inventoryTypeExpr = expressions!![0] as Expression<InventoryType>
+        titleStrExpr = expressions[1] as Expression<String>?
+        titleComponentExpr = expressions[2] as Expression<Any>?
+        titleType = TitleType.fromStringTag(parseResult.tags[1])
+        idExpr = expressions[3] as Expression<String>?
+        layoutExpr = expressions[4] as Expression<String>?
+        pageExpr = expressions[5] as Expression<Number>?
+        minClickDelayExpr = expressions[6] as Expression<Number>?
+        hidePlayerInventoryFlag = !parseResult.hasTag("without")
 
         if (hasSection()) {
             val trigger = SectionUtils.loadLinkedCode(
@@ -109,20 +117,32 @@ class EffSecCreateMenu : EffectSection() {
     }
 
     override fun walk(event: Event?): TriggerItem? {
-        val inventoryType = this.inventoryType.getSingle(event)
-            ?: return walk(event, false) // inventory type is required
+        val inventoryType = this.inventoryTypeExpr.getSingle(event)
+        if (inventoryType == null) {
+            Skript.error("Inventory type is required.")
+            return walk(event, false)
+        }
 
-        val defaultTitle = ComponentHelper.extractComponent(this.title, event)
-            ?: return walk(event, false) // title is required
+        val defaultTitle: Component? = ComponentHelper.resolveTitleComponentOrNull(
+            titleStrExpr,
+            titleComponentExpr,
+            event,
+            titleType,
+        )
 
-        val id = this.id?.getSingle(event)
-        val defaultLayout = this.layout?.getAll(event)?.toList()
-        val defaultPage = this.page?.getSingle(event)?.toInt()
-        val minClickDelay = this.minClickDelay?.getSingle(event)?.toInt() ?: 0
+        if (defaultTitle == null) {
+            Skript.error("Valid Menu title is required.")
+            return walk(event, false)
+        }// title is required
+
+        val id = this.idExpr?.getSingle(event)
+        val defaultLayout = this.layoutExpr?.getAll(event)?.toList()
+        val defaultPage = this.pageExpr?.getSingle(event)?.toInt()
+        val minClickDelay = this.minClickDelayExpr?.getSingle(event)?.toInt() ?: 0
 
         val properties = MenuProperties(
             defaultTitle,
-            hidePlayerInventory,
+            hidePlayerInventoryFlag,
             mode,
             minClickDelay,
             defaultPage ?: 0,
@@ -152,31 +172,31 @@ class EffSecCreateMenu : EffectSection() {
 
     override fun toString(event: Event?, debug: Boolean): String {
         val str = StringBuilder("create ${mode.toString().lowercase()} menu with ")
-            .append(inventoryType.toString(event, debug))
+            .append(inventoryTypeExpr.toString(event, debug))
             .append(" inventory titled ")
-            .append(title.toString(event, debug))
+            .append((titleStrExpr ?: titleComponentExpr)?.toString(event, debug))
 
-        id?.getSingle(event)?.let {
+        idExpr?.getSingle(event)?.let {
             str.append(" with id ")
                 .append(it)
         }
 
-        layout?.getAll(event)?.toList()?.let {
+        layoutExpr?.getAll(event)?.toList()?.let {
             if (it.isNotEmpty()) {
                 str.append(" with layout ")
                     .append(it.joinToString(", "))
             }
         }
 
-        page?.getSingle(event)?.let {
+        pageExpr?.getSingle(event)?.let {
             str.append(" with page ")
                 .append(it)
         }
 
         str.append(" with ")
-            .append(minClickDelay?.toString(event, debug))
+            .append(minClickDelayExpr?.toString(event, debug))
             .append(" ms click delay ")
-            .append(if (hidePlayerInventory) "with" else "without")
+            .append(if (hidePlayerInventoryFlag) "with" else "without")
             .append(" hide player inventory")
 
         return str.toString()

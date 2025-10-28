@@ -13,6 +13,7 @@ import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.TitleType
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.event.Event
 
@@ -32,18 +33,22 @@ class EffUpdatePageTitle : Effect() {
         init {
             Skript.registerEffect(
                 EffUpdatePageTitle::class.java,
-                "update title of page %number% [in %-menu%] to %object% [refresh:(and refresh)]"
+                "update title of page %number% [in %-menu%] to (string:%-string%|component:%-textcomponent%) [refresh:(and refresh)]"
             )
         }
     }
 
-    private lateinit var page: Expression<Number>
+    private lateinit var pageExpr: Expression<Number>
 
-    private var menu: Expression<Menu>? = null
+    private var menuExpr: Expression<Menu>? = null
 
-    private lateinit var title: Expression<Any>
+    private var titleStrExpr: Expression<String>? = null
 
-    private var refresh: Boolean = false
+    private var titleComponentExpr: Expression<Any>? = null
+
+    private lateinit var titleType: TitleType
+
+    private var refreshFlag: Boolean = false
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -52,20 +57,22 @@ class EffUpdatePageTitle : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        page = expressions?.get(0) as Expression<Number>
-        menu = expressions[1] as Expression<Menu>?
-        if (menu == null && !parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)) {
+        pageExpr = expressions?.get(0) as Expression<Number>
+        menuExpr = expressions[1] as Expression<Menu>?
+        if (menuExpr == null && !parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)) {
             Skript.error("Menu expression is required if the current event is not a menu-related event.")
             return false
         }
-        title = expressions[2] as Expression<Any>
-        refresh = parseResult?.hasTag("refresh") ?: false
+        titleStrExpr = expressions[2] as Expression<String>?
+        titleComponentExpr = expressions[3] as Expression<Any>?
+        titleType = TitleType.fromStringTag(parseResult!!.tags[0])
+        refreshFlag = parseResult.hasTag("refresh")
 
         return true
     }
 
     override fun execute(event: Event?) {
-        val menu = menu?.getSingle(event) ?: when (event) {
+        val menu = menuExpr?.getSingle(event) ?: when (event) {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
@@ -74,34 +81,43 @@ class EffUpdatePageTitle : Effect() {
             }
         }
 
-        val page = page.getAll(event)
-        val title = title.getSingle(event)
+        val page = pageExpr.getSingle(event)
+        if (page == null) {
+            Skript.error("Page number cannot be null.")
+            return
+        }
+
+        if (page !in 0..<menu.pages.size) {
+            Skript.error("Page number ${page.toInt()} is out of bounds for the menu.")
+            return
+        }
+
+        val title = ComponentHelper.resolveTitleComponentOrNull(
+            titleStrExpr,
+            titleComponentExpr,
+            event,
+            titleType
+        )
         if (title == null) {
             Skript.error(
                 "Title cannot be null."
             )
             return
         }
-
-        val component = ComponentHelper.extractComponent(title) ?: return
-
-        page.forEach { singlePage ->
-            if (singlePage !in 0..<menu.size) return@forEach
-            menu.pages.forEach { it.title = component }
-        }
+        menu.pages[page.toInt()].title = title
 
         menu.viewers.forEach { viewer ->
             val session = MenuSession.querySession(viewer) ?: return@forEach
-            session.title(component, refresh)
+            session.title(title, refreshFlag)
         }
 
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "update title of page ${page.toString(event, debug)} in ${
-            menu?.toString(
+        "update title of page ${pageExpr.toString(event, debug)} in ${
+            menuExpr?.toString(
                 event,
                 debug
             )
-        } to ${title.toString(event, debug)}${if (refresh) " and refresh" else ""}"
+        } to ${(titleStrExpr ?: titleComponentExpr)?.toString(event, debug)}${if (refreshFlag) " and refresh" else ""}"
 }

@@ -34,7 +34,7 @@ class EffCloseMenu : Effect() {
         }
     }
 
-    private lateinit var player: Expression<Player>
+    private lateinit var playerExpr: Expression<Player>
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -43,12 +43,12 @@ class EffCloseMenu : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        player = expressions?.get(0) as Expression<Player>
+        playerExpr = expressions?.get(0) as Expression<Player>
         return true
     }
 
     override fun execute(event: Event?) {
-        val player = player.getSingle(event) ?: return
+        val player = playerExpr.getSingle(event) ?: return
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
@@ -64,6 +64,6 @@ class EffCloseMenu : Effect() {
     }
 
     override fun toString(event: Event?, debug: Boolean): String =
-        "close the menu for ${player.toString(event, debug)}"
+        "close the menu for ${playerExpr.toString(event, debug)}"
 
 }

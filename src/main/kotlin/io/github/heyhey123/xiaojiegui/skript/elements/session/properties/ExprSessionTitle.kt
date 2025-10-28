@@ -1,5 +1,6 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.session.properties
 
+import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -29,7 +30,7 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
         init {
             register(
                 ExprSessionTitle::class.java,
-                ComponentHelper.componentWrapperType::class.java as Class<Any>,
+                ComponentHelper.titleReturnType as Class<Any>,
                 "title",
                 "menusession"
             )
@@ -38,23 +39,38 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
 
     override fun convert(from: MenuSession?) =
         from?.receptacle?.title?.let {
-            ComponentHelper.wrapComponent(it)
+            ComponentHelper.wrapComponentOrString(it)
         }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
-        if (mode == Changer.ChangeMode.SET) arrayOf(ComponentHelper.componentWrapperType::class.java)
+        if (mode == Changer.ChangeMode.SET) ComponentHelper.titleReturnTypes
         else arrayOf()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return
-        val session = expr.getSingle(event) ?: return
-        val newTitle = delta?.get(0) ?: return
-        val component = ComponentHelper.extractComponent(newTitle) ?: return
-        session.title(component, true)
+        val session = expr.getSingle(event)
+        if (session == null) {
+            Skript.error("Menu session cannot be null.")
+            return
+        }
+
+        val titleArg = delta?.firstOrNull()
+        if (titleArg == null) {
+            Skript.error("Title cannot be null.")
+            return
+        }
+
+        val title = ComponentHelper.extractComponentOrNull(titleArg)
+        if (title == null) {
+            Skript.error("Valid title required.")
+            return
+        }
+
+        session.title(title, true)
     }
 
     override fun getPropertyName() = "title"
 
-    override fun getReturnType() = ComponentHelper.componentWrapperType
+    override fun getReturnType() = ComponentHelper.titleReturnType
 
 }

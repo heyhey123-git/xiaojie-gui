@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript.elements.session
+package io.github.heyhey123.xiaojiegui.skript.elements.session.effects
 
 import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
@@ -38,9 +38,9 @@ class EffRefreshSession : Effect() {
         }
     }
 
-    private var slot: Expression<Number>? = null
+    private var slotExpr: Expression<Number>? = null
 
-    private lateinit var session: Expression<MenuSession>
+    private lateinit var sessionExpr: Expression<MenuSession>
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -49,22 +49,22 @@ class EffRefreshSession : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        slot = expressions?.get(0) as Expression<Number>?
-        session = expressions?.get(1) as Expression<MenuSession>
+        slotExpr = expressions?.get(0) as Expression<Number>?
+        sessionExpr = expressions?.get(1) as Expression<MenuSession>
         return true
     }
 
     override fun execute(event: Event?) {
-        val session = session.getSingle(event) ?: return
+        val session = sessionExpr.getSingle(event) ?: return
         if (session.receptacle?.mode != Receptacle.Mode.PHANTOM) return
 
-        val slot = slot?.getSingle(event)?.toInt() ?: -1
+        val slot = slotExpr?.getSingle(event)?.toInt() ?: -1
         session.refresh(slot)
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "refresh ${if (slot != null) "the slot ${slot!!.toString(event, debug)} in " else ""}${
-            session.toString(
+        "refresh ${if (slotExpr != null) "the slot ${slotExpr!!.toString(event, debug)} in " else ""}${
+            sessionExpr.toString(
                 event,
                 debug
             )

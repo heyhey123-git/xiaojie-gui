@@ -41,7 +41,7 @@ class EffSecEditMenu : EffectSection() {
 
     private var trigger: TriggerItem? = null
 
-    private lateinit var menu: Expression<Menu>
+    private lateinit var menuExpr: Expression<Menu>
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -52,7 +52,7 @@ class EffSecEditMenu : EffectSection() {
         sectionNode: SectionNode?,
         triggerItems: List<TriggerItem?>?
     ): Boolean {
-        menu = expressions?.get(0) as Expression<Menu>
+        menuExpr = expressions?.get(0) as Expression<Menu>
 
         if (hasSection()) {
             val trigger = SectionUtils.loadLinkedCode(
@@ -74,7 +74,7 @@ class EffSecEditMenu : EffectSection() {
     }
 
     override fun walk(event: Event?): TriggerItem? {
-        val menu = menu.getSingle(event)
+        val menu = menuExpr.getSingle(event)
         requireNotNull(menu)
 
         if (trigger != null) {
@@ -88,6 +88,6 @@ class EffSecEditMenu : EffectSection() {
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "edit menu ${menu.toString(event, debug)}"
+        "edit menu ${menuExpr.toString(event, debug)}"
 
 }

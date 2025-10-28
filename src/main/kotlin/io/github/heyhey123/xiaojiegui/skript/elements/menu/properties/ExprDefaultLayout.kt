@@ -30,7 +30,7 @@ class ExprDefaultLayout : SimpleExpression<String>() {
         }
     }
 
-    private lateinit var menu: Expression<Menu>
+    private lateinit var menuExpr: Expression<Menu>
 
     override fun getReturnType() = String::class.java
 
@@ -43,31 +43,42 @@ class ExprDefaultLayout : SimpleExpression<String>() {
         isDelayed: ch.njol.util.Kleenean?,
         parseResult: ch.njol.skript.lang.SkriptParser.ParseResult?
     ): Boolean {
-        menu = exprs?.get(0) as Expression<Menu>
+        menuExpr = exprs?.get(0) as Expression<Menu>
         return true
     }
 
     override fun get(event: Event?): Array<String> {
-        val menu = menu.getSingle(event) ?: return arrayOf()
+        val menu = menuExpr.getSingle(event) ?: return arrayOf()
         return menu.properties.defaultLayout.toTypedArray()
     }
 
-    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
-        if (mode == Changer.ChangeMode.SET) arrayOf(Array<String>::class.java)
+    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
+        if (mode == Changer.ChangeMode.SET) arrayOf(String::class.java)
         else arrayOf()
 
     @Suppress("UNCHECKED_CAST")
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return
-        val menu = menu.getSingle(event) ?: return
-        val arr = delta ?: return
-        if (arr.any { it !is String }) return
-        menu.properties.defaultLayout = arr.map { it as String }
+        val menu = menuExpr.getSingle(event)
+        if (menu == null) {
+            Skript.error("Menu cannot be null: ${this.toString(event, true)}")
+            return
+        }
 
-        menu.properties.defaultLayout = arr.toList() as List<String>
+        if (delta == null) {
+            Skript.error("Layout cannot be null")
+            return
+        }
+
+        if (delta.any { it !is String }) {
+            Skript.error("All layout rows must be strings.")
+            return
+        }
+
+        menu.properties.defaultLayout = delta.toList() as List<String>
     }
 
     override fun toString(event: Event?, debug: Boolean): String =
-        "the default layout of the menu ${menu.toString(event, debug)}"
+        "the default layout of the menu ${menuExpr.toString(event, debug)}"
 
 }

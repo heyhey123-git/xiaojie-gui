@@ -1,65 +1,83 @@
 package io.github.heyhey123.xiaojiegui.skript
 
 import ch.njol.skript.lang.Expression
+import io.github.heyhey123.xiaojiegui.skript.TitleType.COMPONENT
+import io.github.heyhey123.xiaojiegui.skript.TitleType.STRING
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.event.Event
 
 object ComponentHelper {
+    /**
+     * Extract a Component from a ComponentWrapper(in skbee).
+     *
+     * @param obj the ComponentWrapper to extract from
+     * @return the extracted Component, or null if extraction failed
+     */
+    fun extractComponent(obj: Any): Component =
+        fieldComponent!!.get(obj) as Component
 
     /**
-     * Extract a Component from an Expression.
-     * Support String, TextComponent(in skbee), and other types that can be converted to String.
+     * Try to extract a Component from an object, which can be either a String or a ComponentWrapper.
      *
-     * @param expr the expression to extract from
-     * @param event the event context
-     * @return the extracted Component, or null if extraction fails
+     * @param obj the object to extract from
+     * @return the extracted Component, or null if extraction failed
      */
-    fun extractComponent(expr: Expression<Any?>, event: Event?): Component? {
+    fun extractComponentOrNull(obj: Any): Component? =
         when {
-            expr.returnType == String::class.java -> {
-                val str = expr.getSingle(event) as String?
-                return str?.let { Component.text(it) }
-            }
-
-            expr.returnType.name == "com.shanebeestudios.skbee.api.wrapper.ComponentWrapper" -> {
-                val wrapper = expr.getSingle(event)
-                return fieldComponent!!.get(wrapper) as Component?
-            }
-
-            else -> {
-                val convertedExpr = expr.getConvertedExpression(String::class.java)
-                val str = convertedExpr?.getSingle(event)
-                return str?.let { Component.text(it) }
-            }
+            obj is String -> Component.text(obj)
+            skbeeComponentWrapper?.isInstance(obj) == true -> extractComponent(obj)
+            else -> null
         }
-    }
 
-    fun extractComponent(obj: Any): Component? {
-        when {
-            obj is String -> {
-                return Component.text(obj)
-            }
-
-            obj::class.java.name == "com.shanebeestudios.skbee.api.wrapper.ComponentWrapper" -> {
-                return fieldComponent!!.get(obj) as Component?
-            }
-
-            else -> {
-                return Component.text(obj.toString())
-            }
-        }
-    }
 
     /**
      * Wrap a Component into a suitable object for Skript.
      *
      * @param component the Component to wrap
-     * @return the wrapped object, either a ComponentWrapper (if skbee is present) or a legacy string
+     * @return the wrapped object, either a ComponentWrapper (if skbee is present)
      */
     fun wrapComponent(component: Component): Any =
-        if (hasSkBee) methodFromComponent!!.invoke(null, component)
-        else LegacyComponentSerializer.legacySection().serialize(component)
+        methodFromComponent!!.invoke(null, component)!!
+
+    /**
+     * Try to wrap a Component into a suitable object for Skript, or serialize it to a legacy string if skbee is not present.
+     *
+     * @param component the Component to wrap
+     * @return the wrapped object, either a ComponentWrapper (if skbee is present) or a legacy string
+     */
+    fun wrapComponentOrString(component: Component): Any =
+        when {
+            hasSkBee -> wrapComponent(component)
+            else -> LegacyComponentSerializer.legacySection().serialize(component)
+        }
+
+    /**
+     * Convert expressions to a Component based on the TitleType.
+     *
+     * @param strExpr the string expression
+     * @param componentExpr the component expression
+     * @param event the event context
+     * @param type the TitleType
+     * @return the resulting Component, or null if conversion failed
+     */
+    fun resolveTitleComponentOrNull(
+        strExpr: Expression<String>?,
+        componentExpr: Expression<Any>?,
+        event: Event?,
+        type: TitleType
+    ): Component? =
+        when (type) {
+            STRING -> {
+                val titleStr = strExpr?.getSingle(event)
+                titleStr?.let { Component.text(titleStr) }
+            }
+
+            COMPONENT -> {
+                val titleObj = componentExpr?.getSingle(event)
+                titleObj?.let { extractComponent(it) }
+            }
+        }
 
     /**
      * The SKBee ComponentWrapper class, or null if SKBee is not present.
@@ -71,12 +89,6 @@ object ComponentHelper {
             return@run null
         }
     }
-
-    /**
-     * The type of object used to represent components in Skript.
-     * Either ComponentWrapper (if skbee is present) or String.
-     */
-    val componentWrapperType: Class<*> = skbeeComponentWrapper ?: String::class.java
 
     /**
      * The "fromComponent" method in the ComponentWrapper class, or null if SkBee is not present.
@@ -100,4 +112,16 @@ object ComponentHelper {
      * Whether SKBee is present in the server.
      */
     val hasSkBee: Boolean = skbeeComponentWrapper != null
+
+    /**
+     * The appropriate return type for title expressions, either ComponentWrapper (if skbee is present) or String.
+     */
+    val titleReturnType = if (hasSkBee) skbeeComponentWrapper!! else String::class.java
+
+    /**
+     * The appropriate return types for title expressions, either `ComponentWrapper` (if skbee is present) or `ComponentWrapper` and [String].
+     */
+    val titleReturnTypes: Array<Class<*>> =
+        if (hasSkBee) arrayOf(skbeeComponentWrapper!!, String::class.java)
+        else arrayOf(String::class.java)
 }

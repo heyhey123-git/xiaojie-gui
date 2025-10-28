@@ -39,15 +39,15 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
                 ExprSessionIcon::class.java,
                 ItemStack::class.java,
                 ExpressionType.COMBINED,
-                "icon of %menusession% in slot %number%",
-                "icon in slot %number% of %menusession%"
+                "icon of %menusession% in slot %numbers%",
+                "icon in slot %numbers% of %menusession%"
             )
         }
     }
 
-    private lateinit var session: Expression<MenuSession>
+    private lateinit var sessionExpr: Expression<MenuSession>
 
-    private lateinit var slot: Expression<Number>
+    private lateinit var slotExpr: Expression<Number>
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -58,21 +58,21 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
     ): Boolean {
         when (matchedPattern) {
             0 -> {
-                session = expressions?.get(0) as Expression<MenuSession>
-                slot = expressions[1] as Expression<Number>
+                sessionExpr = expressions?.get(0) as Expression<MenuSession>
+                slotExpr = expressions[1] as Expression<Number>
             }
 
             1 -> {
-                slot = expressions?.get(0) as Expression<Number>
-                session = expressions[1] as Expression<MenuSession>
+                slotExpr = expressions?.get(0) as Expression<Number>
+                sessionExpr = expressions[1] as Expression<MenuSession>
             }
         }
         return true
     }
 
     override fun get(event: Event?): Array<ItemStack?> {
-        val session = session.getSingle(event) ?: return arrayOf()
-        val slot = slot.getAll(event)
+        val session = sessionExpr.getSingle(event) ?: return arrayOf()
+        val slot = slotExpr.getAll(event)
         return slot.map { session.getIcon(it.toInt()) }.toTypedArray()
     }
 
@@ -85,8 +85,8 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
         }
 
     override fun change(event: Event?, delta: Array<out Any>?, mode: Changer.ChangeMode?) {
-        val session = session.getSingle(event) ?: return
-        val slots = slot.getAll(event).map { it.toInt() }
+        val session = sessionExpr.getSingle(event) ?: return
+        val slots = slotExpr.getAll(event).map { it.toInt() }
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
@@ -98,7 +98,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
 
         when (mode) {
             Changer.ChangeMode.SET -> {
-                val item = delta?.get(0) as? ItemStack?
+                val item = delta?.firstOrNull() as? ItemStack?
                 session.setIcons(slots.associateWith { item }, true)
             }
 
@@ -111,7 +111,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "icon in slot ${slot.toString(event, debug)} of ${session.toString(event, debug)}"
+        "icon in slot ${slotExpr.toString(event, debug)} of ${sessionExpr.toString(event, debug)}"
 
     override fun isSingle() = false
 

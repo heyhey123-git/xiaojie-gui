@@ -19,7 +19,7 @@ class ExprEventTitle : SimpleExpression<Any>() {
             @Suppress("UNCHECKED_CAST")
             Skript.registerExpression(
                 ExprEventTitle::class.java,
-                ComponentHelper.componentWrapperType::class.java as Class<Any>,
+                ComponentHelper.titleReturnType as Class<Any>,
                 ExpressionType.SIMPLE,
                 "[the] [event-]title"
             )
@@ -35,20 +35,28 @@ class ExprEventTitle : SimpleExpression<Any>() {
 
     override fun get(event: Event?): Array<Any> {
         if (event !is PageTurnEvent) return arrayOf()
-        return arrayOf(ComponentHelper.wrapComponent(event.title))
+        return arrayOf(ComponentHelper.wrapComponentOrString(event.title))
     }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
         if (mode == Changer.ChangeMode.SET)
-            arrayOf(ComponentHelper.componentWrapperType::class.java)
+            ComponentHelper.titleReturnTypes
         else arrayOf()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (event !is PageTurnEvent) return
         if (mode != Changer.ChangeMode.SET) return
-        val newTitle = delta?.get(0) ?: return
-        val component = ComponentHelper.extractComponent(newTitle) ?: return
-        event.title = component
+        val titleInput = delta?.firstOrNull()
+        if (titleInput == null) {
+            Skript.error("Title cannot be null")
+            return
+        }
+        val newTitle = ComponentHelper.extractComponentOrNull(titleInput)
+        if (newTitle == null) {
+            Skript.error("Valid title required.")
+            return
+        }
+        event.title = newTitle
     }
 
 
@@ -57,5 +65,5 @@ class ExprEventTitle : SimpleExpression<Any>() {
 
     override fun isSingle() = true
 
-    override fun getReturnType() = ComponentHelper.componentWrapperType::class.java
+    override fun getReturnType() = ComponentHelper.titleReturnType
 }

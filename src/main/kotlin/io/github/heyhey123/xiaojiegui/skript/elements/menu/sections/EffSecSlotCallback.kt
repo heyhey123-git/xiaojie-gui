@@ -36,7 +36,7 @@ class EffSecSlotCallback : EffectSection() {
                 EffSecSlotCallback::class.java,
                 "(when|on) slot %number% " +
                         "in page [(number|index)] %number% " +
-                        "of [(menu|gui)] %menu% " +
+                        "[of [(menu|gui)] %-menu%] " +
                         "[is] (clicked|interacted|pressed)"
             )
         }
@@ -44,11 +44,11 @@ class EffSecSlotCallback : EffectSection() {
 
     private var trigger: TriggerItem? = null
 
-    private lateinit var slot: Expression<Number>
+    private lateinit var slotExpr: Expression<Number>
 
-    private lateinit var page: Expression<Number>
+    private lateinit var pageExpr: Expression<Number>
 
-    private lateinit var menu: Expression<Menu>
+    private var menuExpr: Expression<Menu>? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -59,9 +59,9 @@ class EffSecSlotCallback : EffectSection() {
         sectionNode: SectionNode?,
         triggerItems: List<TriggerItem?>?
     ): Boolean {
-        slot = expressions!![0] as Expression<Number>
-        page = expressions[1] as Expression<Number>
-        menu = expressions[2] as Expression<Menu>
+        slotExpr = expressions!![0] as Expression<Number>
+        pageExpr = expressions[1] as Expression<Number>
+        menuExpr = expressions[2] as Expression<Menu>?
 
         if (!hasSection()) {
             Skript.error("You must provide a section to handle the slot click event.")
@@ -86,11 +86,22 @@ class EffSecSlotCallback : EffectSection() {
     }
 
     override fun walk(event: Event?): TriggerItem? {
-        if (!hasSection()) return walk(event, false)
+        if (!hasSection()) {
+            Skript.error("No section found to handle the slot callback.")
+            return walk(event, false)
+        }
 
-        val menu = this.menu.getSingle(event) ?: return walk(event, false)
-        val slot = this.slot.getAll(event)
-        val page = this.page.getAll(event)
+        val menu = this.menuExpr?.getSingle(event) ?: when (event) {
+            is MenuInteractEvent -> event.menu
+            else -> null
+        }
+        if (menu == null) {
+            Skript.error("Failed to get the menu to set slot callback. Please check your code.")
+            return walk(event, false)
+        }
+
+        val slot = this.slotExpr.getAll(event)
+        val page = this.pageExpr.getAll(event)
 
         if (slot.isEmpty()) {
             Skript.error("Slot cannot be empty.")
@@ -119,11 +130,11 @@ class EffSecSlotCallback : EffectSection() {
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "set slot callback for slot ${slot.toString(event, debug)} in page ${
-            page.toString(
+        "set slot callback for slot ${slotExpr.toString(event, debug)} in page ${
+            pageExpr.toString(
                 event,
                 debug
             )
-        } of menu ${menu.toString(event, debug)}"
+        } of menu ${menuExpr?.toString(event, debug)}"
 
 }

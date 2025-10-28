@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript.elements.session
+package io.github.heyhey123.xiaojiegui.skript.elements.session.effects
 
 import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
@@ -34,7 +34,7 @@ class EffCloseSession : Effect() {
         }
     }
 
-    private lateinit var session: Expression<MenuSession>
+    private lateinit var sessionExpr: Expression<MenuSession>
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -43,12 +43,12 @@ class EffCloseSession : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        session = expressions?.get(0) as Expression<MenuSession>
+        sessionExpr = expressions?.get(0) as Expression<MenuSession>
         return true
     }
 
     override fun execute(event: Event?) {
-        val session = session.getSingle(event)
+        val session = sessionExpr.getSingle(event)
         if (session == null) {
             Skript.error(
                 "Menu session cannot be null: ${this.toString(event, true)}"
@@ -68,5 +68,5 @@ class EffCloseSession : Effect() {
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "close ${session.toString(event, debug)}"
+        "close ${sessionExpr.toString(event, debug)}"
 }
