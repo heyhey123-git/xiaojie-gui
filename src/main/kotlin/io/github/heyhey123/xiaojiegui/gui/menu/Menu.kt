@@ -14,6 +14,7 @@ import org.bukkit.inventory.ItemStack
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Consumer
 
 
 /**
@@ -199,6 +200,22 @@ class Menu(
     }
 
     /**
+     * Update the ItemStack associated with a specific key in the icon mapper and refresh the viewers' inventories accordingly.
+     * This version uses a Consumer for the callback.
+     *
+     * @param key The key to update.
+     * @param item The new ItemStack to associate with the key, or null to remove it.
+     * @param refresh Whether to refresh the viewers' inventories after updating the icon.
+     * @param callback A Consumer callback to execute on click.
+     */
+    fun updateIconForKey(
+        key: String,
+        item: ItemStack?,
+        refresh: Boolean,
+        callback: Consumer<MenuInteractEvent>
+    ) = updateIconForKey(key, item, refresh) { event -> callback.accept(event) }
+
+    /**
      * Set a click callback for a specific slot on a specific page.
      *
      * @param page The page number.
@@ -216,6 +233,20 @@ class Menu(
         val pageInstance = pages[page]
         pageInstance.clickCallbacks[slot] = callback
     }
+
+    /**
+     * Set a click callback for a specific slot on a specific page.
+     * This version uses a Consumer for the callback.
+     *
+     * @param page The page number.
+     * @param slot The slot number.
+     * @param callback A Consumer callback to execute on click.
+     */
+    fun setSlotCallback(
+        page: Int,
+        slot: Int,
+        callback: Consumer<MenuInteractEvent>
+    ) = setSlotCallback(page, slot) { event -> callback.accept(event) }
 
     /**
      * Override the item in a specific slot on a specific page and refresh the viewers' inventories accordingly.
@@ -257,6 +288,24 @@ class Menu(
             }
         }
     }
+
+    /**
+     * Override the item in a specific slot on a specific page and refresh the viewers' inventories accordingly.
+     * This version uses a Consumer for the callback.
+     *
+     * @param page The page number.
+     * @param slot The slot number.
+     * @param item The new ItemStack to set in the slot, or null to clear it.
+     * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
+     * @param callback A Consumer callback to execute on click for the overridden slot.
+     */
+    fun overrideSlot(
+        page: Int,
+        slot: Int,
+        item: ItemStack?,
+        refresh: Boolean,
+        callback: Consumer<MenuInteractEvent>
+    ) = overrideSlot(page, slot, item, refresh) { event -> callback.accept(event) }
 
     /**
      * Insert a new page into the menu at the specified position.

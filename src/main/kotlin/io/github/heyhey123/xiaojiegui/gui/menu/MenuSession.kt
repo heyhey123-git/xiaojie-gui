@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import java.util.function.Consumer
 
 class MenuSession(
     val viewer: Player,
@@ -165,6 +166,15 @@ class MenuSession(
         fun forEachSession(action: (MenuSession) -> Unit) {
             SESSIONS.values.forEach(action)
         }
+
+        /**
+         * Perform the given action for each active MenuSession.
+         * This version accepts a Consumer as the action.
+         *
+         * @param action the action to perform for each session
+         */
+        fun forEachSession(action: Consumer<MenuSession>) =
+            forEachSession { action.accept(it) }
 
         /**
          * Clear all MenuSessions.
