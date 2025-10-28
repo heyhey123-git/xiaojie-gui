@@ -15,7 +15,7 @@ class XiaojieGUI : JavaPlugin() {
         lateinit var instance: XiaojieGUI
         lateinit var skriptAddon: SkriptAddon
 
-        val enableAsyncCheck: Boolean = config.getBoolean("enable-async-check", false)
+        val enableAsyncCheck: Boolean = config.getBoolean("enable-async-check", true)
     }
 
     @Suppress("Unused")

@@ -92,7 +92,7 @@ class Page(
      */
     val size: Int = layout.containerSize
 
-    val keyToSlots: Map<String, Set<Int>> by lazy {
+    val keyToSlots: Map<String, Set<Int>> = run {
         val mapping = mutableMapOf<String, MutableSet<Int>>()
 
         fun computeSlot(visualX: Int, yIndex: Int, baseIndex: Int): Int =
@@ -218,8 +218,7 @@ class Page(
     }
 
     /**
-     * Compute the item stacks for each slot in the menu session's receptacle,
-     * and populate the click callbacks accordingly.
+     * Compute the item stacks for each slot in the menu session's receptacle.
      *
      * @param session The menu session for which to compute the slots.
      * @return An array of item stacks representing the items in each slot, or null if no item is set for a slot.
@@ -233,12 +232,9 @@ class Page(
         val slots: Array<ItemStack?> = arrayOfNulls(size)
 
         for ((key, slotSet) in keyToSlots) {
-            val (item, callback) = menu.translateIcon(key) ?: continue
+            val item = menu.translateIcon(key) ?: continue
             slotSet.forEach { slot ->
-                slots[slot] = item?.clone()
-                if (callback != null) {
-                    clickCallbacks[slot] = callback
-                }
+                slots[slot] = item.clone()
             }
         }
 
