@@ -3,12 +3,13 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     java
     id("com.gradleup.shadow") version "9.0.0-beta15"
-    id("org.jetbrains.kotlin.jvm") version "2.0.0"
+    id("org.jetbrains.kotlin.jvm") version "2.2.21"
 }
 
 group = "io.github.heyhey123.xiaojiegui.it"
 version = "1.0-SNAPSHOT"
-val kotlinVersion = "2.0.0"
+val kotlinVersion = "2.2.21"
+val shadePrefix: String by project
 
 repositories {
     mavenCentral()
@@ -48,8 +49,8 @@ tasks {
 //        relocate("org.opentest4j", "io.github.heyhey123.it.shaded.opentest4j")
 //        relocate("org.apiguardian", "io.github.heyhey123.it.shaded.apiguardian")
 
-        relocate("kotlin.", "${rootProject.group}.kotlin${kotlinEscapedVersion}.")
-        relocate("org.jetbrains.annotations.", "${rootProject.group}.org.jetbrains.annotations2602.")
+        relocate("kotlin.", "$shadePrefix.kotlin${kotlinEscapedVersion}.")
+        relocate("org.jetbrains.annotations.", "$shadePrefix.org.jetbrains.annotations2602.")
     }
 
     build {

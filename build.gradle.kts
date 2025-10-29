@@ -4,13 +4,14 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     java
     id("com.gradleup.shadow") version "9.0.0-beta15"
-    id("org.jetbrains.kotlin.jvm") version "2.0.0"
+    id("org.jetbrains.kotlin.jvm") version "2.2.21"
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
 }
 
 group = "io.github.heyhey123"
 version = "1.0-SNAPSHOT"
-val kotlinVersion = "2.0.0"
+val kotlinVersion = "2.2.21"
+val shadePrefix: String by project
 
 repositories {
     mavenCentral()
@@ -69,8 +70,8 @@ tasks {
         minimize()
 
         //relocate Kotlin
-        relocate("kotlin.", "${rootProject.group}.kotlin${kotlinEscapedVersion}.")
-        relocate("org.jetbrains.annotations.", "${rootProject.group}.org.jetbrains.annotations2602.")
+        relocate("kotlin.", "$shadePrefix.kotlin${kotlinEscapedVersion}.")
+        relocate("org.jetbrains.annotations.", "$shadePrefix.org.jetbrains.annotations2602.")
     }
 
     build {
