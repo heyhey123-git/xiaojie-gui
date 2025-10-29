@@ -9,9 +9,11 @@ import ch.njol.skript.lang.Effect
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
+import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
 import io.github.heyhey123.xiaojiegui.skript.TitleType
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 
@@ -70,17 +72,24 @@ class EffTurnPage : Effect() {
             Skript.error("Page number cannot be null.")
             return
         }
+
         val player = playerExpr.getSingle(event)
         if (player == null) {
             Skript.error("Player cannot be null.")
             return
         }
+
         val session = MenuSession.querySession(player)
         val menu = session?.menu
         if (session == null || menu == null) {
             Skript.error("Player $player does not have an open menu session.")
             return
         }
+        if (page !in 0..<menu.size) {
+            Skript.error("Page number ${page} is out of bounds for the menu.")
+            return
+        }
+
         val title = if (titleType != null) {
             ComponentHelper.resolveTitleComponentOrNull(
                 newTitleStrExpr,
@@ -89,6 +98,15 @@ class EffTurnPage : Effect() {
                 titleType!!
             )
         } else null
+
+        if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
+            Skript.error(
+                "Menu page can only be turned from the main server thread, " +
+                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                        "current statement: ${this.toString(event, true)}"
+            )
+            return
+        }
 
         menu.turnPage(player, page, title)
     }

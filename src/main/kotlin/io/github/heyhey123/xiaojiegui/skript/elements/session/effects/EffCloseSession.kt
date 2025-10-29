@@ -62,6 +62,7 @@ class EffCloseSession : Effect() {
                         "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                         "current statement: ${this.toString(event, true)}"
             )
+            return
         }
 
         session.close()

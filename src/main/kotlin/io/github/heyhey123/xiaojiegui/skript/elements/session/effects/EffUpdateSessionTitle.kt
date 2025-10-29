@@ -9,9 +9,11 @@ import ch.njol.skript.lang.Effect
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
+import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
 import io.github.heyhey123.xiaojiegui.skript.TitleType
+import org.bukkit.Bukkit
 import org.bukkit.event.Event
 
 
@@ -75,6 +77,14 @@ class EffUpdateSessionTitle : Effect() {
         )
         if (title == null) {
             Skript.error("Valid title is required.")
+            return
+        }
+        if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
+            Skript.error(
+                "Menu session title can only be updated from the main server thread, " +
+                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                        "current statement: ${this.toString(event, true)}"
+            )
             return
         }
 

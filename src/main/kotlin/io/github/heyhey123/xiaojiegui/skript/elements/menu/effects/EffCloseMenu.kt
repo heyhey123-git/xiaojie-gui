@@ -56,6 +56,7 @@ class EffCloseMenu : Effect() {
                         "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                         "current statement: ${this.toString(event, true)}"
             )
+            return
         }
 
         MenuSession.querySession(player)?.close() ?: Skript.error(
