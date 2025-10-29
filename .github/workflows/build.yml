@@ -22,7 +22,7 @@ jobs:
 
             # Cache Gradle dependencies and wrapper to speed up dependency resolution
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Setup java
         uses: useblacksmith/setup-java@v5
