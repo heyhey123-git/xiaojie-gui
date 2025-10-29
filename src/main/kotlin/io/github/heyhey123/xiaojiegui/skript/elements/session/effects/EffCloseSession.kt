@@ -29,7 +29,7 @@ class EffCloseSession : Effect() {
         init {
             Skript.registerEffect(
                 EffCloseSession::class.java,
-                "close [the] %menusession%"
+                "close [the] [menu] [session] %menusession%"
             )
         }
     }

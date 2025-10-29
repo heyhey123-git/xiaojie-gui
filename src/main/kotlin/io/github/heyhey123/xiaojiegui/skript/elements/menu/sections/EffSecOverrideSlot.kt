@@ -26,8 +26,8 @@ import org.bukkit.inventory.ItemStack
     "You can optionally provide a section to handle click events on the overridden slot."
 )
 @Examples(
-    "override slot 0 in page 1 of menu {_menu} to stone named \"Click me!\" and refresh and when clicked:",
-    "send \"You clicked the overridden slot!\" to player"
+    "override slot 10 in page 0 of menu with id \"main_menu\" to diamond named \"Clicked Item\" refresh and when clicked:",
+    "    send \"You clicked the overridden slot!\" to player"
 )
 @Since("1.0-SNAPSHOT")
 class EffSecOverrideSlot : EffectSection() {

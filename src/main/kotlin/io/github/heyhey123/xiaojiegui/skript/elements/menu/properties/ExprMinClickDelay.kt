@@ -9,7 +9,10 @@ import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 
 @Name("Minimum Click Delay")
 @Description("The minimum click delay (in ms) between two clicks in a menu.")
-@Examples("set {_delay} to minimum click delay of menu with id \"main_menu\"")
+@Examples(
+    "set {_delay} to the minimum click delay of menu",
+    "send \"The minimum click delay is %{_delay}% ms\" to player"
+)
 @Since("1.0-SNAPSHOT")
 class ExprMinClickDelay : SimplePropertyExpression<Menu, Number>() {
 

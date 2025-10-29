@@ -19,8 +19,9 @@ import org.bukkit.event.Event
     "The ID is the one defined when creating the menu."
 )
 @Examples(
-    "set {_menu} to menu with id \"main_menu\" ",
-    "open {_menu} for player"
+    "set {_menu} to menu with id \"main_menu\"",
+    "if {_menu} is not set:",
+    "    send \"Menu with ID 'main_menu' does not exist.\" to player"
 )
 @Since("1.0-SNAPSHOT")
 class ExprMenuById : SimpleExpression<Menu>() {
@@ -30,8 +31,7 @@ class ExprMenuById : SimpleExpression<Menu>() {
                 ExprMenuById::class.java,
                 Menu::class.java,
                 ExpressionType.COMBINED,
-                "[the] menu [with [the] id] %string%",
-                "[the] gui [with [the] id] %string%"
+                "[the] (menu|gui) [with [the] id] %string%"
             )
         }
     }

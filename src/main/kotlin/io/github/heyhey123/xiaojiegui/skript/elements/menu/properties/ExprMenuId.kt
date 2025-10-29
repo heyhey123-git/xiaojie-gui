@@ -11,10 +11,8 @@ import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 @Name("Menu ID")
 @Description("Gets the ID of a menu.")
 @Examples(
-    "command /menuid:",
-    "trigger:",
-    "open menu with id \"main_menu\" to player",
-    "send \"You opened the menu with ID: %menu id of player's open menu%\" to player"
+    "set {_id} to the id of menu {_menu}",
+    "send \"The menu id is %{_id}%\" to player"
 )
 @Since("1.0-SNAPSHOT")
 class ExprMenuId : SimplePropertyExpression<Menu, String>() {

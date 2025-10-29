@@ -15,7 +15,8 @@ import org.bukkit.entity.Player
     "Returns null if the session is invalid."
 )
 @Examples(
-    "set {_player} to viewer of menu session of player"
+    "set {_viewer} to the viewer of menu session {_session}",
+    "send \"You are viewing a menu\" to _viewer"
 )
 @Since("1.0-SNAPSHOT")
 class ExprSessionViewer : SimplePropertyExpression<MenuSession, Player>() {

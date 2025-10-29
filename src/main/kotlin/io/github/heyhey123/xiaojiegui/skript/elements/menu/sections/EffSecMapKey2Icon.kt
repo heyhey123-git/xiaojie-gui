@@ -26,9 +26,8 @@ import org.bukkit.inventory.ItemStack
     "You can optionally provide a section to handle click events on the icon."
 )
 @Examples(
-    "map key \"close_button\" to item barrier named \"Close\" for menu {_menu} and when clicked:",
-    "close the menu of player",
-    "send \"Menu closed!\" to player"
+    "map key \"special_item\" to item diamond named \"Special Item\" for menu {_menu} and refresh and when clicked:",
+    "    send \"You clicked the special item!\" to player"
 )
 @Since("1.0-SNAPSHOT")
 class EffSecMapKey2Icon : EffectSection() {

@@ -10,7 +10,11 @@ import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 
 @Name("Menu Mode")
 @Description("The mode of a menu, either `PHANTOM` or `STATIC`.")
-@Examples("set {_mode} to mode of menu with id \"main_menu\"")
+@Examples(
+    "set {_mode} to the mode of menu {_menu}",
+    "if the mode of menu {_menu} is PHANTOM:",
+    "\tsend \"This menu is in phantom mode!\" to player"
+)
 @Since("1.0-SNAPSHOT")
 class ExprMenuMode : SimplePropertyExpression<Menu, Receptacle.Mode>() {
     companion object {

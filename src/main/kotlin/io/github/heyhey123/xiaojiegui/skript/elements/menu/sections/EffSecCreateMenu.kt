@@ -31,10 +31,8 @@ import org.bukkit.event.inventory.InventoryType
     "Tips: If you provide a default layout and do not specify a default page, the layout will be used to create page 0 automatically."
 )
 @Examples(
-    "create phantom menu with chest inventory titled \"Main Menu\" with id \"main_menu\" with layout \"xxxxxxxxx, xooooooxx, xxxxxxxox\" with page 0 with 500 ms click delay with hide player inventory:",
-    "set slot 0 in page 0 of menu to stone named \"Click me!\"",
-    "set slot 1 in page 0 of menu to dirt named \"No, click me!\"",
-    "open menu for player"
+    "create a static menu with chest inventory titled \"Main Menu\" with id \"main_menu\" with layout \"AAA\", \"ABA\", \"AAA\" with 100 ms click delay with hide player inventory:",
+    "    set slot 4 in page 0 of menu with id \"main_menu\" to diamond named \"Special Item\""
 )
 @Since("1.0-SNAPSHOT")
 class EffSecCreateMenu : EffectSection() {

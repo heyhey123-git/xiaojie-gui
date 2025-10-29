@@ -14,9 +14,9 @@ import org.bukkit.entity.Player
     "Returns null if the player does not have an active menu session."
 )
 @Examples(
-    "set {_session} to menu session of player",
+    "set {_session} to the menu session of player",
     "if {_session} is not set:",
-    "send \"You are not in a menu!\" to player"
+    "\tsend \"You do not have an active menu session!\" to player"
 )
 @Since("1.0-SNAPSHOT")
 class ExprGetPlayerSession : SimplePropertyExpression<Player, MenuSession>() {

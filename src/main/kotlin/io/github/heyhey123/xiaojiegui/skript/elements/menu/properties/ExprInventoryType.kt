@@ -10,7 +10,10 @@ import org.bukkit.event.inventory.InventoryType
 
 @Name("Menu Inventory Type")
 @Description("The inventory type of a menu.")
-@Examples("set {_type} to inventory type of menu with id \"main_menu\"")
+@Examples(
+    "set {_type} to the inventory type of menu {_menu}",
+    "send \"The inventory type is %{_type}%\" to player"
+)
 @Since("1.0-SNAPSHOT")
 class ExprInventoryType : SimplePropertyExpression<Menu, InventoryType>() {
 

@@ -18,9 +18,8 @@ import org.bukkit.event.Event
     "Returns null if the session is invalid."
 )
 @Examples(
-    "set {_title} to title of menu session of player",
-    "set title of menu session of player to \"New Title\"",
-    "set title of {_session} to \"Another Title\""
+    "set {_title} to the title of {_session}",
+    "set the title of {_session} to \"&aNew Title\""
 )
 @Since("1.0-SNAPSHOT")
 class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {

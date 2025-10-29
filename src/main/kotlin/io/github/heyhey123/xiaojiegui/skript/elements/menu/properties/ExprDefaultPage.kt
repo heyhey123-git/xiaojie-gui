@@ -11,7 +11,10 @@ import org.bukkit.event.Event
 
 @Name("Default Page")
 @Description("The default page to show a menu when opened.")
-@Examples("set the default page of menu with id \"main_menu\" to 1")
+@Examples(
+    "set {_page} to the default page of menu {_menu}",
+    "set the default page of menu {_menu} to 2"
+)
 @Since("1.0-SNAPSHOT")
 class ExprDefaultPage : SimplePropertyExpression<Menu, Number>() {
 

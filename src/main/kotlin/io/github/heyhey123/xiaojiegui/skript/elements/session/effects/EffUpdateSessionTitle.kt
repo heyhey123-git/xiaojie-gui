@@ -21,8 +21,7 @@ import org.bukkit.event.Event
     "If 'and refresh' is included, the inventory view will be refreshed to reflect the new title immediately."
 )
 @Examples(
-    "update title of menu session of player to \"New Title\" and refresh",
-    "update title of {_session} to \"Another Title\""
+    "update title of menu session {_session} to string:\"New Title\" and refresh"
 )
 @Since("1.0-SNAPSHOT")
 class EffUpdateSessionTitle : Effect() {
@@ -31,7 +30,7 @@ class EffUpdateSessionTitle : Effect() {
         init {
             Skript.registerEffect(
                 EffUpdateSessionTitle::class.java,
-                "update title of %menusession% to (string:%-string%|component:%-textcomponent%) [refresh:(and refresh)]"
+                "update title of [the] [menu] [session] %menusession% to (string:%-string%|component:%-textcomponent%) [refresh:(and refresh)]"
             )
         }
     }

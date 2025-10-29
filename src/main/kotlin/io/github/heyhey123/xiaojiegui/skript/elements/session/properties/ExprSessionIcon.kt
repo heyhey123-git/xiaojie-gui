@@ -26,9 +26,9 @@ import org.bukkit.inventory.ItemStack
     "When deleting icons, all existing icons in the specified slots will be removed."
 )
 @Examples(
-    "set {_icon} to icon in slot 5 of menu session of player",
-    "set icon of menu session of player in slot 10 to dirt",
-    "delete icon in slot 3 of menu session of player"
+    "set {_icon} to icon of menu session {_session} in slot 10",
+    "set icon in slot 5 of menu session {_session} to dirt",
+    "delete icon in slot 3 of menu session {_session}"
 )
 @Since("1.0-SNAPSHOT")
 class ExprSessionIcon : SimpleExpression<ItemStack>() {

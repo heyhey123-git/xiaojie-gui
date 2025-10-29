@@ -22,9 +22,8 @@ import org.bukkit.event.Event
     "Does nothing if the menu receptacle mode is static or the session is not active."
 )
 @Examples(
-    "set {_session} to menu session of player",
-    "if {_session} is not set:",
-    "send \"You are not in a menu!\" to player"
+    "refresh the slot 5 in menu session {_session}",
+    "refresh menu session {_session}"
 )
 @Since("1.0-SNAPSHOT")
 class EffRefreshSession : Effect() {
@@ -33,7 +32,7 @@ class EffRefreshSession : Effect() {
         init {
             Skript.registerEffect(
                 EffRefreshSession::class.java,
-                "refresh [the slot %-number% in] %menusession%"
+                "refresh [the slot %-number% in] [the] [menu] [session] %menusession%"
             )
         }
     }

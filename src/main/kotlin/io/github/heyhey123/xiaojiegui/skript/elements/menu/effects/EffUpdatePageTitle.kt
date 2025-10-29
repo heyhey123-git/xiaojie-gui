@@ -24,7 +24,7 @@ import org.bukkit.event.Event
     "You can optionally refresh the menu for all viewers to see the updated title immediately."
 )
 @Examples(
-    "update title of page 2 in menu player's current menu to \"New Title\" and refresh"
+    "update title of page 1 in menu {_menu} to \"New Page Title\" and refresh",
 )
 @Since("1.0-SNAPSHOT")
 class EffUpdatePageTitle : Effect() {

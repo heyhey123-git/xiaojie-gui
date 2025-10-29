@@ -24,8 +24,8 @@ import org.bukkit.event.Event
     "You can optionally specify a page number to open a specific page of the menu."
 )
 @Examples(
-    "open menu {_menu} for player",
-    "open menu {_menu} for player and go to page 2"
+    "open menu {_menu} for player and go to page 2",
+    "open menu for player # open the menu from the current menu-related event for the player"
 )
 @Since("1.0-SNAPSHOT")
 class EffOpenMenu : Effect() {

@@ -23,9 +23,8 @@ import org.bukkit.event.Event
     "You can define the menu's contents and behavior in the section below this effect."
 )
 @Examples(
-    "edit menu {_menu}:",
-    "set slot 0 of menu to stone named \"Click me!\"",
-    "set slot 1 of menu to dirt named \"No, click me!\""
+    "edit menu with id \"main_menu\":",
+    "    set slot 0 in page 0 of menu with id \"main_menu\" to diamond named \"New Item\""
 )
 @Since("1.0-SNAPSHOT")
 class EffSecEditMenu : EffectSection() {

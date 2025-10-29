@@ -20,8 +20,9 @@ import org.bukkit.event.Event
     "Tips: This expression only returns the menus have ids."
 )
 @Examples(
-    "loop all menus:",
-    "broadcast the id of \"%loop-menu%\""
+    "set {_menus::*} to all menus",
+    "loop {_menus::*}:",
+    "    send \"Menu ID: %loop-value's id%\" to player"
 )
 @Since("1.0-SNAPSHOT")
 class ExprAllMenus : SimpleExpression<Menu>() {

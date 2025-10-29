@@ -9,7 +9,10 @@ import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 
 @Name("Page Number")
 @Description("The total number of pages in a menu.")
-@Examples("set {_pages} to page number of menu with id \"main_menu\"")
+@Examples(
+    "set {_pages} to the page number of menu",
+    "send \"This menu has %{_pages}% pages!\" to player"
+)
 @Since("1.0-SNAPSHOT")
 class ExprPageNumber : SimplePropertyExpression<Menu, Number>() {
 

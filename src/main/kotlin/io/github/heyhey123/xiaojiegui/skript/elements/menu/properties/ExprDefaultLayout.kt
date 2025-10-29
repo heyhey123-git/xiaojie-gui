@@ -15,7 +15,10 @@ import org.bukkit.event.Event
 
 @Name("Default Layout")
 @Description("The default layout of a menu.")
-@Examples("set the default layout of menu with id \"main_menu\" to \"xxxxxxxxx, xooooooxx, xxxxxxxox\"")
+@Examples(
+    "set {_layout::*} to the default layout of menu {_menu}",
+    "set the default layout of menu {_menu} to \"#########\", \"#.......#\", \"#..###..#\", \"#..###..#\", \"#.......#\", \"#########\""
+)
 @Since("1.0-SNAPSHOT")
 class ExprDefaultLayout : SimpleExpression<String>() {
     companion object {

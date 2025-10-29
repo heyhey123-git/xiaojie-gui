@@ -12,7 +12,10 @@ import org.bukkit.event.Event
 
 @Name("Hide Player Inventory")
 @Description("Whether to hide the player's inventory when the menu is opened.")
-@Examples("set hide player inventory of menu with id \"main_menu\" to true")
+@Examples(
+    "set hide player inventory of menu {_menu} to true",
+    "set hide player inventory of menu {_menu} to false"
+)
 @Since("1.0-SNAPSHOT")
 class ExprHidePlayerInventory : SimplePropertyExpression<Menu, Boolean>() {
 

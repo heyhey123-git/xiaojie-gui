@@ -24,8 +24,8 @@ import org.bukkit.event.Event
     "You must provide a section to handle click events on the specified slot."
 )
 @Examples(
-    "when slot 0 in page 1 of menu {_menu} is clicked:",
-    "send \"You clicked the slot!\" to player"
+    "when slot 4 in page 0 of menu with id \"main_menu\" is clicked:",
+    "    send \"You clicked slot 4!\" to player"
 )
 @Since("1.0-SNAPSHOT")
 class EffSecSlotCallback : EffectSection() {

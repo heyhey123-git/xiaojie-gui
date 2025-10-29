@@ -15,7 +15,9 @@ import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
     "Returns null if the session is invalid."
 )
 @Examples(
-    "set {_menu} to menu of menu session of player"
+    "set {_menu} to the menu of menu session of player",
+    "if the menu of player's current menu session is not null:",
+    "\tsend \"You have a menu open!\" to player"
 )
 @Since("1.0-SNAPSHOT")
 class ExprSessionMenu : SimplePropertyExpression<MenuSession, Menu>() {

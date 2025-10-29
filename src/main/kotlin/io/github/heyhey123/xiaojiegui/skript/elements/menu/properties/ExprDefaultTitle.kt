@@ -16,7 +16,10 @@ import org.bukkit.event.Event
     "The default title of a menu (when add a new page).",
     "It can be a string or a text component in skbee(if exists).",
 )
-@Examples("set the default title of menu with id \"main_menu\" to \"New Page\"")
+@Examples(
+    "set {_title} to the default title of menu {_menu}",
+    "set the default title of menu {_menu} to \"&aMy Menu\""
+)
 @Since("1.0-SNAPSHOT")
 class ExprDefaultTitle : SimplePropertyExpression<Menu, Any>() {
 

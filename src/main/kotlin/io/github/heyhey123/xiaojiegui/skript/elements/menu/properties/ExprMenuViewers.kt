@@ -17,7 +17,11 @@ import org.bukkit.event.Event
 
 @Name("Menu Viewers")
 @Description("All players currently viewing a menu.")
-@Examples("broadcast \"%all viewers of menu with id 'main_menu'%\"")
+@Examples(
+    "broadcast \"There are currently %size of viewers of menu {_menu}% players viewing the menu.\"",
+    "loop viewers of menu {_menu}:",
+    "    send \"You are not alone! There are other players viewing this menu.\" to loop-player"
+)
 @Since("1.0-SNAPSHOT")
 class ExprMenuViewers : SimpleExpression<Player>() {
 
