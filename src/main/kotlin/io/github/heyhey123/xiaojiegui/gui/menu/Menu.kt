@@ -33,7 +33,7 @@ class Menu(
     init {
         id?.let {
             if (menus.containsKey(it)) {
-                throw IllegalArgumentException("Menu with id $it already exists.")
+                throw IllegalStateException("Menu with id $it already exists.")
             }
             menus[it] = this
         }
