@@ -37,9 +37,10 @@ class EffSecOverrideSlot : EffectSection() {
             Skript.registerSection(
                 EffSecOverrideSlot::class.java,
                 "(override|set) slot %numbers% " +
-                        "in page [(number|index)] %numbers% " +
-                        "[of [(menu|gui)] %-menu%] to %itemstack%" +
-                        "[refresh:((and|with) (refresh|update))]" +
+                        "in page %numbers% " +
+                        "[of %-menu%] " +
+                        "to %itemstack% " +
+                        "[refresh:((and|with) (refresh|update))] " +
                         "[when:(and when (clicked|interacted|pressed))]"
             )
         }
@@ -131,8 +132,8 @@ class EffSecOverrideSlot : EffectSection() {
             for (singlePage in pages) {
                 for (singleSlot in slots) {
                     menu.overrideSlot(
-                        singleSlot.toInt(),
                         singlePage.toInt(),
+                        singleSlot.toInt(),
                         item,
                         refreshFlag
                     )
@@ -145,8 +146,8 @@ class EffSecOverrideSlot : EffectSection() {
         for (singlePage in pages) {
             for (singleSlot in slots) {
                 menu.overrideSlot(
-                    singleSlot.toInt(),
                     singlePage.toInt(),
+                    singleSlot.toInt(),
                     item,
                     refreshFlag
                 ) { menuEvent ->
