@@ -47,7 +47,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
 
     private lateinit var sessionExpr: Expression<MenuSession>
 
-    private lateinit var slotExpr: Expression<Number>
+    private lateinit var slotsExpr: Expression<Number>
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -59,11 +59,11 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
         when (matchedPattern) {
             0 -> {
                 sessionExpr = expressions?.get(0) as Expression<MenuSession>
-                slotExpr = expressions[1] as Expression<Number>
+                slotsExpr = expressions[1] as Expression<Number>
             }
 
             1 -> {
-                slotExpr = expressions?.get(0) as Expression<Number>
+                slotsExpr = expressions?.get(0) as Expression<Number>
                 sessionExpr = expressions[1] as Expression<MenuSession>
             }
         }
@@ -72,7 +72,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
 
     override fun get(event: Event?): Array<ItemStack?> {
         val session = sessionExpr.getSingle(event) ?: return arrayOf()
-        val slot = slotExpr.getAll(event)
+        val slot = slotsExpr.getAll(event)
         return slot.map { session.getIcon(it.toInt()) }.toTypedArray()
     }
 
@@ -86,7 +86,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
 
     override fun change(event: Event?, delta: Array<out Any>?, mode: Changer.ChangeMode?) {
         val session = sessionExpr.getSingle(event) ?: return
-        val slots = slotExpr.getAll(event).map { it.toInt() }
+        val slots = slotsExpr.getAll(event).map { it.toInt() }
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
@@ -111,7 +111,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "icon in slot ${slotExpr.toString(event, debug)} of ${sessionExpr.toString(event, debug)}"
+        "icon in slot ${slotsExpr.toString(event, debug)} of ${sessionExpr.toString(event, debug)}"
 
     override fun isSingle() = false
 

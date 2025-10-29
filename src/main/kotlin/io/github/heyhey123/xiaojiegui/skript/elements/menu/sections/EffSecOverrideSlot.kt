@@ -36,8 +36,8 @@ class EffSecOverrideSlot : EffectSection() {
         init {
             Skript.registerSection(
                 EffSecOverrideSlot::class.java,
-                "(override|set) slot %number% " +
-                        "in page [(number|index)] %number% " +
+                "(override|set) slot %numbers% " +
+                        "in page [(number|index)] %numbers% " +
                         "[of [(menu|gui)] %-menu%] to %itemstack%" +
                         "[refresh:((and|with) (refresh|update))]" +
                         "[when:(and when (clicked|interacted|pressed))]"
@@ -47,9 +47,9 @@ class EffSecOverrideSlot : EffectSection() {
 
     private var trigger: TriggerItem? = null
 
-    private lateinit var slotExpr: Expression<Number>
+    private lateinit var slotsExpr: Expression<Number>
 
-    private lateinit var pageExpr: Expression<Number>
+    private lateinit var pagesExpr: Expression<Number>
 
     private var menuExpr: Expression<Menu>? = null
 
@@ -66,8 +66,8 @@ class EffSecOverrideSlot : EffectSection() {
         sectionNode: SectionNode?,
         triggerItems: List<TriggerItem?>?
     ): Boolean {
-        slotExpr = expressions!![0] as Expression<Number>
-        pageExpr = expressions[1] as Expression<Number>
+        slotsExpr = expressions!![0] as Expression<Number>
+        pagesExpr = expressions[1] as Expression<Number>
         menuExpr = expressions[2] as Expression<Menu>?
         itemExpr = expressions[3] as Expression<ItemStack>
 
@@ -108,13 +108,13 @@ class EffSecOverrideSlot : EffectSection() {
             return walk(event, false)
         }
 
-        val slot = slotExpr.getAll(event)
-        if (slot.isEmpty()) {
+        val slots = slotsExpr.getAll(event)
+        if (slots.isEmpty()) {
             Skript.error("Slot cannot be null.")
             return walk(event, false)
         }
 
-        val pages = pageExpr.getAll(event)
+        val pages = pagesExpr.getAll(event)
         if (pages.isEmpty()) {
             Skript.error("Page cannot be empty.")
             return walk(event, false)
@@ -129,7 +129,7 @@ class EffSecOverrideSlot : EffectSection() {
 
         if (trigger == null) {
             for (singlePage in pages) {
-                for (singleSlot in slot) {
+                for (singleSlot in slots) {
                     menu.overrideSlot(
                         singleSlot.toInt(),
                         singlePage.toInt(),
@@ -143,7 +143,7 @@ class EffSecOverrideSlot : EffectSection() {
         }
 
         for (singlePage in pages) {
-            for (singleSlot in slot) {
+            for (singleSlot in slots) {
                 menu.overrideSlot(
                     singleSlot.toInt(),
                     singlePage.toInt(),
@@ -160,7 +160,7 @@ class EffSecOverrideSlot : EffectSection() {
                         Skript.exception(
                             e,
                             Thread.currentThread(),
-                            "Error occurred in a slot callback for menu $id.This callback was added when overriding slot $slot in page $singlePage to item $item."
+                            "Error occurred in a slot callback for menu $id.This callback was added when overriding slot $slots in page $singlePage to item $item."
                         )
                     }
                 }
@@ -171,8 +171,8 @@ class EffSecOverrideSlot : EffectSection() {
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
-        val slotStr = slotExpr.toString(event, debug)
-        val pageStr = pageExpr.toString(event, debug)
+        val slotStr = slotsExpr.toString(event, debug)
+        val pageStr = pagesExpr.toString(event, debug)
         val menuStr = menuExpr?.toString(event, debug)
         val itemStr = itemExpr.toString(event, debug)
         val base = "override slot $slotStr in page $pageStr of menu $menuStr to $itemStr"

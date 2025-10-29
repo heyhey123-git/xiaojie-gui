@@ -47,7 +47,7 @@ class EffSecCreateMenu : EffectSection() {
                         "with %inventorytype% " +
                         "titled (string:%-string%|component:%-textcomponent%) " +
                         "[with id %-string%] " +
-                        "[with layout %-string%] " +
+                        "[with layout %-strings%] " +
                         "[with page %-number%] " +
                         "[with %-number% ms click delay] " +
                         "[(with|:without) hide player inventory]"

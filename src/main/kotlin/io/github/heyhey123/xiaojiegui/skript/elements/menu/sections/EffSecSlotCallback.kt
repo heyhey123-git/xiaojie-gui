@@ -34,8 +34,8 @@ class EffSecSlotCallback : EffectSection() {
         init {
             Skript.registerSection(
                 EffSecSlotCallback::class.java,
-                "(when|on) slot %number% " +
-                        "in page [(number|index)] %number% " +
+                "(when|on) slot %numbers% " +
+                        "in page [(number|index)] %numbers% " +
                         "[of [(menu|gui)] %-menu%] " +
                         "[is] (clicked|interacted|pressed)"
             )
@@ -44,9 +44,9 @@ class EffSecSlotCallback : EffectSection() {
 
     private var trigger: TriggerItem? = null
 
-    private lateinit var slotExpr: Expression<Number>
+    private lateinit var slotsExpr: Expression<Number>
 
-    private lateinit var pageExpr: Expression<Number>
+    private lateinit var pagesExpr: Expression<Number>
 
     private var menuExpr: Expression<Menu>? = null
 
@@ -59,8 +59,8 @@ class EffSecSlotCallback : EffectSection() {
         sectionNode: SectionNode?,
         triggerItems: List<TriggerItem?>?
     ): Boolean {
-        slotExpr = expressions!![0] as Expression<Number>
-        pageExpr = expressions[1] as Expression<Number>
+        slotsExpr = expressions!![0] as Expression<Number>
+        pagesExpr = expressions[1] as Expression<Number>
         menuExpr = expressions[2] as Expression<Menu>?
 
         if (!hasSection()) {
@@ -100,21 +100,21 @@ class EffSecSlotCallback : EffectSection() {
             return walk(event, false)
         }
 
-        val slot = this.slotExpr.getAll(event)
-        val page = this.pageExpr.getAll(event)
+        val slots = this.slotsExpr.getAll(event)
+        val pages = this.pagesExpr.getAll(event)
 
-        if (slot.isEmpty()) {
+        if (slots.isEmpty()) {
             Skript.error("Slot cannot be empty.")
             return walk(event, false)
         }
 
-        if (page.isEmpty()) {
+        if (pages.isEmpty()) {
             Skript.error("Page cannot be empty.")
             return walk(event, false)
         }
 
-        for (singlePage in page) {
-            for (singleSlot in slot) {
+        for (singlePage in pages) {
+            for (singleSlot in slots) {
                 menu.setSlotCallback(
                     singlePage.toInt(),
                     singleSlot.toInt()
@@ -130,8 +130,8 @@ class EffSecSlotCallback : EffectSection() {
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "set slot callback for slot ${slotExpr.toString(event, debug)} in page ${
-            pageExpr.toString(
+        "set slot callback for slot ${slotsExpr.toString(event, debug)} in page ${
+            pagesExpr.toString(
                 event,
                 debug
             )
