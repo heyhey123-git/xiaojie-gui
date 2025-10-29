@@ -113,11 +113,21 @@ class EffUpdatePageTitle : Effect() {
 
     }
 
-    override fun toString(event: Event?, debug: Boolean) =
-        "update title of page ${pageExpr.toString(event, debug)} in ${
-            menuExpr?.toString(
-                event,
-                debug
-            )
-        } to ${(titleStrExpr ?: titleComponentExpr)?.toString(event, debug)}${if (refreshFlag) " and refresh" else ""}"
+    override fun toString(event: Event?, debug: Boolean): String {
+        val sb = StringBuilder("update title of page ")
+        sb.append(pageExpr.toString(event, debug))
+
+        sb.append(" in ").append(menuExpr?.toString(event, debug) ?: "event menu")
+
+        when {
+            titleStrExpr != null -> sb.append(" to string: ").append(titleStrExpr!!.toString(event, debug))
+            titleComponentExpr != null -> sb.append(" to component: ")
+                .append(titleComponentExpr!!.toString(event, debug))
+
+            else -> sb.append(" to <null title>")
+        }
+
+        if (refreshFlag) sb.append(" and refresh")
+        return sb.toString()
+    }
 }

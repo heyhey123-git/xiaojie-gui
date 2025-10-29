@@ -99,8 +99,12 @@ class EffOpenMenu : Effect() {
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
-        val str = "open menu ${menuExpr?.toString(event, debug)} for ${playerExpr.toString(event, debug)}"
-        return if (pageExpr != null) "$str and go to page ${pageExpr.toString()}" else str
+        val sb = StringBuilder("open menu ")
+        sb.append(menuExpr?.toString(event, debug) ?: "event menu")
+        sb.append(" for ").append(playerExpr.toString(event, debug))
+        pageExpr?.let {
+            sb.append(" and go to page ").append(it.toString(event, debug))
+        }
+        return sb.toString()
     }
-
 }
