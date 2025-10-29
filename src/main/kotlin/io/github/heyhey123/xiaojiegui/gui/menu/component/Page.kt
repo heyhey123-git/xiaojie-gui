@@ -199,12 +199,12 @@ class Page(
                 event.clickType
             )
 
+            clickCallbacks[event.slot]?.invoke(menuEvent)
+
             if (!menuEvent.callEvent()) {
                 doCancel()
                 return@onClick
             }
-
-            clickCallbacks[event.slot]?.invoke(menuEvent)
         }
 
         val slots = computeSlots(session)

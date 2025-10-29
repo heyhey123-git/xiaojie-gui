@@ -63,7 +63,7 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
                 player = viewer!!,
                 windowId = 0,
                 slot = 45,
-                item = viewer!!.equipment?.itemInOffHand
+                item = viewer!!.equipment.itemInOffHand
             )
         } else {
             PacketHelper.instance.sendContainerSetSlot(
@@ -128,11 +128,9 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
 
     override fun clicked(clickType: ClickType, slot: Int, staticInventoryEvent: InventoryClickEvent?) {
         val event = ReceptacleInteractEvent(viewer!!, this, clickType, slot)
-        event.callEvent()
+        onClick(event)
 
-        if (viewer != null) {
-            onClick(event)
-        }
+        event.callEvent()
     }
 
 }

@@ -53,6 +53,7 @@ class StaticReceptacle(
 
     override fun clicked(clickType: ClickType, slot: Int, staticInventoryEvent: InventoryClickEvent?) {
         val event = ReceptacleInteractEvent(viewer!!, this, clickType, slot)
+        onClick(event)
 
         if (!event.callEvent()) {
             staticInventoryEvent!!.isCancelled = true

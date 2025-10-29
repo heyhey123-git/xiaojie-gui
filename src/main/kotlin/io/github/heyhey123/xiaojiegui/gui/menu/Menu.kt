@@ -264,7 +264,9 @@ class Menu(
         refresh: Boolean,
         callback: ((event: MenuInteractEvent) -> Unit)? = null
     ) {
-        if (page !in 0..<size) return
+        check(page in 0..<size) {
+            "Page $page does not exist in this menu."
+        }
         val pageInstance = pages[page]
         pageInstance.slotOverrides[slot] = item ?: ItemStack.empty()
 
@@ -283,9 +285,10 @@ class Menu(
             if (refresh) {
                 session.refresh(slot)
             }
-            if (callback != null) {
-                pageInstance.clickCallbacks[slot] = callback
-            }
+        }
+
+        if (callback != null) {
+            pageInstance.clickCallbacks[slot] = callback
         }
     }
 
