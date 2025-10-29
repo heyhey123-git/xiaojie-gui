@@ -19,17 +19,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
             # Cache Gradle dependencies and wrapper to speed up dependency resolution
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          # keep key tied to relevant files so cache invalidates when build scripts or wrapper change
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle.kts', '**/settings.gradle*', '**/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Setup java
         uses: useblacksmith/setup-java@v5
