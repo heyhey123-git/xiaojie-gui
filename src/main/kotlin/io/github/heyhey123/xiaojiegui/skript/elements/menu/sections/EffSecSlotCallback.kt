@@ -100,8 +100,8 @@ class EffSecSlotCallback : EffectSection() {
             return walk(event, false)
         }
 
-        val slots = this.slotsExpr.getAll(event)
-        val pages = this.pagesExpr.getAll(event)
+        val slots = this.slotsExpr.getAll(event).map { it.toInt() }
+        val pages = this.pagesExpr.getAll(event).map { it.toInt() }
 
         if (slots.isEmpty()) {
             Skript.error("Slot cannot be empty.")
@@ -116,8 +116,8 @@ class EffSecSlotCallback : EffectSection() {
         for (singlePage in pages) {
             for (singleSlot in slots) {
                 menu.setSlotCallback(
-                    singlePage.toInt(),
-                    singleSlot.toInt()
+                    singlePage,
+                    singleSlot
                 ) { menuEvent: MenuInteractEvent ->
                     Variables.withLocalVariables(event, menuEvent) {
                         walk(trigger, menuEvent)

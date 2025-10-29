@@ -81,14 +81,14 @@ class EffUpdatePageTitle : Effect() {
             }
         }
 
-        val page = pageExpr.getSingle(event)
+        val page = pageExpr.getSingle(event)?.toInt()
         if (page == null) {
             Skript.error("Page number cannot be null.")
             return
         }
 
-        if (page !in 0..<menu.pages.size) {
-            Skript.error("Page number ${page.toInt()} is out of bounds for the menu.")
+        if (page !in 0..<menu.size) {
+            Skript.error("Page number $page is out of bounds for the menu.")
             return
         }
 
@@ -104,7 +104,7 @@ class EffUpdatePageTitle : Effect() {
             )
             return
         }
-        menu.pages[page.toInt()].title = title
+        menu.pages[page].title = title
 
         menu.viewers.forEach { viewer ->
             val session = MenuSession.querySession(viewer) ?: return@forEach

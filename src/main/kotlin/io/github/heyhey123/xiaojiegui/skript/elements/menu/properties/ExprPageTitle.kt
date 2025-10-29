@@ -56,12 +56,12 @@ class ExprPageTitle : SimpleExpression<Any?>() {
 
     override fun get(event: Event?): Array<out Any?> {
         val menu = menu.getSingle(event) ?: return arrayOf()
-        val page = page.getSingle(event) ?: return arrayOf()
-        if (page !in 0..<menu.pages.size) {
-            Skript.error("Page number ${page.toInt()} is out of bounds for the menu.")
+        val page = page.getSingle(event)?.toInt() ?: return arrayOf()
+        if (page !in 0..<menu.size) {
+            Skript.error("Page number $page is out of bounds for the menu.")
             return arrayOf()
         }
-        val title = menu.pages[page.toInt()].title
+        val title = menu.pages[page].title
         return arrayOf(title)
     }
 
@@ -77,7 +77,7 @@ class ExprPageTitle : SimpleExpression<Any?>() {
             return
         }
 
-        val page = page.getSingle(event)
+        val page = page.getSingle(event)?.toInt()
         if (page == null) {
             Skript.error("Page number cannot be null.")
             return
@@ -95,12 +95,12 @@ class ExprPageTitle : SimpleExpression<Any?>() {
             return
         }
 
-        if (page !in 0..<menu.pages.size) {
-            Skript.error("Page number ${page.toInt()} is out of bounds for the menu.")
+        if (page !in 0..<menu.size) {
+            Skript.error("Page number $page is out of bounds for the menu.")
             return
         }
 
-        menu.pages[page.toInt()].title = title
+        menu.pages[page].title = title
     }
 
     override fun toString(event: Event?, debug: Boolean) =

@@ -109,19 +109,19 @@ class EffSecOverrideSlot : EffectSection() {
             return walk(event, false)
         }
 
-        val slots = slotsExpr.getAll(event)
+        val slots = slotsExpr.getAll(event).map { it.toInt() }
         if (slots.isEmpty()) {
             Skript.error("Slot cannot be null.")
             return walk(event, false)
         }
 
-        val pages = pagesExpr.getAll(event)
+        val pages = pagesExpr.getAll(event).map { it.toInt() }
         if (pages.isEmpty()) {
             Skript.error("Page cannot be empty.")
             return walk(event, false)
         }
 
-        if (pages.any { it.toInt() !in 0..<menu.pages.size }) {
+        if (pages.any { it !in 0..<menu.size }) {
             Skript.error("One or more page numbers are out of bounds for the menu.")
             return walk(event, false)
         }
@@ -132,8 +132,8 @@ class EffSecOverrideSlot : EffectSection() {
             for (singlePage in pages) {
                 for (singleSlot in slots) {
                     menu.overrideSlot(
-                        singlePage.toInt(),
-                        singleSlot.toInt(),
+                        singlePage,
+                        singleSlot,
                         item,
                         refreshFlag
                     )
@@ -146,8 +146,8 @@ class EffSecOverrideSlot : EffectSection() {
         for (singlePage in pages) {
             for (singleSlot in slots) {
                 menu.overrideSlot(
-                    singlePage.toInt(),
-                    singleSlot.toInt(),
+                    singlePage,
+                    singleSlot,
                     item,
                     refreshFlag
                 ) { menuEvent ->
