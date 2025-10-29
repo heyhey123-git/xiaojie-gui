@@ -35,7 +35,10 @@ object StaticInventoryListener : Listener, BaseListener {
 
     @EventHandler
     fun onClose(event: InventoryCloseEvent) {
-        if (event.inventory.holder !is StaticInventory.Holder) return
+        if (
+            event.inventory.holder !is StaticInventory.Holder ||
+            event.reason == InventoryCloseEvent.Reason.OPEN_NEW
+        ) return
         val player = event.player as? Player ?: return
         val receptacle = player.viewingReceptacle ?: return
         receptacle.closed()
