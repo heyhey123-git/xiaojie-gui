@@ -48,7 +48,7 @@ class EffSecCreateMenu : EffectSection() {
                         "[with id %-string%] " +
                         "[with page %-number%] " +
                         "[with %-number% ms click delay] " +
-                        "[(with|:without) hide player inventory]"
+                        "[(hide:with|without) hide player inventory)]"
             )
         }
     }
@@ -73,7 +73,7 @@ class EffSecCreateMenu : EffectSection() {
 
     private var minClickDelayExpr: Expression<Number>? = null
 
-    private var hidePlayerInventoryFlag: Boolean = true
+    private var hidePlayerInventoryFlag: Boolean = false
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -93,7 +93,7 @@ class EffSecCreateMenu : EffectSection() {
         layoutExpr = expressions[4] as Expression<String>
         pageExpr = expressions[5] as Expression<Number>?
         minClickDelayExpr = expressions[6] as Expression<Number>?
-        hidePlayerInventoryFlag = !parseResult.hasTag("without")
+        hidePlayerInventoryFlag = parseResult.hasTag("hide")
 
         if (hasSection()) {
             val trigger = SectionUtils.loadLinkedCode(
