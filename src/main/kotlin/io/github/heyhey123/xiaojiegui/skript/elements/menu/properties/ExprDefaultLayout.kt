@@ -56,7 +56,7 @@ class ExprDefaultLayout : SimpleExpression<String>() {
     }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
-        if (mode == Changer.ChangeMode.SET) arrayOf(String::class.java)
+        if (mode == Changer.ChangeMode.SET) arrayOf(Array<String>::class.java)
         else arrayOf()
 
     @Suppress("UNCHECKED_CAST")

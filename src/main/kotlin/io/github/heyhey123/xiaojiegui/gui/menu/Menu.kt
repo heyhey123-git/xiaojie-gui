@@ -106,7 +106,7 @@ class Menu(
 
         if (session.menu != null) {
             MenuCloseEvent(session, viewer, session.menu!!).callEvent()
-            session.shut()
+            session.shutTemporarily()
         }
 
         session.menu = this

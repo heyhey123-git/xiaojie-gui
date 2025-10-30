@@ -115,6 +115,17 @@ class MenuSession(
         removeSession(viewer)
     }
 
+    /**
+     * Temporarily shut the menu session without removing it from the active sessions.
+     * Used when switching menus to avoid session loss.
+     *
+     */
+    fun shutTemporarily() {
+        menu = null
+        page = -1
+        receptacle = null
+    }
+
     override fun toString() =
         "MenuSession(viewer=$viewer, menu=$menu, page=$page, receptacle=$receptacle)"
 
