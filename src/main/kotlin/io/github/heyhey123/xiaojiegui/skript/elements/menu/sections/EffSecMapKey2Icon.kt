@@ -14,7 +14,7 @@ import ch.njol.skript.lang.util.SectionUtils
 import ch.njol.skript.variables.Variables
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
-import io.github.heyhey123.xiaojiegui.gui.event.ReceptacleInteractEvent
+import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.event.Event
@@ -86,7 +86,7 @@ class EffSecMapKey2Icon : EffectSection() {
                     "interact with icon",
                     beforeLoading,
                     afterLoading,
-                    ReceptacleInteractEvent::class.java
+                    MenuInteractEvent::class.java
                 )
             }
 
