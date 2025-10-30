@@ -1,5 +1,6 @@
 package io.github.heyhey123.xiaojiegui.gui.menu
 
+import io.github.heyhey123.xiaojiegui.XiaojieGUI
 import io.github.heyhey123.xiaojiegui.gui.event.MenuCloseEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuOpenEvent
@@ -31,9 +32,13 @@ class Menu(
 ) {
 
     init {
+        check(XiaojieGUI.instance.isEnabled) {
+            "Cannot create a menu when the plugin is disabled."
+        }
+
         id?.let {
-            if (menus.containsKey(it)) {
-                throw IllegalStateException("Menu with id $it already exists.")
+            check(!menus.containsKey(it)) {
+                "A menu with the id '$it' already exists."
             }
             menus[it] = this
         }
@@ -75,6 +80,10 @@ class Menu(
         viewer: Player,
         page: Int = properties.defaultPage
     ) {
+        check(XiaojieGUI.instance.isEnabled) {
+            "Cannot open a menu when the plugin is disabled."
+        }
+
         val session = MenuSession.getSession(viewer)
 
         check(session.menu != this) {
