@@ -1,6 +1,7 @@
 package io.github.heyhey123.xiaojiegui.listener
 
 import io.github.heyhey123.xiaojiegui.gui.StaticInventory
+import io.github.heyhey123.xiaojiegui.gui.StaticInventory.staticInventory
 import io.github.heyhey123.xiaojiegui.gui.interact.BukkitClickType
 import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle.Companion.viewingReceptacle
@@ -21,7 +22,7 @@ object StaticInventoryListener : Listener, BaseListener {
 
     @EventHandler
     fun onClick(event: InventoryClickEvent) {
-        if (event.inventory.holder !is StaticInventory.Holder) return
+        if (event.inventory.getHolder(false) !is StaticInventory.Holder) return
 //        event.isCancelled = true
         val player = event.whoClicked as? Player ?: return
         val receptacle = player.viewingReceptacle ?: return
@@ -35,12 +36,15 @@ object StaticInventoryListener : Listener, BaseListener {
 
     @EventHandler
     fun onClose(event: InventoryCloseEvent) {
-        if (
-            event.inventory.holder !is StaticInventory.Holder ||
-            event.reason == InventoryCloseEvent.Reason.OPEN_NEW
-        ) return
+        val holder = event.inventory.getHolder(false)
+        if (holder !is StaticInventory.Holder) return
         val player = event.player as? Player ?: return
         val receptacle = player.viewingReceptacle ?: return
+        if (
+            player.staticInventory!!.holder != holder &&
+            event.reason == InventoryCloseEvent.Reason.OPEN_NEW
+        ) return // Ignore if the player is switching between static inventory menus
+
         receptacle.closed()
     }
 

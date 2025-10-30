@@ -37,8 +37,8 @@ object StaticInventory {
      * @param holder the static inventory holder to open
      */
     fun open(player: Player, holder: Holder) {
-        holder.open(player)
         inventories[player.uniqueId] = holder
+        holder.open(player)
     }
 
     /**
