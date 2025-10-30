@@ -28,7 +28,7 @@ import org.bukkit.event.inventory.InventoryType
     "Create a menu.",
     "You can define the menu's properties, such as its inventory type, title, id, layout, page, click delay, and whether to hide the player's inventory.",
     "You can also define the menu's contents and behavior in the section below this effect.",
-    "Tips: If you provide a default layout and do not specify a default page, the layout will be used to create page 0 automatically."
+    "Tips: If you do not specify a default page, the menu will insert a page 0 with the given layout and title."
 )
 @Examples(
     "create a static menu with chest inventory titled \"Main Menu\" with id \"main_menu\" with layout \"AAA\", \"ABA\", \"AAA\" with 100 ms click delay with hide player inventory:",
@@ -44,8 +44,8 @@ class EffSecCreateMenu : EffectSection() {
                 "create [a] [:phantom|:static] menu " +
                         "with %inventorytype% " +
                         "titled (string:%-string%|component:%-textcomponent%) " +
+                        "with layout %strings% " +
                         "[with id %-string%] " +
-                        "[with layout %-strings%] " +
                         "[with page %-number%] " +
                         "[with %-number% ms click delay] " +
                         "[(with|:without) hide player inventory]"
@@ -65,9 +65,9 @@ class EffSecCreateMenu : EffectSection() {
 
     private lateinit var titleType: TitleType
 
-    private var idExpr: Expression<String>? = null
+    private lateinit var layoutExpr: Expression<String>
 
-    private var layoutExpr: Expression<String>? = null
+    private var idExpr: Expression<String>? = null
 
     private var pageExpr: Expression<Number>? = null
 
@@ -90,7 +90,7 @@ class EffSecCreateMenu : EffectSection() {
         titleComponentExpr = expressions[2] as Expression<Any>?
         titleType = TitleType.fromStringTag(parseResult.tags[1])
         idExpr = expressions[3] as Expression<String>?
-        layoutExpr = expressions[4] as Expression<String>?
+        layoutExpr = expressions[4] as Expression<String>
         pageExpr = expressions[5] as Expression<Number>?
         minClickDelayExpr = expressions[6] as Expression<Number>?
         hidePlayerInventoryFlag = !parseResult.hasTag("without")
@@ -133,8 +133,8 @@ class EffSecCreateMenu : EffectSection() {
             return walk(event, false)
         }// title is required
 
+        val defaultLayout = this.layoutExpr.getAll(event)?.toList()
         val id = this.idExpr?.getSingle(event)
-        val defaultLayout = this.layoutExpr?.getAll(event)?.toList()
         val defaultPage = this.pageExpr?.getSingle(event)?.toInt()
         val minClickDelay = this.minClickDelayExpr?.getSingle(event)?.toInt() ?: 0
 
@@ -174,16 +174,16 @@ class EffSecCreateMenu : EffectSection() {
             .append(" inventory titled ")
             .append((titleStrExpr ?: titleComponentExpr)?.toString(event, debug))
 
-        idExpr?.getSingle(event)?.let {
-            str.append(" with id ")
-                .append(it)
-        }
-
-        layoutExpr?.getAll(event)?.toList()?.let {
+        layoutExpr.getAll(event)?.toList()?.let {
             if (it.isNotEmpty()) {
                 str.append(" with layout ")
                     .append(it.joinToString(", "))
             }
+        }
+
+        idExpr?.getSingle(event)?.let {
+            str.append(" with id ")
+                .append(it)
         }
 
         pageExpr?.getSingle(event)?.let {

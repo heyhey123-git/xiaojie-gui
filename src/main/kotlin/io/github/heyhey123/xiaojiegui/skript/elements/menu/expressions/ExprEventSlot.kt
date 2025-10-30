@@ -17,7 +17,7 @@ class ExprEventSlot : SimpleExpression<Number>() {
                 ExprEventSlot::class.java,
                 Number::class.java,
                 ExpressionType.SIMPLE,
-                "[the] [event-]slot"
+                "[the] [event-]clicked slot" // event-slot causes conflict with skript
             )
         }
     }
@@ -35,7 +35,7 @@ class ExprEventSlot : SimpleExpression<Number>() {
         else arrayOf(event.slot)
 
     override fun toString(event: Event?, debug: Boolean) =
-        "the event-slot"
+        "the event-clicked slot"
 
     override fun isSingle() = true
 
