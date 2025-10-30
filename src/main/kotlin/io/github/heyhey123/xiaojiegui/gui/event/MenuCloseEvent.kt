@@ -14,6 +14,7 @@ class MenuCloseEvent(
     companion object {
         private val HANDLERS = HandlerList()
 
+        @JvmStatic
         fun getHandlerList(): HandlerList = HANDLERS
     }
 

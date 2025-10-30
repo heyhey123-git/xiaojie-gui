@@ -16,7 +16,8 @@ class MenuOpenEvent(
     companion object {
         private val HANDLERS = HandlerList()
 
-        fun getHandlers(): HandlerList = HANDLERS
+        @JvmStatic
+        fun getHandlerList(): HandlerList = HANDLERS
     }
 
     private var cancelled = false

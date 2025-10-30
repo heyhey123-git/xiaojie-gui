@@ -12,6 +12,8 @@ class ReceptacleCloseEvent(
 
     companion object {
         private val HANDLERS = HandlerList()
+
+        @JvmStatic
         fun getHandlerList() = HANDLERS
     }
 

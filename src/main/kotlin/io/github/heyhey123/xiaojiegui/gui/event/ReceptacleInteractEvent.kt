@@ -14,6 +14,13 @@ class ReceptacleInteractEvent(
     val slot: Int
 ) : Event(), Cancellable {
 
+    companion object {
+        private val HANDLERS = HandlerList()
+
+        @JvmStatic
+        fun getHandlerList() = HANDLERS
+    }
+
     private var cancelled = false
 
     override fun getHandlers() = HANDLERS
@@ -22,10 +29,5 @@ class ReceptacleInteractEvent(
 
     override fun setCancelled(cancel: Boolean) {
         this.cancelled = cancel
-    }
-
-    companion object {
-        private val HANDLERS = HandlerList()
-        fun getHandlerList() = HANDLERS
     }
 }

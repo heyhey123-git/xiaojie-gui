@@ -32,6 +32,7 @@ class MenuInteractEvent(
 
         private val HANDLERS = HandlerList()
 
+        @JvmStatic
         fun getHandlerList() = HANDLERS
     }
 
