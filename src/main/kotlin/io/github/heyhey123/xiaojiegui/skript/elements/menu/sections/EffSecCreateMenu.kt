@@ -89,8 +89,8 @@ class EffSecCreateMenu : EffectSection() {
         titleStrExpr = expressions[1] as Expression<String>?
         titleComponentExpr = expressions[2] as Expression<Any>?
         titleType = TitleType.fromStringTag(parseResult.tags[1])
-        idExpr = expressions[3] as Expression<String>?
-        layoutExpr = expressions[4] as Expression<String>
+        layoutExpr = expressions[3] as Expression<String>
+        idExpr = expressions[4] as Expression<String>?
         pageExpr = expressions[5] as Expression<Number>?
         minClickDelayExpr = expressions[6] as Expression<Number>?
         hidePlayerInventoryFlag = parseResult.hasTag("hide")
