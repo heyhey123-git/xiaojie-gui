@@ -1,5 +1,6 @@
 package io.github.heyhey123.xiaojiegui.gui.menu
 
+import io.github.heyhey123.xiaojiegui.XiaojieGUI
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuOpenEvent
 import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
@@ -46,6 +47,10 @@ class MenuTest {
         every { props.defaultPage } returns 0
         every { props.defaultTitle } returns Component.text("Default")
         every { props.defaultLayout } returns listOf("aaaaaaaaa")
+        mockkObject(XiaojieGUI.Companion)
+        val plugin = mockk<XiaojieGUI>(relaxed = true)
+        XiaojieGUI.instance = plugin
+        every { plugin.isEnabled } returns true
         properties = props
     }
 
