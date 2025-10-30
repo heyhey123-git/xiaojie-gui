@@ -86,18 +86,18 @@ class EffTurnPage : Effect() {
             return
         }
         if (page !in 0..<menu.size) {
-            Skript.error("Page number ${page} is out of bounds for the menu.")
+            Skript.error("Page number $page is out of bounds for the menu.")
             return
         }
 
-        val title = if (titleType != null) {
+        val title = titleType?.let {
             ComponentHelper.resolveTitleComponentOrNull(
                 newTitleStrExpr,
                 newTitleComponentExpr,
                 event,
-                titleType!!
+                it
             )
-        } else null
+        }
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
@@ -111,7 +111,18 @@ class EffTurnPage : Effect() {
         menu.turnPage(player, page, title)
     }
 
-    override fun toString(event: Event?, debug: Boolean) =
-        "turn page to page $pageExPr for $playerExpr with new title ${newTitleStrExpr ?: newTitleComponentExpr}"
-
+    override fun toString(event: Event?, debug: Boolean): String {
+        val sb = StringBuilder("turn to page ").append(pageExPr.toString(event, debug))
+            .append(" for ").append(playerExpr.toString(event, debug))
+        titleType?.let {
+            sb.append(" with new title ")
+            newTitleStrExpr?.let { strExpr ->
+                sb.append("string:").append(strExpr.toString(event, debug))
+            }
+            newTitleComponentExpr?.let { compExpr ->
+                sb.append("component:").append(compExpr.toString(event, debug))
+            }
+        }
+        return sb.toString()
+    }
 }

@@ -53,7 +53,7 @@ class EffInsertPage : Effect() {
 
     private var titleComponentExpr: Expression<Any>? = null
 
-    private lateinit var titleType: TitleType
+    private var titleType: TitleType? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -71,9 +71,11 @@ class EffInsertPage : Effect() {
 
         layoutExpr = expressions?.get(2) as Expression<String>?
         playerInvLayoutExpr = expressions?.get(3) as Expression<String>?
-        titleStrExpr = expressions?.get(4) as Expression<String>?
-        titleComponentExpr = expressions?.get(5) as Expression<Any>?
-        titleType = TitleType.fromStringTag(parseResult!!.tags[0])
+        if (parseResult!!.tags.isNotEmpty()) {
+            titleType = TitleType.fromStringTag(parseResult.tags[0])
+            titleStrExpr = expressions?.get(4) as Expression<String>?
+            titleComponentExpr = expressions?.get(5) as Expression<Any>?
+        }
         return true
     }
 
@@ -90,12 +92,14 @@ class EffInsertPage : Effect() {
         val pageIndex = pageIndexExpr?.getSingle(event)?.toInt()
         val layout = layoutExpr?.getArray(event)?.toList()
         val playerInvLayout = playerInvLayoutExpr?.getArray(event)?.toList()
-        val title = ComponentHelper.resolveTitleComponentOrNull(
-            titleStrExpr,
-            titleComponentExpr,
-            event,
-            titleType,
-        )
+        val title = titleType?.let {
+            ComponentHelper.resolveTitleComponentOrNull(
+                titleStrExpr,
+                titleComponentExpr,
+                event,
+                it
+            )
+        }
 
         menu.insertPage(pageIndex, layout, title, playerInvLayout)
     }
