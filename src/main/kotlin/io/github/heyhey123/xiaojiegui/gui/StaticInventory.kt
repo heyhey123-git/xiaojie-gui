@@ -107,26 +107,28 @@ object StaticInventory {
          * @param title the new title of the inventory
          */
         fun setTitle(title: Component) {
-            val craftContainerView = view as? CraftAbstractInventoryView ?: return
-            val vanillaTitleComponent = PaperAdventure.asVanilla(title)
+            val craftContainerView = view as? CraftAbstractInventoryView
+                ?: throw ClassCastException("InventoryView is not a CraftAbstractInventoryView")
+
             val craftContainerViewClazz = craftContainerView::class.java
-            val craftContainerViewFieldTitle = Reflection.CraftContainerViewProxy.getFieldTitle(craftContainerViewClazz)
-            craftContainerViewFieldTitle.set(
-                craftContainerView,
-                LegacyComponentSerializer.legacySection().serialize(title)
-            )
+            Reflection.CraftContainerViewProxy
+                .getFieldTitle(craftContainerViewClazz)
+                .set(
+                    craftContainerView,
+                    LegacyComponentSerializer.legacySection().serialize(title)
+                )
 
             val serverPlayer = (view?.player as CraftPlayer).handle
-            val windowId = serverPlayer.containerMenu.containerId
+            val containerMenu = serverPlayer.containerMenu
             val menuType = CraftContainer.getNotchInventoryType(craftContainerView.topInventory)
             serverPlayer.connection.send(
                 ClientboundOpenScreenPacket(
-                    windowId,
+                    containerMenu.containerId,
                     menuType,
-                    vanillaTitleComponent
+                    PaperAdventure.asVanilla(title)
                 )
             )
-            serverPlayer.containerMenu.sendAllDataToRemote()
+            containerMenu.sendAllDataToRemote()
         }
 
         /**
