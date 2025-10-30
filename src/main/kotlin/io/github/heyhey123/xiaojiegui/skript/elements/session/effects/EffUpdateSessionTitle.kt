@@ -55,8 +55,8 @@ class EffUpdateSessionTitle : Effect() {
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
         sessionExpr = expressions?.get(0) as Expression<MenuSession>
-        titleStrExpr = expressions[1] as Expression<String>
-        titleComponentExpr = expressions[2] as Expression<Any>
+        titleStrExpr = expressions[1] as Expression<String>?
+        titleComponentExpr = expressions[2] as Expression<Any>?
         titleTypeExpr = TitleType.fromStringTag(parseResult!!.tags[0])
         refreshFlag = parseResult.hasTag("refresh")
 
