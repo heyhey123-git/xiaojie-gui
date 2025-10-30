@@ -70,7 +70,7 @@ object ComponentHelper {
         when (type) {
             STRING -> {
                 val titleStr = strExpr?.getSingle(event)
-                titleStr?.let { Component.text(titleStr) }
+                titleStr?.let { LegacyComponentSerializer.legacySection().deserialize(titleStr) }
             }
 
             COMPONENT -> {

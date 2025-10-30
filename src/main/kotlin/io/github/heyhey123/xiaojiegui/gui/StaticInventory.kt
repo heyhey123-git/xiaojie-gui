@@ -1,9 +1,14 @@
 package io.github.heyhey123.xiaojiegui.gui
 
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
+import io.papermc.paper.adventure.PaperAdventure
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import org.bukkit.Bukkit
+import org.bukkit.craftbukkit.entity.CraftPlayer
+import org.bukkit.craftbukkit.inventory.CraftAbstractInventoryView
+import org.bukkit.craftbukkit.inventory.CraftContainer
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
@@ -101,9 +106,27 @@ object StaticInventory {
          *
          * @param title the new title of the inventory
          */
-        @Suppress("DEPRECATION")
         fun setTitle(title: Component) {
-            view?.title = LegacyComponentSerializer.legacySection().serialize(title)
+            val craftContainerView = view as? CraftAbstractInventoryView ?: return
+            val vanillaTitleComponent = PaperAdventure.asVanilla(title)
+            val craftContainerViewClazz = craftContainerView::class.java
+            val craftContainerViewFieldTitle = Reflection.CraftContainerViewProxy.getFieldTitle(craftContainerViewClazz)
+            craftContainerViewFieldTitle.set(
+                craftContainerView,
+                LegacyComponentSerializer.legacySection().serialize(title)
+            )
+
+            val serverPlayer = (view?.player as CraftPlayer).handle
+            val windowId = serverPlayer.containerMenu.containerId
+            val menuType = CraftContainer.getNotchInventoryType(craftContainerView.topInventory)
+            serverPlayer.connection.send(
+                ClientboundOpenScreenPacket(
+                    windowId,
+                    menuType,
+                    vanillaTitleComponent
+                )
+            )
+            serverPlayer.containerMenu.sendAllDataToRemote()
         }
 
         /**

@@ -3,12 +3,13 @@ package io.github.heyhey123.xiaojiegui.gui
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.wrapper.PacketWrapper
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCloseWindow
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems
 import io.github.heyhey123.xiaojiegui.gui.layout.LayoutType
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
+import io.papermc.paper.adventure.PaperAdventure
 import net.kyori.adventure.text.Component
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -95,12 +96,14 @@ private class PacketHelperImpl : PacketHelper() {
     }
 
     override fun sendOpenScreen(player: Player, windowId: Int, windowType: LayoutType, title: Component) {
-        val packet = WrapperPlayServerOpenWindow(
-            windowId,
-            windowType.id,
-            title
-        )
-        player.sendPacket(packet)
+        val serverPlayer = (player as CraftPlayer).handle
+        serverPlayer.connection.send(
+            ClientboundOpenScreenPacket(
+                windowId,
+                windowType.toNMSType(),
+                PaperAdventure.asVanilla(title)
+            )
+        ) // PacketEvents causes issues when processing Components.
     }
 
     override fun sendContainerSetContent(player: Player, windowId: Int, items: Array<ItemStack?>) {

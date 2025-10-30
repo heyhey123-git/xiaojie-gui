@@ -27,6 +27,7 @@ dependencies {
     paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
     compileOnly("com.github.SkriptLang:Skript:2.12.1")
     compileOnly("com.github.retrooper:packetevents-spigot:2.9.5")
+    implementation("xyz.jpenilla:reflection-remapper:0.1.3")
 
     testImplementation(kotlin("test"))
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.0.0")
@@ -72,6 +73,8 @@ tasks {
         //relocate Kotlin
         relocate("kotlin.", "$shadePrefix.kotlin${kotlinEscapedVersion}.")
         relocate("org.jetbrains.annotations.", "$shadePrefix.org.jetbrains.annotations2602.")
+        relocate("net.fabricmc.", "$shadePrefix.net.fabricmc.")
+        relocate("xyz.jpenilla.reflectionremapper.", "$shadePrefix.xyz.jpenilla.reflectionremapper.")
     }
 
     build {

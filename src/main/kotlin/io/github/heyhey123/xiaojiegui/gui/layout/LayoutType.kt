@@ -1,5 +1,7 @@
 package io.github.heyhey123.xiaojiegui.gui.layout
 
+import net.minecraft.world.inventory.MenuType
+
 /**
  * LayoutType defines various standard inventory layouts.
  *
@@ -41,4 +43,35 @@ LayoutType(val id: Int) {
     SMOKER(22),
     CARTOGRAPHY_TABLE(23),
     STONECUTTER(24);
+
+    fun toNMSType(): MenuType<*> =
+        when (this) {
+            GENERIC_9X1 -> MenuType.GENERIC_9x1
+            GENERIC_9X2 -> MenuType.GENERIC_9x2
+            GENERIC_9X3 -> MenuType.GENERIC_9x3
+            GENERIC_9X4 -> MenuType.GENERIC_9x4
+            GENERIC_9X5 -> MenuType.GENERIC_9x5
+            GENERIC_9X6 -> MenuType.GENERIC_9x6
+            GENERIC_3X3 -> MenuType.GENERIC_3x3
+            CRAFTER_3x3 -> MenuType.CRAFTING
+            ANVIL -> MenuType.ANVIL
+            BEACON -> MenuType.BEACON
+            BLAST_FURNACE -> MenuType.BLAST_FURNACE
+            BREWING_STAND -> MenuType.BREWING_STAND
+            CRAFTING -> MenuType.CRAFTING
+            ENCHANTMENT -> MenuType.ENCHANTMENT
+            FURNACE -> MenuType.FURNACE
+            GRINDSTONE -> MenuType.GRINDSTONE
+            HOPPER -> MenuType.HOPPER
+            LECTERN -> MenuType.LECTERN
+            LOOM -> MenuType.LOOM
+            MERCHANT -> MenuType.MERCHANT
+            SHULKER_BOX -> MenuType.SHULKER_BOX
+            SMITHING -> MenuType.SMITHING
+            SMOKER -> MenuType.SMOKER
+            CARTOGRAPHY_TABLE -> MenuType.CARTOGRAPHY_TABLE
+            STONECUTTER -> MenuType.STONECUTTER
+        }
+
+
 }
