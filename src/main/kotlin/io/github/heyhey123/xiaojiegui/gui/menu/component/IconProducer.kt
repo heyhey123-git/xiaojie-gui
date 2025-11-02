@@ -7,9 +7,6 @@ import org.bukkit.inventory.ItemStack
  *
  */
 sealed class IconProducer {
-    enum class Type {
-        SINGLE, MULTIPLE
-    }
 
     /**
      * Produce the next ItemStack.
@@ -18,17 +15,14 @@ sealed class IconProducer {
      */
     abstract fun produceNext(): ItemStack?
 
-    abstract val type: Type
-
     /**
      * Single icon producer.
      *
      * @property item The single item to produce.
      *
      */
-    class SingleIconProducer(private val item: ItemStack) : IconProducer() {
-        override val type = Type.SINGLE
-        override fun produceNext(): ItemStack = item
+    class SingleIconProducer(private val item: ItemStack?) : IconProducer() {
+        override fun produceNext(): ItemStack? = item
     }
 
     /**
@@ -38,7 +32,6 @@ sealed class IconProducer {
      *
      */
     class MultipleIconProducer(private val items: List<ItemStack?>) : IconProducer() {
-        override val type = Type.MULTIPLE
 
         private var currentIndex = 0
 

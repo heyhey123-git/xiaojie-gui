@@ -184,16 +184,16 @@ class Menu(
             defaultIconMapper[key] = itemProducer to callback
         }
 
-        val targetPages = pages ?: (0..<size).toList()
-
-        val targetPageInstances = targetPages.map { pageIndex ->
-            check(pageIndex in 0..<size) {
-                "Page $pageIndex does not exist in this menu."
+        val targetPages = pages?.apply {
+            forEach {
+                check(it in 0..<size) {
+                    "Page $it does not exist in this menu."
+                }
             }
-            this.pages[pageIndex]
-        }
+        } ?: (0..<size).toList()
 
-        for (pageInstance in targetPageInstances) {
+        for (targetPage in targetPages) {
+            val pageInstance = this.pages[targetPage]
             pageInstance.iconMapper[key] = itemProducer to callback
             pageInstance.keyToSlots[key]?.forEach { slot ->
                 pageInstance.clickCallbacks[slot] = callback ?: {}
@@ -270,6 +270,74 @@ class Menu(
     ) = setSlotCallback(page, slot) { event -> callback.accept(event) }
 
     /**
+     * Override the item in a specific slot on specific pages and refresh the viewers' inventories accordingly.
+     *
+     * @param pages The collection of page numbers.
+     * @param slot The slot number.
+     * @param item The new ItemStack to set in the slot, or null to clear it.
+     * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
+     * @param callback An optional callback function to execute on click for the overridden slot.
+     */
+    fun overrideSlot(
+        pages: Collection<Int>?,
+        slot: Int,
+        item: ItemStack?,
+        refresh: Boolean,
+        callback: ((event: MenuInteractEvent) -> Unit)? = null
+    ) {
+        val targetPages = pages?.apply {
+            forEach {
+                check(it in 0..<size) {
+                    "Page $it does not exist in this menu."
+                }
+            }
+        } ?: (0..<size).toList()
+
+        targetPages.forEach { page ->
+
+            val pageInstance = this.pages[page]
+            pageInstance.slotOverrides[slot] = item ?: ItemStack.empty()
+            pageInstance.clickCallbacks[slot] = callback ?: {}
+
+            for (viewer in viewers) {
+                val session = MenuSession.querySession(viewer)
+                if (session?.menu != this || session.page != page) continue
+
+                try {
+                    session.setIcon(slot, item, false)
+                } catch (e: IndexOutOfBoundsException) {
+                    throw IndexOutOfBoundsException("Slot $slot is out of bounds for the receptacle.").apply {
+                        initCause(e)
+                    }
+                }
+
+                if (refresh) {
+                    session.refresh(slot)
+                }
+            }
+        }
+    }
+
+    /**
+     * Override the item in a specific slot on specific pages and refresh the viewers' inventories accordingly.
+     * This version uses a Consumer for the callback.
+     *
+     * @param pages The collection of page numbers.
+     * @param slot The slot number.
+     * @param item The new ItemStack to set in the slot, or null to clear it.
+     * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
+     * @param callback A Consumer callback to execute on click for the overridden slot.
+     */
+    fun overrideSlot(
+        pages: Collection<Int>,
+        slot: Int,
+        item: ItemStack?,
+        refresh: Boolean,
+        callback: Consumer<MenuInteractEvent>
+    ) = overrideSlot(pages, slot, item, refresh) { event -> callback.accept(event) }
+
+
+    /**
      * Override the item in a specific slot on a specific page and refresh the viewers' inventories accordingly.
      *
      * @param page The page number.
@@ -284,33 +352,7 @@ class Menu(
         item: ItemStack?,
         refresh: Boolean,
         callback: ((event: MenuInteractEvent) -> Unit)? = null
-    ) {
-        check(page in 0..<size) {
-            "Page $page does not exist in this menu."
-        }
-        val pageInstance = pages[page]
-        pageInstance.slotOverrides[slot] = item ?: ItemStack.empty()
-
-        for (viewer in viewers) {
-            val session = MenuSession.querySession(viewer)
-            if (session?.menu != this || session.page != page) continue
-
-            try {
-                session.setIcon(slot, item, false)
-            } catch (e: IndexOutOfBoundsException) {
-                throw IndexOutOfBoundsException("Slot $slot is out of bounds for the receptacle.").apply {
-                    initCause(e)
-                }
-            }
-
-            if (refresh) {
-                session.refresh(slot)
-            }
-        }
-
-        pageInstance.clickCallbacks[slot] = callback ?: {}
-
-    }
+    ) = overrideSlot(listOf(page), slot, item, refresh, callback)
 
     /**
      * Override the item in a specific slot on a specific page and refresh the viewers' inventories accordingly.
@@ -328,7 +370,7 @@ class Menu(
         item: ItemStack?,
         refresh: Boolean,
         callback: Consumer<MenuInteractEvent>
-    ) = overrideSlot(page, slot, item, refresh) { event -> callback.accept(event) }
+    ) = overrideSlot(listOf(page), slot, item, refresh) { event -> callback.accept(event) }
 
     /**
      * Insert a new page into the menu at the specified position.
