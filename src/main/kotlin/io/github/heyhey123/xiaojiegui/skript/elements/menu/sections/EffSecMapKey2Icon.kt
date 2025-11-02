@@ -73,9 +73,9 @@ class EffSecMapKey2Icon : EffectSection() {
         triggerItems: List<TriggerItem?>?
     ): Boolean {
         keyExpr = expressions!![0] as Expression<String>
-        itemExpr = expressions[1] as Expression<ItemStack>
-        menuExpr = expressions[2] as Expression<Menu>?
-        pageExpr = expressions[3] as Expression<Number>?
+        itemExpr = expressions[1] as Expression<ItemStack>? ?: expressions[2] as Expression<ItemStack>
+        menuExpr = expressions[3] as Expression<Menu>?
+        pageExpr = expressions[4] as Expression<Number>?
 
         if (parseResult!!.hasTag("refresh")) {
             refreshFlag = true
@@ -122,12 +122,6 @@ class EffSecMapKey2Icon : EffectSection() {
             return walk(event, false)
         }
 
-        val item = itemExpr.getSingle(event)
-        if (item == null) {
-            Skript.error("Item cannot be null.")
-            return walk(event, false)
-        }
-
         val menu = menuExpr?.getSingle(event) ?: when (event) {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
@@ -159,7 +153,15 @@ class EffSecMapKey2Icon : EffectSection() {
         }
 
         val iconProducer = when (iconProducerType) {
-            IconProducer.Type.SINGLE -> IconProducer.SingleIconProducer(item)
+            IconProducer.Type.SINGLE -> {
+                val item = itemExpr.getSingle(event)
+                if (item == null) {
+                    Skript.error("Item cannot be null for single icon producer.")
+                    return walk(event, false)
+                }
+
+                IconProducer.SingleIconProducer(item)
+            }
             IconProducer.Type.MULTIPLE -> {
                 val items = itemExpr.getArray(event)
                 IconProducer.MultipleIconProducer(items.toList())
@@ -183,7 +185,7 @@ class EffSecMapKey2Icon : EffectSection() {
                     Skript.exception(
                         e,
                         Thread.currentThread(),
-                        "Error occurred in slot callback for menu $id. This callback was added when mapping key $key to item $item."
+                        "Error occurred in slot callback for menu $id. This callback was added when mapping key $key to item $itemExpr."
                     )
                 }
             }
