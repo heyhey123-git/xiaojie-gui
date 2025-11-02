@@ -1,8 +1,7 @@
 package io.github.heyhey123.xiaojiegui.gui.menu.page
 
-import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
-import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Page
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.mockk.every
@@ -23,28 +22,6 @@ class PageComputeSlotsTest {
         unmockkAll()
     }
 
-    // 0) Edge case: session has no menu
-    @Test
-    fun `returns empty array when session has no menu`() {
-        val properties = mockk<MenuProperties>(relaxed = true).apply {
-            every { mode } returns Receptacle.Mode.STATIC
-        }
-        val page = Page(
-            InventoryType.CHEST,
-            Component.text("Title"),
-            listOf("aaaaaaaaa"),
-            emptyList(),
-            properties
-        )
-        val session = mockk<MenuSession>(relaxed = true).apply {
-            every { menu } returns null
-        }
-
-        val slots = page.computeSlots(session)
-
-        assertEquals(0, slots.size, "Slots array should be empty when session has no menu")
-    }
-
     // 1) STATIC mode tests
     @Test
     fun `STATIC - fills container and clones per slot`() {
@@ -59,17 +36,13 @@ class PageComputeSlotsTest {
             properties
         )
 
-        val menu = mockk<Menu>(relaxed = true)
         val iconA = mockk<ItemStack>(relaxed = true)
+        val iconProducerA = IconProducer.SingleIconProducer(iconA)
+        page.iconMapper["a"] = iconProducerA to null
         var cloneCount = 0
         every { iconA.clone() } answers { mockk<ItemStack>(relaxed = true, name = "a#${cloneCount++}") }
-        every { menu.translateIcon("a") } returns iconA
 
-        val session = mockk<MenuSession>(relaxed = true).apply {
-            every { this@apply.menu } returns menu
-        }
-
-        val slots = page.computeSlots(session)
+        val slots = page.computeSlots()
 
         assertEquals(page.layout.containerSize, slots.size, "Slots array size should match container size")
         val nonNullSlots = slots.filterNotNull()
@@ -80,7 +53,6 @@ class PageComputeSlotsTest {
             nonNullSlots.toSet().size,
             "Each slot should contain a cloned instance of the icon"
         )
-        verify(exactly = 1) { menu.translateIcon("a") }
     }
 
     // 2) STATIC mode with multi-char keys
@@ -98,20 +70,16 @@ class PageComputeSlotsTest {
             properties
         )
 
-        val menu = mockk<Menu>(relaxed = true)
         val iconGold = mockk<ItemStack>(relaxed = true)
         val iconA = mockk<ItemStack>(relaxed = true)
         every { iconGold.clone() } answers { mockk<ItemStack>(relaxed = true) }
         every { iconA.clone() } answers { mockk<ItemStack>(relaxed = true) }
-        every { menu.translateIcon("gold") } returns iconGold
-        every { menu.translateIcon("a") } returns iconA
-        every { menu.translateIcon(" ") } returns null // 空格不放物品
+        page.iconMapper += mapOf(
+            "gold" to (IconProducer.SingleIconProducer(iconGold) to null),
+            "a" to (IconProducer.SingleIconProducer(iconA) to null)
+        )
 
-        val session = mockk<MenuSession>(relaxed = true).apply {
-            every { this@apply.menu } returns menu
-        }
-
-        val slots = page.computeSlots(session)
+        val slots = page.computeSlots()
 
         assertNotNull(slots[0])
         assertNotNull(slots[1])
@@ -119,9 +87,6 @@ class PageComputeSlotsTest {
         for (i in 3 until page.layout.containerSize) {
             assertNull(slots[i])
         }
-        verify(exactly = 1) { menu.translateIcon("gold") }
-        verify(exactly = 1) { menu.translateIcon("a") }
-        verify(atLeast = 0) { menu.translateIcon(" ") } // 可能为 0（如果行被刚好填满）
     }
 
     // 3) PHANTOM mode tests
@@ -139,17 +104,11 @@ class PageComputeSlotsTest {
             properties
         )
 
-        val menu = mockk<Menu>(relaxed = true)
         val iconA = mockk<ItemStack>(relaxed = true)
         every { iconA.clone() } answers { mockk<ItemStack>(relaxed = true) }
-        every { menu.translateIcon("a") } returns iconA
-        every { menu.translateIcon(" ") } returns null // 玩家背包图案默认空格，不放物品
+        page.iconMapper["a"] = IconProducer.SingleIconProducer(iconA) to null
 
-        val session = mockk<MenuSession>(relaxed = true).apply {
-            every { this@apply.menu } returns menu
-        }
-
-        val slots = page.computeSlots(session)
+        val slots = page.computeSlots()
 
         assertEquals(page.layout.totalSize, slots.size)
         // 容器区非空，玩家背包区为空
@@ -157,8 +116,7 @@ class PageComputeSlotsTest {
         for (i in 0 until containerSize) assertNotNull(slots[i])
         for (i in containerSize until slots.size) assertNull(slots[i])
 
-        verify(exactly = 1) { menu.translateIcon("a") }
-        verify(exactly = 1) { menu.translateIcon(" ") } // 玩家背包键（空格）仅被查询一次
+        verify { iconA.clone() }
     }
 
     // 4) PHANTOM mode with hidden player inventory
@@ -176,16 +134,11 @@ class PageComputeSlotsTest {
             properties
         )
 
-        val menu = mockk<Menu>(relaxed = true)
         val iconA = mockk<ItemStack>(relaxed = true)
         every { iconA.clone() } answers { mockk<ItemStack>(relaxed = true) }
-        every { menu.translateIcon("a") } returns iconA
+        page.iconMapper["a"] = IconProducer.SingleIconProducer(iconA) to null
 
-        val session = mockk<MenuSession>(relaxed = true).apply {
-            every { this@apply.menu } returns menu
-        }
-
-        val slots = page.computeSlots(session)
+        val slots = page.computeSlots()
 
         // 仍返回 totalSize，但不会对玩家背包键进行解析
         assertEquals(page.layout.totalSize, slots.size)
@@ -193,7 +146,6 @@ class PageComputeSlotsTest {
         for (i in 0 until containerSize) assertNotNull(slots[i])
         for (i in containerSize until slots.size) assertNull(slots[i])
 
-        verify(exactly = 1) { menu.translateIcon("a") }
-        verify(exactly = 0) { menu.translateIcon(" ") }
+        verify { iconA.clone() }
     }
 }

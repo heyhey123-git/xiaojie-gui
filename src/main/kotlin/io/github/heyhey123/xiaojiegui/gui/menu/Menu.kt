@@ -6,6 +6,7 @@ import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuOpenEvent
 import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Cooldown
+import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Page
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
 import net.kyori.adventure.text.Component
@@ -66,9 +67,10 @@ class Menu(
         get() = pages.size
 
     /**
-     * The icon mapper for the menu, mapping keys to ItemStacks and optional click callbacks.
+     * The default icon mapper for the menu.
      */
-    val iconMapper: ConcurrentHashMap<String, Pair<ItemStack?, ((MenuInteractEvent) -> Unit)?>> = ConcurrentHashMap()
+    val defaultIconMapper: MutableMap<String, Pair<IconProducer, ((event: MenuInteractEvent) -> Unit)?>> =
+        ConcurrentHashMap()
 
     /**
      * Open the menu for a player at a specific page.
@@ -163,47 +165,54 @@ class Menu(
     }
 
     /**
-     * Translate a key to an ItemStack using the icon mapper.
-     *
-     * @param key The key to translate.
-     * @return The corresponding ItemStack, or null if the key does not exist.
-     */
-    fun translateIcon(key: String): ItemStack? = iconMapper[key]?.first
-
-    /**
      * Update the ItemStack associated with a specific key in the icon mapper and refresh the viewers' inventories accordingly.
      *
      * @param key The key to update.
-     * @param item The new ItemStack to associate with the key, or null to remove it.
+     * @param itemProducer The new IconProducer to associate with the key, or null to remove it.
+     * @param pages The collection of page numbers to update. If null, all pages will be updated.,
+     * and the default icon mapper will be updated.
      * @param refresh Whether to refresh the viewers' inventories after updating the icon.
      */
     fun updateIconForKey(
         key: String,
-        item: ItemStack?,
+        itemProducer: IconProducer,
         refresh: Boolean,
+        pages: Collection<Int>? = null,
         callback: ((event: MenuInteractEvent) -> Unit)? = null
     ) {
-        iconMapper[key] = item to callback
-        for (viewer in viewers) {
-            val session = MenuSession.querySession(viewer)
-            if (session?.menu != this) continue
+        if (pages == null) {
+            defaultIconMapper[key] = itemProducer to callback
+        }
 
-            val page = pages[session.page]
+        val targetPages = pages ?: (0..<size).toList()
 
-            page.keyToSlots[key]?.apply {
-                forEach { session.setIcon(it, item, false) }
+        val targetPageInstances = targetPages.map { pageIndex ->
+            check(pageIndex in 0..<size) {
+                "Page $pageIndex does not exist in this menu."
+            }
+            this.pages[pageIndex]
+        }
 
-                if (refresh) {
-                    session.refresh(singleOrNull() ?: -1)
-                }
+        for (pageInstance in targetPageInstances) {
+            pageInstance.iconMapper[key] = itemProducer to callback
+            pageInstance.keyToSlots[key]?.forEach { slot ->
+                pageInstance.clickCallbacks[slot] = callback ?: {}
             }
         }
 
-        if (callback == null) return
+        for (viewer in viewers) {
+            val session = MenuSession.querySession(viewer)
+            if (session?.menu != this) continue
+            if (session.page !in targetPages) continue
 
-        for (singlePage in pages) {
-            singlePage.keyToSlots[key]?.forEach {
-                singlePage.clickCallbacks[it] = callback
+            val currentPage = this.pages[session.page]
+            currentPage.keyToSlots[key]?.apply {
+                forEach { slot ->
+                    session.setIcon(slot, itemProducer.produceNext(), false)
+                }
+                if (refresh) {
+                    session.refresh(singleOrNull() ?: -1)
+                }
             }
         }
     }
@@ -213,16 +222,19 @@ class Menu(
      * This version uses a Consumer for the callback.
      *
      * @param key The key to update.
-     * @param item The new ItemStack to associate with the key, or null to remove it.
+     * @param itemProducer The new IconProducer to associate with the key, or null to remove it.
+     * @param pages The collection of page numbers to update. If null, all pages will be updated.,
+     * and the default icon mapper will be updated.
      * @param refresh Whether to refresh the viewers' inventories after updating the icon.
      * @param callback A Consumer callback to execute on click.
      */
     fun updateIconForKey(
         key: String,
-        item: ItemStack?,
+        itemProducer: IconProducer,
+        pages: Collection<Int>?,
         refresh: Boolean,
         callback: Consumer<MenuInteractEvent>
-    ) = updateIconForKey(key, item, refresh) { event -> callback.accept(event) }
+    ) = updateIconForKey(key, itemProducer, refresh, pages) { event -> callback.accept(event) }
 
     /**
      * Set a click callback for a specific slot on a specific page.
@@ -296,9 +308,8 @@ class Menu(
             }
         }
 
-        if (callback != null) {
-            pageInstance.clickCallbacks[slot] = callback
-        }
+        pageInstance.clickCallbacks[slot] = callback ?: {}
+
     }
 
     /**
@@ -340,8 +351,10 @@ class Menu(
             properties
         )
 
+        pageInstance.iconMapper += defaultIconMapper
+
         pageInstance.keyToSlots.forEach { (key, slots) ->
-            val callback = iconMapper[key]?.second ?: return@forEach
+            val callback = defaultIconMapper[key]?.second ?: return@forEach
             slots.forEach { slot -> pageInstance.clickCallbacks[slot] = callback }
         }
 
@@ -354,7 +367,7 @@ class Menu(
     }
 
     override fun toString() =
-        "Menu(id=${id ?: "<unnamed>"}, properties=$properties, inventoryType=$inventoryType, viewers=$viewers, pages=$pages, iconMapper=$iconMapper)"
+        "Menu(id=${id ?: "<unnamed>"}, properties=$properties, inventoryType=$inventoryType, viewers=$viewers, pages=$pages, defaultIconMapper=$defaultIconMapper)"
 
     companion object {
 

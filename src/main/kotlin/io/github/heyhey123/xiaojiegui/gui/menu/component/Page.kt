@@ -153,6 +153,10 @@ class Page(
         mapping
     }
 
+    /**
+     * The icon mapper for the menu, mapping keys to ItemStacks and optional click callbacks.
+     */
+    val iconMapper: ConcurrentHashMap<String, Pair<IconProducer, ((MenuInteractEvent) -> Unit)?>> = ConcurrentHashMap()
 
     /**
      * Load in the page into the given menu session.
@@ -207,7 +211,7 @@ class Page(
             }
         }
 
-        val slots = computeSlots(session)
+        val slots = computeSlots()
         for ((index, item) in slots.withIndex()) {
             receptacle.setElement(index, item)
         }
@@ -220,11 +224,9 @@ class Page(
     /**
      * Compute the item stacks for each slot in the menu session's receptacle.
      *
-     * @param session The menu session for which to compute the slots.
      * @return An array of item stacks representing the items in each slot, or null if no item is set for a slot.
      */
-    fun computeSlots(session: MenuSession): Array<ItemStack?> {
-        val menu = session.menu ?: return arrayOfNulls(0)
+    fun computeSlots(): Array<ItemStack?> {
         val size = when (properties.mode) {
             Receptacle.Mode.STATIC -> layout.containerSize
             Receptacle.Mode.PHANTOM -> layout.totalSize
@@ -232,8 +234,9 @@ class Page(
         val slots: Array<ItemStack?> = arrayOfNulls(size)
 
         for ((key, slotSet) in keyToSlots) {
-            val item = menu.translateIcon(key) ?: continue
+            val itemProducer = iconMapper[key]?.first ?: continue
             slotSet.forEach { slot ->
+                val item = itemProducer.produceNext() ?: return@forEach
                 slots[slot] = item.clone()
             }
         }

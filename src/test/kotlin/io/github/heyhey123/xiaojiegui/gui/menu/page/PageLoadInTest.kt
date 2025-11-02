@@ -7,6 +7,7 @@ import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Cooldown
+import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Page
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import kotlin.to
 
 class PageLoadInTest {
 
@@ -50,7 +52,7 @@ class PageLoadInTest {
         // Icon item & clone behavior
         val icon = mockk<ItemStack>(relaxed = true)
         every { icon.clone() } returns icon
-        every { menu.translateIcon("a") } returns icon
+        page.iconMapper["a"] = IconProducer.SingleIconProducer(icon) to null
 
         // Mock Receptacle and capture onClick callback
         val receptacle = mockk<ViewReceptacle>(relaxed = true)

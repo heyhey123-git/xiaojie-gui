@@ -4,6 +4,7 @@ import io.github.heyhey123.xiaojiegui.XiaojieGUI
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuOpenEvent
 import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
+import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Page
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
@@ -170,8 +171,8 @@ class MenuTest {
             this.receptacle = r1
         }
         val s2 = MenuSession.getSession(v2).apply {
-            this.menu = menu;
-            this.page = 0;
+            this.menu = menu
+            this.page = 0
             this.receptacle = r2
         }
         // 注册观众以便被 updateIconForKey 遍历
@@ -180,7 +181,12 @@ class MenuTest {
         // 提供回调
         val cb: (MenuInteractEvent) -> Unit = {}
 
-        menu.updateIconForKey("a", icon, refresh = true, callback = cb)
+        menu.updateIconForKey(
+            "a",
+            IconProducer.SingleIconProducer(icon),
+            refresh = true,
+            callback = cb
+        )
 
         // 一行 9 个 'a'，槽位 0..8 均应更新
         for (slot in 0..8) {
@@ -208,7 +214,7 @@ class MenuTest {
         every { receptacle.setElement(any(), any()) } just Runs
         every { receptacle.refresh(any()) } just Runs
 
-        val session = MenuSession.getSession(viewer).apply {
+        MenuSession.getSession(viewer).apply {
             this.menu = menu; this.page = 0; this.receptacle = receptacle
         }
         menu.viewers.add(id)

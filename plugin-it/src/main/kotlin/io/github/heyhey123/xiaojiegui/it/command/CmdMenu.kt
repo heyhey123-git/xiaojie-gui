@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import io.papermc.paper.command.brigadier.Commands
@@ -55,9 +56,13 @@ object CmdMenu : Subcommand {
         )
 
         testMenu = Menu(null, properties, InventoryType.CHEST).apply {
-            iconMapper["A"] = ItemStack(Material.STONE) to null
+            defaultIconMapper["A"] = IconProducer.SingleIconProducer(
+                ItemStack(Material.STONE)
+            ) to null
 
-            insertPage(0, null, Component.text("Page 1"), null)
+            insertPage(
+                0, null, Component.text("Page 1"), null
+            )
             insertPage(1, null, Component.text("Page 2"), null)
 
             setSlotCallback(0, 10) { _ ->
@@ -84,7 +89,10 @@ object CmdMenu : Subcommand {
     }
 
     private fun updateIcon(ctx: CommandContext<CommandSourceStack>): Int {
-        testMenu.updateIconForKey("A", ItemStack(Material.DIAMOND), refresh = true) { event ->
+        testMenu.updateIconForKey(
+            "A",
+            IconProducer.SingleIconProducer(ItemStack(Material.DIAMOND)), refresh = true
+        ) { event ->
             event.viewer.sendMessage("Clicked updated icon!")
         }
         ctx.source.sender.sendMessage("Updated icon 'A' to diamond.")
@@ -100,13 +108,15 @@ object CmdMenu : Subcommand {
     }
 
     private fun insertPage(ctx: CommandContext<CommandSourceStack>): Int {
+        testMenu.defaultIconMapper["B"] = IconProducer.SingleIconProducer(
+            ItemStack(Material.GOLD_BLOCK)
+        ) to null
         testMenu.insertPage(
             2,
             listOf("BBBBBBBBB", "B       B", "BBBBBBBBB"),
             Component.text("Inserted Page"),
             null
         )
-        testMenu.iconMapper["B"] = ItemStack(Material.GOLD_BLOCK) to null
         ctx.source.sender.sendMessage("Inserted a new page.")
         return Command.SINGLE_SUCCESS
     }
