@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.utils
+package io.github.heyhey123.xiaojiegui.gui.utils
 
 import io.github.heyhey123.xiaojiegui.XiaojieGUI
 import org.bukkit.Bukkit

@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCl
 import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
-import io.github.heyhey123.xiaojiegui.utils.TaskUtil
+import io.github.heyhey123.xiaojiegui.gui.utils.TaskUtil
 
 object ReceptaclePacketListener :
     PacketListenerAbstract(PacketListenerPriority.NORMAL), BaseListener {

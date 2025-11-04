@@ -8,7 +8,7 @@ import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.expressions.base.SimplePropertyExpression
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
-import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
 import org.bukkit.event.Event
 
 

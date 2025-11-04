@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript
+package io.github.heyhey123.xiaojiegui.skript.utils
 
 import ch.njol.skript.variables.Variables
 import org.bukkit.event.Event
@@ -13,7 +13,7 @@ import org.bukkit.event.Event
  * The action receives the event as a parameter, which used as the user context.
  * @see Variables.withLocalVariables
  */
-class ExecutorWithContext(
+class LocalsScopeRunner(
     private val provider: Event?,
     private val action: (Event?) -> Unit
 ) {

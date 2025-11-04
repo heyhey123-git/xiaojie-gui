@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.skript
+package io.github.heyhey123.xiaojiegui.skript.utils
 
 /**
  * The type of title used in menu creation.

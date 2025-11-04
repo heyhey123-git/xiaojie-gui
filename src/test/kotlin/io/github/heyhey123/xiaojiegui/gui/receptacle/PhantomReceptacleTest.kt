@@ -1,7 +1,7 @@
 package io.github.heyhey123.xiaojiegui.gui.receptacle
 
 import io.github.heyhey123.xiaojiegui.gui.PacketHelper
-import io.github.heyhey123.xiaojiegui.utils.TaskUtil
+import io.github.heyhey123.xiaojiegui.gui.utils.TaskUtil
 import io.mockk.*
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player

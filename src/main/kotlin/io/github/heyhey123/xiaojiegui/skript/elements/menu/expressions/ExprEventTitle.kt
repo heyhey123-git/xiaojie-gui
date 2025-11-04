@@ -9,7 +9,7 @@ import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuOpenEvent
 import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
-import io.github.heyhey123.xiaojiegui.skript.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
 import org.bukkit.event.Event
 
 class ExprEventTitle : SimpleExpression<Any>() {

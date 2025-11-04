@@ -1,4 +1,4 @@
-package io.github.heyhey123.xiaojiegui.gui
+package io.github.heyhey123.xiaojiegui.gui.utils
 
 import org.bukkit.craftbukkit.inventory.CraftAbstractInventoryView
 import xyz.jpenilla.reflectionremapper.ReflectionRemapper

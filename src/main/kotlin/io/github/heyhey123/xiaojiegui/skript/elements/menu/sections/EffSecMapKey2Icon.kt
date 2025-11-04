@@ -16,7 +16,7 @@ import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
-import io.github.heyhey123.xiaojiegui.skript.ExecutorWithContext
+import io.github.heyhey123.xiaojiegui.skript.utils.LocalsScopeRunner
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
@@ -143,7 +143,7 @@ class EffSecMapKey2Icon : EffectSection() {
             return walk(event, false)
         }
 
-        val executor = ExecutorWithContext(event) { menuEvent ->
+        val executor = LocalsScopeRunner(event) { menuEvent ->
             walk(trigger, menuEvent)
         }
 

@@ -1,8 +1,8 @@
-package io.github.heyhey123.xiaojiegui.skript
+package io.github.heyhey123.xiaojiegui.skript.utils
 
 import ch.njol.skript.lang.Expression
-import io.github.heyhey123.xiaojiegui.skript.TitleType.COMPONENT
-import io.github.heyhey123.xiaojiegui.skript.TitleType.STRING
+import io.github.heyhey123.xiaojiegui.skript.utils.TitleType.COMPONENT
+import io.github.heyhey123.xiaojiegui.skript.utils.TitleType.STRING
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.event.Event

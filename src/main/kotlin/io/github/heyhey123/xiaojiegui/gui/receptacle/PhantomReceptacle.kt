@@ -3,7 +3,7 @@ package io.github.heyhey123.xiaojiegui.gui.receptacle
 import io.github.heyhey123.xiaojiegui.gui.PacketHelper
 import io.github.heyhey123.xiaojiegui.gui.event.ReceptacleInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
-import io.github.heyhey123.xiaojiegui.utils.TaskUtil
+import io.github.heyhey123.xiaojiegui.gui.utils.TaskUtil
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent

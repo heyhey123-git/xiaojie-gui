@@ -1,6 +1,7 @@
 package io.github.heyhey123.xiaojiegui.gui
 
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
+import io.github.heyhey123.xiaojiegui.gui.utils.Reflection
 import io.papermc.paper.adventure.PaperAdventure
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
