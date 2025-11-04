@@ -11,11 +11,11 @@ import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.TriggerItem
 import ch.njol.skript.lang.util.SectionUtils
-import ch.njol.skript.variables.Variables
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.ExecutorWithContext
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
@@ -129,47 +129,31 @@ class EffSecOverrideSlot : EffectSection() {
         val item = itemExpr.getSingle(event)
 
         if (trigger == null) {
-            for (singlePage in pages) {
-                for (singleSlot in slots) {
-                    menu.overrideSlot(
-                        singlePage,
-                        singleSlot,
-                        item,
-                        refreshFlag
-                    )
-                }
-
-            }
+            menu.overrideSlots(pages, slots, item, refreshFlag)
             return walk(event, false)
         }
 
-        for (singlePage in pages) {
-            for (singleSlot in slots) {
-                menu.overrideSlot(
-                    singlePage,
-                    singleSlot,
-                    item,
-                    refreshFlag
-                ) { menuEvent ->
-                    try {
-                        Variables.withLocalVariables(event, menuEvent) {
-                            walk(trigger, menuEvent)
-                        }
-                    } catch (e: Throwable) {
-                        val id = menu.id ?: "<unnamed>"
+        val executor = ExecutorWithContext(event) { menuEvent ->
+            walk(trigger, menuEvent)
+        }
 
-                        Skript.exception(
-                            e,
-                            Thread.currentThread(),
-                            "Error occurred in a slot callback for menu $id.This callback was added when overriding slot $slots in page $singlePage to item $item."
-                        )
-                    }
-                }
+        menu.overrideSlots(pages, slots, item, refreshFlag) { menuEvent ->
+            try {
+                executor(menuEvent)
+            } catch (e: Throwable) {
+                val id = menu.id ?: "<unnamed>"
+
+                Skript.exception(
+                    e,
+                    Thread.currentThread(),
+                    "Error occurred in a slot callback for menu $id.This callback was added when overriding slot $slots in page $pages to item $item."
+                )
             }
         }
 
         return walk(event, false)
     }
+
 
     override fun toString(event: Event?, debug: Boolean): String {
         val slotStr = slotsExpr.toString(event, debug)

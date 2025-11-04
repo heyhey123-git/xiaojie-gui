@@ -11,12 +11,12 @@ import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.TriggerItem
 import ch.njol.skript.lang.util.SectionUtils
-import ch.njol.skript.variables.Variables
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
+import io.github.heyhey123.xiaojiegui.skript.ExecutorWithContext
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
@@ -143,11 +143,13 @@ class EffSecMapKey2Icon : EffectSection() {
             return walk(event, false)
         }
 
+        val executor = ExecutorWithContext(event) { menuEvent ->
+            walk(trigger, menuEvent)
+        }
+
         menu.updateIconForKey(key, iconProducer, refreshFlag, pages) { menuEvent ->
             try {
-                Variables.withLocalVariables(event, menuEvent) {
-                    walk(trigger, menuEvent)
-                }
+                executor(menuEvent)
             } catch (e: Throwable) {
                 val id = menu.id ?: "<unnamed>"
 
