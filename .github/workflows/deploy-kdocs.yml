@@ -37,7 +37,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/dokka/html
+          path: buildDocs/dokka/
 
   deploy:
     needs: generate-kdocs
