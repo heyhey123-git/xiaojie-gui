@@ -8,6 +8,7 @@ import io.github.heyhey123.xiaojiegui.listener.BukkitInventoryListener
 import io.github.heyhey123.xiaojiegui.listener.PlayerQuitListener
 import io.github.heyhey123.xiaojiegui.listener.ReceptaclePacketListener
 import io.github.heyhey123.xiaojiegui.listener.StaticInventoryListener
+import io.github.heyhey123.xiaojiegui.logging.LogoPrinter
 import org.bukkit.plugin.java.JavaPlugin
 import org.spigotmc.SpigotConfig.config
 
@@ -18,6 +19,8 @@ class XiaojieGUI : JavaPlugin() {
 
         val enableAsyncCheck: Boolean
                 by lazy { config.getBoolean("enable-async-check", true) }
+        val forceTrueColor: Boolean
+                by lazy { config.getBoolean("force-truecolor", true) }
     }
 
     @Suppress("Unused")
@@ -34,6 +37,7 @@ class XiaojieGUI : JavaPlugin() {
         skriptAddon = Skript.registerAddon(this).apply {
             loadClasses("io.github.heyhey123.xiaojiegui.skript", "elements")
         }
+        LogoPrinter.print(pluginMeta.version)
         logger.info("XiaojieGUI has been enabled!")
     }
 
