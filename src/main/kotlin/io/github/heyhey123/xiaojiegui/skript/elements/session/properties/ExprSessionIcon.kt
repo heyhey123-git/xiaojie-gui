@@ -71,7 +71,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
     }
 
     override fun get(event: Event?): Array<ItemStack?> {
-        val session = sessionExpr.getSingle(event) ?: return arrayOf()
+        val session = sessionExpr.getSingle(event) ?: return emptyArray()
         val slot = slotsExpr.getAll(event)
         return slot.map { session.getIcon(it.toInt()) }.toTypedArray()
     }
@@ -81,7 +81,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
             Changer.ChangeMode.SET,
             Changer.ChangeMode.DELETE -> arrayOf(ItemStack::class.java)
 
-            else -> arrayOf()
+            else -> emptyArray()
         }
 
     override fun change(event: Event?, delta: Array<out Any>?, mode: Changer.ChangeMode?) {

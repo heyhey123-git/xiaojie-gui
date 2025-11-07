@@ -52,7 +52,7 @@ class ExprMenuViewers : SimpleExpression<Player>() {
     }
 
     override fun get(event: Event?): Array<out Player> {
-        val menu = menuExpr.getSingle(event) ?: return arrayOf()
+        val menu = menuExpr.getSingle(event) ?: return emptyArray()
         return menu.viewers.mapNotNull { uuid -> Bukkit.getPlayer(uuid) }.toTypedArray()
     }
 

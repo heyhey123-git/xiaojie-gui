@@ -31,7 +31,7 @@ class ExprEventSlot : SimpleExpression<Number>() {
         parser.isCurrentEvent(MenuInteractEvent::class.java)
 
     override fun get(event: Event?): Array<Number> =
-        if (event !is MenuInteractEvent) arrayOf()
+        if (event !is MenuInteractEvent) emptyArray()
         else arrayOf(event.slot)
 
     override fun toString(event: Event?, debug: Boolean) =

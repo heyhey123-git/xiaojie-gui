@@ -34,14 +34,14 @@ class ExprEventTitle : SimpleExpression<Any>() {
     ): Boolean = parser.isCurrentEvent(MenuOpenEvent::class.java)
 
     override fun get(event: Event?): Array<Any> {
-        if (event !is PageTurnEvent) return arrayOf()
+        if (event !is PageTurnEvent) return emptyArray()
         return arrayOf(ComponentHelper.wrapComponentOrString(event.title))
     }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
         if (mode == Changer.ChangeMode.SET)
             ComponentHelper.titleReturnTypes
-        else arrayOf()
+        else emptyArray()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (event !is PageTurnEvent) return

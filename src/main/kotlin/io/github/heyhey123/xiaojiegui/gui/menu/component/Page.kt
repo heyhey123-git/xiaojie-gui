@@ -92,7 +92,7 @@ class Page(
      */
     val size: Int = layout.containerSize
 
-    val keyToSlots: Map<String, Set<Int>> = run {
+    val keyToSlots: MutableMap<String, MutableSet<Int>> = run {
         val mapping = mutableMapOf<String, MutableSet<Int>>()
 
         fun computeSlot(visualX: Int, yIndex: Int, baseIndex: Int): Int =

@@ -51,13 +51,13 @@ class ExprDefaultLayout : SimpleExpression<String>() {
     }
 
     override fun get(event: Event?): Array<String> {
-        val menu = menuExpr.getSingle(event) ?: return arrayOf()
+        val menu = menuExpr.getSingle(event) ?: return emptyArray()
         return menu.properties.defaultLayout.toTypedArray()
     }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
         if (mode == Changer.ChangeMode.SET) arrayOf(Array<String>::class.java)
-        else arrayOf()
+        else emptyArray()
 
     @Suppress("UNCHECKED_CAST")
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {

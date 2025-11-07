@@ -43,7 +43,7 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
         if (mode == Changer.ChangeMode.SET) ComponentHelper.titleReturnTypes
-        else arrayOf()
+        else emptyArray()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return

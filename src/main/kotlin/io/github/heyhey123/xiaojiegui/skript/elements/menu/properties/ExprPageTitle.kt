@@ -55,11 +55,11 @@ class ExprPageTitle : SimpleExpression<Any?>() {
     }
 
     override fun get(event: Event?): Array<out Any?> {
-        val menu = menu.getSingle(event) ?: return arrayOf()
-        val page = page.getSingle(event)?.toInt() ?: return arrayOf()
+        val menu = menu.getSingle(event) ?: return emptyArray()
+        val page = page.getSingle(event)?.toInt() ?: return emptyArray()
         if (page !in 0..<menu.size) {
             Skript.error("Page number $page is out of bounds for the menu.")
-            return arrayOf()
+            return emptyArray()
         }
         val title = menu.pages[page].title
         return arrayOf(title)
@@ -67,7 +67,7 @@ class ExprPageTitle : SimpleExpression<Any?>() {
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
         if (mode == Changer.ChangeMode.SET) ComponentHelper.titleReturnTypes
-        else arrayOf()
+        else emptyArray()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return

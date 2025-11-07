@@ -56,7 +56,7 @@ class ExprEventPage : SimpleExpression<Number>() {
                 arrayOf(if (isFuture) event.from else event.to)
             }
 
-            else -> arrayOf()
+            else -> emptyArray()
         }
 
     override fun toString(event: Event?, debug: Boolean) =

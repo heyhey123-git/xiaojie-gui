@@ -36,7 +36,7 @@ class ExprDefaultPage : SimplePropertyExpression<Menu, Number>() {
     override fun getReturnType() = Number::class.java
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
-        if (mode == Changer.ChangeMode.SET) arrayOf(Number::class.java) else arrayOf()
+        if (mode == Changer.ChangeMode.SET) arrayOf(Number::class.java) else emptyArray()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return

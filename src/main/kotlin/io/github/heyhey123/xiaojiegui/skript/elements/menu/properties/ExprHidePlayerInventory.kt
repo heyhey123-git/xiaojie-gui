@@ -38,7 +38,7 @@ class ExprHidePlayerInventory : SimplePropertyExpression<Menu, Boolean>() {
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
         if (mode == Changer.ChangeMode.SET) arrayOf(Boolean::class.java)
-        else arrayOf()
+        else emptyArray()
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return

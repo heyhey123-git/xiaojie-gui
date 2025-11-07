@@ -33,7 +33,7 @@ class ExprEventIcon : SimpleExpression<ItemStack>() {
 
 
     override fun get(event: Event?): Array<ItemStack?> {
-        val e = event as? MenuInteractEvent ?: return arrayOf()
+        val e = event as? MenuInteractEvent ?: return emptyArray()
         return arrayOf(e.icon)
     }
 

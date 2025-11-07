@@ -11,9 +11,9 @@ import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
 import io.github.heyhey123.xiaojiegui.skript.utils.TitleType
-import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import org.bukkit.event.Event
 
 @Name("Insert Page")

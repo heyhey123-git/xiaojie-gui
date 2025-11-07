@@ -39,8 +39,8 @@ class ExprMenuById : SimpleExpression<Menu>() {
     private var idExpr: Expression<String>? = null
 
     override fun get(event: Event?): Array<out Menu?> {
-        val id = idExpr?.getSingle(event) ?: return arrayOf()
-        val menu = Menu.menus[id] ?: return arrayOf()
+        val id = idExpr?.getSingle(event) ?: return emptyArray()
+        val menu = Menu.menus[id] ?: return emptyArray()
         return arrayOf(menu)
     }
 
