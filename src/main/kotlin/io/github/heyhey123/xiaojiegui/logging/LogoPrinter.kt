@@ -25,23 +25,20 @@ internal object LogoPrinter {
      */
     private const val LOGO: String =
         """
-      ___            ___         ___           ___                 
-     |\__\          /\  \       /\  \         /\__\          ___   
-     |:|  |         \:\  \     /::\  \       /:/  /         /\  \  
-     |:|  |     ___ /::\__\   /:/\:\  \     /:/  /          \:\  \ 
-     |:|__|__  /\  /:/\/__/  /:/  \:\  \   /:/  /  ___      /::\__\
- ____/::::\__\ \:\/:/  /    /:/__/_\:\__\ /:/__/  /\__\  __/:/\/__/
- \::::/~~/~     \::/  /     \:\  /\ \/__/ \:\  \ /:/  / /\/:/  /   
-  ~~|:|~~|       \/__/       \:\ \:\__\    \:\  /:/  /  \::/__/    
-    |:|  |                    \:\/:/  /     \:\/:/  /    \:\__\    
-    |:|  |                     \::/  /       \::/  /      \/__/    
-     \|__|                      \/__/         \/__/                
+ __   ___             _ _       _____ _    _ _____ 
+ \ \ / (_)           (_|_)     / ____| |  | |_   _|
+  \ V / _  __ _  ___  _ _  ___| |  __| |  | | | |  
+   > < | |/ _` |/ _ \| | |/ _ \ | |_ | |  | | | |  
+  / . \| | (_| | (_) | | |  __/ |__| | |__| |_| |_ 
+ /_/ \_\_|\__,_|\___/| |_|\___|\_____|\____/|_____|
+                    _/ |                           
+                   |__/                             
         """
 
     /**
      * Border used in the logo printout.
      */
-    private const val BORDER_LINE = "--------------------------------------------------------------------"
+    private const val BORDER_LINE = "-------------------------------------------------------"
 
     /**
      * System property key for overriding the ANSI color level.
@@ -53,14 +50,11 @@ internal object LogoPrinter {
      * unless overridden by system property.
      */
     private val serializer: ANSIComponentSerializer by lazy {
-        val colorLevel = System.getProperty(COLOR_LEVEL_PROPERTY)?.run {
-            ColorLevel.compute()
-        } ?: ColorLevel.TRUE_COLOR
         val ansiComponentSerializer = Class
             .forName("net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializerImpl")
             .getDeclaredConstructor(ColorLevel::class.java, ComponentFlattener::class.java)
             .apply { isAccessible = true }
-            .newInstance(colorLevel, ComponentFlattener.basic()) as ANSIComponentSerializer
+            .newInstance(ColorLevel.TRUE_COLOR, ComponentFlattener.basic()) as ANSIComponentSerializer
 
         return@lazy ansiComponentSerializer
     }
@@ -105,7 +99,7 @@ internal object LogoPrinter {
         val console = Bukkit.getConsoleSender()
         val border = Component.text(BORDER_LINE, NamedTextColor.DARK_GRAY)
 
-        if (!XiaojieGUI.forceTrueColor) {
+        if (!XiaojieGUI.forceTrueColor || System.getProperty(COLOR_LEVEL_PROPERTY) != null) {
             console.sendMessage(border)
             logoLinesGradient(*hex).forEach(console::sendMessage)
             console.sendMessage(MiniMessage.miniMessage().deserialize("<gray>v</gray><rainbow>$version</rainbow>"))

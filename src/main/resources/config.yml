@@ -1,5 +1,5 @@
 enable-async-check: true
 
-# always enable truecolor support in ANSI serializer if true
+# always enable truecolor support when serializing logo in ANSI serializer if true
 # https://docs.papermc.io/adventure/serializer/ansi/#usage
 force-truecolor: true
