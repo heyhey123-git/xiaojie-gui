@@ -20,13 +20,17 @@ import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 
 @Name("Create / Edit GUI")
-@Description("The base of creating and editing GUIs.")
+@Description(
+    "The base of creating and editing GUIs.",
+    "Tips: This is a deprecated section, consider using EffSecCreateMenu and SecEditMenu instead."
+)
 @Examples(
     "create a gui with virtual chest inventory with 3 rows named \"My GUI\"",
     "edit gui last gui:",
     "\tset the gui-inventory-name to \"New GUI Name!\""
 )
-@Since("1.0.0")
+@Since("1.0.0-SNAPSHOT")
+@Deprecated("Use EffSecCreateMenu and EffSecEditMenu instead")
 class SecCreateGUI : EffectSection() {
     private var inception = false
 

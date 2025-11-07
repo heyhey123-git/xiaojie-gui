@@ -15,18 +15,22 @@ import org.bukkit.event.Event
 
 
 @Name("Has GUI")
-@Description("Checks whether the given player(s) has/have a GUI open.")
+@Description(
+    "Checks whether the given player(s) has/have a GUI open.",
+    "Deprecated: Use ExprGetPlayerSession and check for null instead."
+)
 @Examples(
     "command /guiviewers: # Returns a list of all players with a GUI open.",
     "\tset {_viewers::*} to all players where [input has a gui]",
     "\tsend \"GUI Viewers: %{_viewers::*}%\" to player"
 )
-@Since("1.0.0")
+@Since("1.0.0-SNAPSHOT")
+@Deprecated("Use ExprGetPlayerSession and check for null instead")
 class CondHasGUI : Condition() {
     private lateinit var players: Expression<Player?>
 
     @Suppress("UNCHECKED_CAST")
-    public override fun init(
+    override fun init(
         exprs: Array<Expression<*>?>,
         matchedPattern: Int,
         kleenean: Kleenean?,
@@ -37,7 +41,7 @@ class CondHasGUI : Condition() {
         return true
     }
 
-    public override fun check(e: Event?): Boolean =
+    override fun check(e: Event?): Boolean =
         players.check(
             e,
             { p ->
@@ -46,7 +50,7 @@ class CondHasGUI : Condition() {
         )
 
 
-    public override fun toString(e: Event?, debug: Boolean): String {
+    override fun toString(e: Event?, debug: Boolean): String {
         return players.toString(e, debug) + (if (!isNegated) " has/have " else " do not/don't have ") + " a gui open"
     }
 

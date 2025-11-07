@@ -13,7 +13,7 @@ import org.bukkit.entity.Player
 @Name("GUI of Player")
 @Description("The GUI that the player currently has open.")
 @Examples("edit the player's gui:", "\tmake gui 1 with dirt named \"Edited Slot\"")
-@Since("1.1.0")
+@Since("1.0.0-SNAPSHOT")
 class ExprGUI : SimplePropertyExpression<Player?, Menu?>() {
     override fun convert(player: Player?): Menu? =
         player?.let { MenuSession.querySession(it)?.menu }

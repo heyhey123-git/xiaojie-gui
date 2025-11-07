@@ -7,7 +7,6 @@ import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
-import io.github.heyhey123.xiaojiegui.gui.event.MenuOpenEvent
 import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
 import org.bukkit.event.Event
@@ -31,7 +30,7 @@ class ExprEventTitle : SimpleExpression<Any>() {
         matchedPattern: Int,
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
-    ): Boolean = parser.isCurrentEvent(MenuOpenEvent::class.java)
+    ): Boolean = parser.isCurrentEvent(PageTurnEvent::class.java)
 
     override fun get(event: Event?): Array<Any> {
         if (event !is PageTurnEvent) return emptyArray()

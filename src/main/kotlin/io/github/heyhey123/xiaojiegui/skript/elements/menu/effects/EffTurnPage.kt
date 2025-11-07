@@ -33,7 +33,7 @@ class EffTurnPage : Effect() {
         init {
             Skript.registerEffect(
                 EffTurnPage::class.java,
-                "turn to page %number% for %player% [with (new) title (string:%-string%|component:%-textcomponent%)]"
+                "turn to page %number% for %player% [with [new] title (string:%-string%|component:%-textcomponent%)]"
             )
         }
     }
