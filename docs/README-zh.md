@@ -54,19 +54,46 @@
 
 ## Skript 集成
 
-示例 (伪 Skript 代码):
 ```skript
-# 伪代码：确切语法请参考 'skript/*' 中的 Skript 元素。
-
-command /openexample:
-  trigger:
-    # 为玩家打开一个预定义的菜单
-    open menu "example" to player
-
-on inventory click:
-  # 您可以根据需要检查会话/菜单属性或取消点击事件
-  if slot is 5:
-    cancel event
+on load:
+    #> -------------
+    #> 菜单 Shape
+    #> -------------
+    add "#########" to {_shape::*}
+    add "#AAAAAAA#" to {_shape::*}
+    add "#AAAAAAA#" to {_shape::*}
+    add "#AAAAAAA#" to {_shape::*}
+    add "#AAAAAAA#" to {_shape::*}
+    add "##<#x#>##" to {_shape::*}
+    create phantom menu with (chest inventory) titled "<white>awa" with layout {_shape::*}:
+        #> -------------------
+        #> 无需物品的回调执行
+        #> -------------------
+        when slot 5 in page 0 is clicked:
+            send "不要再戳我啦!" to event-player
+        #> ------
+        #> 翻页
+        #> ------
+        if {_page} > 1:
+            map key "<" to icon paper named "&e上一页" for event-menu:
+                turn to page {_page} - 1 for {_p}
+        else if {_page} = 1:
+            map key "<" to icon gray stained glass pane for event-menu
+        if {_page} < {_maxpage}:
+            map key ">" to icon paper named "&e下一页" for event-menu:
+                turn to page {_page} + 1 for {_p}
+        else:
+            map key ">" to icon gray stained glass pane for event-menu
+        #> -------------------
+        #> 使用物品填充目标区域
+        #> -------------------
+        map key "A" to items {-_allSkull::*} for event-menu:
+            set {_teleporter} to "%{_player}%"
+            set {_server} to server of vplayer {_teleporter}
+            functionawa({_teleporter},{_server})
+        map key "x" to icon clock named "&e返回菜单" for event-menu:
+            close menu for {_p}
+        open menu event-menu to {_p}
 ```
 
 ## 贡献
@@ -81,3 +108,11 @@ API 可能会发生变化。要了解确切用法，请查阅 `src/main/kotlin` 
 
 Copyright (c) 2025 heyhey123, All rights reserved.
 本项目采用 AGPL-3.0 许可证。详情请见 LICENSE 文件。
+
+## 鸣谢
+
+- [TrMenu](https://github.com/CoderKuo/TrMenu)：为插件的菜单系统提供灵感，揭示了实现 GUI 操作的底层细节。
+- [Kotlin](https://github.com/JetBrains/kotlin)：本项目使用的编程语言。
+- [PaperMC](https://github.com/PaperMC/Paper)：本框架面向的服务器平台。
+
+没有这些项目，本框架无法实现。感谢所有贡献者与维护者！

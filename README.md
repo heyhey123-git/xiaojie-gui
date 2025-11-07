@@ -56,17 +56,46 @@ Inventory GUI framework for Bukkit/Paper-based Minecraft servers, written in Kot
 
 Example (pseudo-Skript):
 ```skript
-# Pseudo-code: consult the Skript elements in 'skript/*' for exact syntax.
-
-command /openexample:
-  trigger:
-    # Open a predefined menu for the player
-    open menu "example" to player
-
-on inventory click:
-  # You can inspect session/menu properties or cancel clicks as needed
-  if slot is 5:
-    cancel event
+on load:
+    #> -------------
+    #> 菜单 Shape
+    #> -------------
+    add "#########" to {_shape::*}
+    add "#AAAAAAA#" to {_shape::*}
+    add "#AAAAAAA#" to {_shape::*}
+    add "#AAAAAAA#" to {_shape::*}
+    add "#AAAAAAA#" to {_shape::*}
+    add "##<#x#>##" to {_shape::*}
+    create phantom menu with (chest inventory) titled "<white>awa" with layout {_shape::*}:
+        #> -------------------
+        #> 无需物品的回调执行
+        #> -------------------
+        when slot 5 in page 0 is clicked:
+            send "不要再戳我啦!" to event-player
+        #> ------
+        #> 翻页
+        #> ------
+        if {_page} > 1:
+            map key "<" to icon paper named "&eprevious page" for event-menu:
+                turn to page {_page} - 1 for {_p}
+        else if {_page} = 1:
+            map key "<" to icon gray stained glass pane for event-menu
+        if {_page} < {_maxpage}:
+            map key ">" to icon paper named "&enext page" for event-menu:
+                turn to page {_page} + 1 for {_p}
+        else:
+            map key ">" to icon gray stained glass pane for event-menu
+        #> -------------------
+        #> Fill specifit area with items
+        #> -------------------
+        map key "A" to items {-_allSkull::*} for event-menu:
+            set {_teleporter} to "%{_player}%"
+            set {_server} to server of vplayer {_teleporter}
+            functionawa({_teleporter},{_server})
+        map key "x" to icon clock named "&ereturn to menu" for event-menu:
+            close menu for {_p}
+        #> when you "Create menu", If the "Default Page" didn't set, we will insert "Page 0" as default.
+        open menu event-menu to {_p}
 ```
 
 ## Contributing
@@ -81,3 +110,11 @@ APIs may evolve. For exact usage, consult the source files in 'src/main/kotlin' 
 
 Copyright (c) 2025 heyhey123, All rights reserved.
 This project is licensed under the AGPL-3.0 License. See the LICENSE file for details.
+
+## Acknowledgements
+
+- [TrMenu](https://github.com/CoderKuo/TrMenu): Inspiration for menu systems in Minecraft plugins, providing us the details of underlying implementations of the operations to a GUI.
+- [Kotlin](https://github.com/JetBrains/kotlin): The programming language used for development.
+- [PaperMC](https://github.com/PaperMC/Paper): The server platform for which this framework is designed.
+
+Without these projects, this framework would not be possible. Thank you to all the contributors and maintainers of these projects!
