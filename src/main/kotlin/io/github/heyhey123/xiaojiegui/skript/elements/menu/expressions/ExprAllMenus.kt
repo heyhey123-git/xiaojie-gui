@@ -46,7 +46,7 @@ class ExprAllMenus : SimpleExpression<Menu>() {
     ): Boolean = true
 
     override fun get(event: Event?): Array<Menu> =
-        Menu.menus.values.toTypedArray()
+        Menu.menusWithId.values.toTypedArray()
 
     override fun toString(event: Event?, debug: Boolean) =
         "all menus"

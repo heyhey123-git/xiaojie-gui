@@ -37,8 +37,9 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
         PacketHelper.instance.sendContainerClose(viewer!!)
     }
 
-    override fun clear() {
+    override fun clear(render: Boolean) {
         contents.fill(null)
+        if (!render) return
         refresh()
     }
 

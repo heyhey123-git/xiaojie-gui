@@ -40,7 +40,7 @@ class ExprMenuById : SimpleExpression<Menu>() {
 
     override fun get(event: Event?): Array<out Menu?> {
         val id = idExpr?.getSingle(event) ?: return emptyArray()
-        val menu = Menu.menus[id] ?: return emptyArray()
+        val menu = Menu.menusWithId[id] ?: return emptyArray()
         return arrayOf(menu)
     }
 

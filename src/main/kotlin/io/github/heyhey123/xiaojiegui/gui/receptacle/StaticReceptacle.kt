@@ -43,7 +43,7 @@ class StaticReceptacle(
         currentInventoryHolder.setTitle(title)
     }
 
-    override fun clear() {
+    override fun clear(render: Boolean) {
         currentInventoryHolder.inventory.clear()
     }
 

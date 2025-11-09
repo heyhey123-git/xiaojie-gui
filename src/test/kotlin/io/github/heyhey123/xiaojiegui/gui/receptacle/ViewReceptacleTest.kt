@@ -165,7 +165,7 @@ private class TestViewReceptacle(
         TODO("Not yet implemented")
     }
 
-    override fun clear() {
+    override fun clear(render: Boolean) {
         TODO("Not yet implemented")
     }
 

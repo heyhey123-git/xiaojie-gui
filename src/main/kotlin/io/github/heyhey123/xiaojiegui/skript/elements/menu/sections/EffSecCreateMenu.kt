@@ -28,7 +28,8 @@ import org.bukkit.event.inventory.InventoryType
     "Create a menu.",
     "You can define the menu's properties, such as its inventory type, title, id, layout, page, click delay, and whether to hide the player's inventory.",
     "You can also define the menu's contents and behavior in the section below this effect.",
-    "Tips: If you do not specify a default page, the menu will insert a page 0 with the given layout and title."
+    "Tips: If you do not specify a default page, the menu will insert a page 0 with the given layout and title.",
+    "If you create a menu with a id that already exists, the old one will be destroyed."
 )
 @Examples(
     "create a static menu with chest inventory titled \"Main Menu\" with id \"main_menu\" with layout \"AAA\", \"ABA\", \"AAA\" with 100 ms click delay with hide player inventory:",

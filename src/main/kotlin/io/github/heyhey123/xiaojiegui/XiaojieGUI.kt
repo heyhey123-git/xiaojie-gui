@@ -3,7 +3,6 @@ package io.github.heyhey123.xiaojiegui
 import ch.njol.skript.Skript
 import ch.njol.skript.SkriptAddon
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
-import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.listener.BukkitInventoryListener
 import io.github.heyhey123.xiaojiegui.listener.PlayerQuitListener
 import io.github.heyhey123.xiaojiegui.listener.ReceptaclePacketListener
@@ -42,12 +41,7 @@ class XiaojieGUI : JavaPlugin() {
     }
 
     override fun onDisable() {
-        MenuSession.apply {
-            forEachSession { it.close() }
-            clearSessions()
-        }
-
-        Menu.menus.clear()
+        Menu.menus.forEach { it.destroy() }
 
         ReceptaclePacketListener.unregister()
         BukkitInventoryListener.unregister()

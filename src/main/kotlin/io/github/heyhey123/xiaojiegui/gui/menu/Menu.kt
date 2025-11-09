@@ -9,6 +9,7 @@ import io.github.heyhey123.xiaojiegui.gui.menu.component.Cooldown
 import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Page
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
+import io.github.heyhey123.xiaojiegui.gui.utils.WeakHashSet
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
@@ -23,6 +24,7 @@ import java.util.function.Consumer
  * A menu that can be opened by players.
  *
  * @property id The unique identifier of the menu.
+ * When a new menu with the same ID is created, the old one will be destroyed.
  * @property properties The properties of the menu.
  * @property inventoryType The type of inventory for the menu.
  */
@@ -38,12 +40,20 @@ class Menu(
         }
 
         id?.let {
-            check(!menus.containsKey(it)) {
-                "A menu with the id '$it' already exists."
+            if (id in menusWithId) {
+                menusWithId[id]!!.destroy()
             }
-            menus[it] = this
+            menusWithId[it] = this
         }
+
+        menus.add(this)
     }
+
+    /**
+     * Whether the menu has been destroyed.
+     */
+    var isDestroyed: Boolean = false
+        private set
 
     /**
      * The viewers of the menu.
@@ -82,9 +92,7 @@ class Menu(
         viewer: Player,
         page: Int = properties.defaultPage
     ) {
-        check(XiaojieGUI.instance.isEnabled) {
-            "Cannot open a menu when the plugin is disabled."
-        }
+        checkDestroyed()
 
         val session = MenuSession.getSession(viewer)
 
@@ -131,6 +139,8 @@ class Menu(
      * @param newTitle An optional new title for the menu. If null, the title of the target page will be used.
      */
     fun turnPage(viewer: Player, page: Int, newTitle: Component? = null) {
+        checkDestroyed()
+
         val session = MenuSession.getSession(viewer)
         val (_, menu, receptacle) = session
 
@@ -180,6 +190,8 @@ class Menu(
         pages: Collection<Int>? = null,
         callback: ((event: MenuInteractEvent) -> Unit)? = null
     ) {
+        checkDestroyed()
+
         if (pages == null) {
             defaultIconMapper[key] = itemProducer to callback
         }
@@ -248,6 +260,8 @@ class Menu(
         slot: Int,
         callback: ((event: MenuInteractEvent) -> Unit)
     ) {
+        checkDestroyed()
+
         check(page in 0..<size) {
             "Page $page does not exist in this menu."
         }
@@ -285,6 +299,8 @@ class Menu(
         refresh: Boolean,
         callback: ((event: MenuInteractEvent) -> Unit)? = null
     ) {
+        checkDestroyed()
+
         val targetPages = pages?.apply {
             forEach {
                 check(it in 0..<size) {
@@ -464,6 +480,8 @@ class Menu(
         title: Component?,
         playerInventoryPattern: List<String>?
     ) {
+        checkDestroyed()
+
         val pageInstance = Page(
             inventoryType,
             title ?: properties.defaultTitle,
@@ -487,6 +505,36 @@ class Menu(
         pages.add(page.coerceIn(0, size), pageInstance)
     }
 
+    /**
+     * Destroy the menu, closing it for all viewers and cleaning up resources.
+     * If the menu has already been destroyed, this method does nothing.
+     *
+     */
+    fun destroy() {
+        if (isDestroyed) return
+
+        isDestroyed = true
+
+        id?.let { menusWithId.remove(id) }
+
+        for (viewer in viewers) {
+            val session = MenuSession.querySession(viewer)
+            if (session?.menu != this) continue
+
+            session.close()
+        }
+    }
+
+    /**
+     * Check if the menu has been destroyed and throw an exception if it has.
+     *
+     */
+    private fun checkDestroyed() {
+        check(!isDestroyed) {
+            "This menu has been destroyed, so it can no longer be used."
+        }
+    }
+
     override fun toString() =
         "Menu(id=${id ?: "<unnamed>"}, properties=$properties, inventoryType=$inventoryType, viewers=$viewers, pages=$pages, defaultIconMapper=$defaultIconMapper)"
 
@@ -495,6 +543,11 @@ class Menu(
         /**
          * A map of all menus by their unique identifiers.
          */
-        val menus: MutableMap<String, Menu> = ConcurrentHashMap()
+        val menusWithId: MutableMap<String, Menu> = ConcurrentHashMap()
+
+        /**
+         * A set of all menus, used for cleanup on plugin disable.
+         */
+        val menus: WeakHashSet<Menu> = WeakHashSet()
     }
 }

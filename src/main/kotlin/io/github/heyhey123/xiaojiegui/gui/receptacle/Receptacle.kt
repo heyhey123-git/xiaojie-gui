@@ -52,9 +52,11 @@ abstract class Receptacle(title: Component, val layout: Layout, val mode: Mode) 
     abstract fun title(title: Component, render: Boolean)
 
     /**
-     * Clear all elements in the receptacle and refresh.
+     * Clear all elements in the receptacle.
+     *
+     * @param render whether to send a packet to the client to update the inventory contents
      */
-    abstract fun clear()
+    abstract fun clear(render: Boolean = true)
 
     /**
      * Refresh a specific slot in the receptacle for the player.
