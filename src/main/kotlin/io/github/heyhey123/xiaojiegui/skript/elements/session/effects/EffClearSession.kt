@@ -19,8 +19,7 @@ import org.bukkit.event.Event
     "If 'refresh' is specified, the player's gui will be refreshed to reflect the cleared session."
 )
 @Examples(
-    "if the menu with id \"main_menu\" is destroyed:",
-    "    send \"The main menu has been destroyed and can no longer be used.\" to player"
+    "clear the menu session player's menu session and refresh"
 )
 @Since("1.0-SNAPSHOT")
 class EffClearSession: Effect() {
