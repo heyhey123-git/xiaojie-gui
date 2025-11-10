@@ -48,7 +48,12 @@ class EffDestroyMenu: Effect() {
     }
 
     override fun execute(event: Event?) {
-        val menu = exprMenu.getSingle(event) ?: return
+        val menu = exprMenu.getSingle(event)
+        if (menu == null) {
+            Skript.error("Menu to destroy cannot be null.")
+            return
+        }
+
         menu.destroy()
     }
 

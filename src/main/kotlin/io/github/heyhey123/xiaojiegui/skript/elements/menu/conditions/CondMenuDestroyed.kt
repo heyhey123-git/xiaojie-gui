@@ -50,9 +50,12 @@ class CondMenuDestroyed: Condition() {
     }
 
     override fun check(event: Event?): Boolean {
-        val menu = exprMenu.getSingle(event) ?: return isNegated
+        val menu = exprMenu.getSingle(event)
+        check (menu != null) {
+            "Menu to check if is destroyed cannot be null."
+        } // When null, we shouldn't return true or false, but rather indicate an error.
         val destroyed = menu.isDestroyed
-        return if (isNegated) !destroyed else destroyed
+        return isNegated xor destroyed
     }
 
     override fun toString(event: Event?, debug: Boolean) =
