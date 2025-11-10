@@ -99,6 +99,7 @@ on load:
 ## 贡献
 
 欢迎参与！可以提出 issue 或提交拉取请求 (PR)。
+以下是 KDoc 文档：[KDoc 文档](https://heyhey123.github.io/xiaojie-gui/)
 
 ## 免责声明
 

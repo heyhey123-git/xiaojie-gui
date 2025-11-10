@@ -101,6 +101,7 @@ on load:
 ## Contributing
 
 Feel free to dive in! Open an issue or submit pull requests (PRs).
+Here's the KDoc reference: [KDoc](https://heyhey123-git.github.io/xiaojie-gui/).
 
 ## Disclaimer
 
