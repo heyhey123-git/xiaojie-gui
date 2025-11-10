@@ -23,12 +23,12 @@ import org.bukkit.event.Event
     "    send \"The main menu has been destroyed and can no longer be used.\" to player"
 )
 @Since("1.0-SNAPSHOT")
-class CondDestroyed: Condition() {
+class CondMenuDestroyed: Condition() {
 
     companion object {
         init {
             Skript.registerCondition(
-                CondDestroyed::class.java,
+                CondMenuDestroyed::class.java,
                 "[the] [menu] %menu% (is|was) destroyed",
                 "[the] [menu] %menu% (isn't|is not|wasn't|was not) destroyed"
             )

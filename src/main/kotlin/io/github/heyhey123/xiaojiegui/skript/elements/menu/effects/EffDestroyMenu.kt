@@ -23,12 +23,12 @@ import org.bukkit.event.Event
     "destroy the menu menu with id \"main_menu\""
 )
 @Since("1.0-SNAPSHOT")
-class EffDestroy: Effect() {
+class EffDestroyMenu: Effect() {
 
     companion object {
         init {
             Skript.registerEffect(
-                EffDestroy::class.java,
+                EffDestroyMenu::class.java,
                 "destroy [the] menu %menu%"
             )
         }
