@@ -20,7 +20,7 @@ class ExprGUI : SimplePropertyExpression<Player?, Menu?>() {
 
     override fun getReturnType() = Menu::class.java
 
-    override fun getPropertyName() = "gui"
+    override fun getPropertyName() = "(menu|gui)"
 
     companion object {
         init {
