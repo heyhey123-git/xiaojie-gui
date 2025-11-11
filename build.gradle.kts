@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "io.github.heyhey123"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 val kotlinVersion = "2.2.21"
 val shadePrefix: String by project
 
