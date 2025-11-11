@@ -6,13 +6,13 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems
 import io.github.heyhey123.xiaojiegui.gui.layout.LayoutType
-import io.github.retrooper.packetevents.util.SpigotConversionUtil
 import io.papermc.paper.adventure.PaperAdventure
 import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
+
+private typealias PacketEventsItemStack = com.github.retrooper.packetevents.protocol.item.ItemStack
 
 /**
  * Packet helper.
@@ -29,14 +29,6 @@ abstract class PacketHelper {
         val instance: PacketHelper by lazy { PacketHelperImpl() }
     }
 
-//    /**
-//     * Get the current container counter value for the player.
-//     *
-//     * @param player the player to get the container counter for
-//     * @return the current container counter value
-//     */
-//    fun getCurrentContainerId(player: Player): Int
-
     /**
      * Generate and return the next container ID for the player.
      *
@@ -52,17 +44,16 @@ abstract class PacketHelper {
     abstract fun sendOpenScreen(player: Player, windowId: Int, windowType: LayoutType, title: Component)
 
     // resource: container_set_content
-    abstract fun sendContainerSetContent(player: Player, windowId: Int, items: Array<ItemStack?>)
+    abstract fun sendContainerSetContent(player: Player, windowId: Int, items: Array<PacketEventsItemStack>)
 
     // resource: container_set_slot
-    abstract fun sendContainerSetSlot(player: Player, windowId: Int, slot: Int, item: ItemStack?)
+    abstract fun sendContainerSetSlot(player: Player, windowId: Int, slot: Int, item: PacketEventsItemStack)
 
     // resource: container_set_data
 //    fun sendContainerSetData(player: Player, windowId: Int, property: Int, value: Int) {
 //        val packet = WrapperPlayServerWindowProperty(windowId, property, value)
 //        player.sendPacket(packet)
 //    }
-
 }
 
 /**
@@ -75,11 +66,6 @@ abstract class PacketHelper {
  *
  */
 private class PacketHelperImpl : PacketHelper() {
-
-//    override fun getCurrentContainerId(player: Player): Int {
-//        val serverPlayer = (player as CraftPlayer).handle
-//        return Reflection.SERVER_PLAYER.getContainerCounter(serverPlayer)
-//    }
 
     override fun generateNextContainerId(player: Player): Int {
         val serverPlayer = (player as CraftPlayer).handle
@@ -106,43 +92,18 @@ private class PacketHelperImpl : PacketHelper() {
         ) // PacketEvents causes issues when processing Components.
     }
 
-    override fun sendContainerSetContent(player: Player, windowId: Int, items: Array<ItemStack?>) {
+    override fun sendContainerSetContent(player: Player, windowId: Int, items: Array<PacketEventsItemStack>) {
         val packet = WrapperPlayServerWindowItems(
             windowId,
             -1,
-            items.map { item ->
-                SpigotConversionUtil.fromBukkitItemStack(item)
-            },
+            items.toList(),
             null
         )
         player.sendPacket(packet)
     }
 
-    override fun sendContainerSetSlot(player: Player, windowId: Int, slot: Int, item: ItemStack?) {
-        val packet = WrapperPlayServerSetSlot(
-            windowId,
-            -1,
-            slot,
-            SpigotConversionUtil.fromBukkitItemStack(item)
-        )
+    override fun sendContainerSetSlot(player: Player, windowId: Int, slot: Int, item: PacketEventsItemStack) {
+        val packet = WrapperPlayServerSetSlot(windowId, -1, slot, item)
         player.sendPacket(packet)
     }
-
-//    /**
-//     * Proxy for reflection access to obfuscated Minecraft server code.
-//     */
-//    object Reflection {
-//        val SERVER_PLAYER: ServerPlayerProxy = run {
-//            val remapper = ReflectionRemapper.forReobfMappingsInPaperJar()
-//            val proxyFactory = ReflectionProxyFactory.create(remapper, Reflection::class.java.classLoader);
-//            return@run proxyFactory.reflectionProxy(ServerPlayerProxy::class.java)
-//        }
-//
-//        @Proxies(ServerPlayer::class)
-//        interface ServerPlayerProxy {
-//
-//            @FieldGetter("containerCounter")
-//            fun getContainerCounter(instance: ServerPlayer): Int
-//        }
-//    }
 }
