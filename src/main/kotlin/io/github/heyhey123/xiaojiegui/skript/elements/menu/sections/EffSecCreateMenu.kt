@@ -137,13 +137,13 @@ class EffSecCreateMenu : EffectSection() {
         val defaultLayout = this.layoutExpr.getAll(event)?.toList()
         val id = this.idExpr?.getSingle(event)
         val defaultPage = this.pageExpr?.getSingle(event)?.toInt()
-        val minClickDelay = this.minClickDelayExpr?.getSingle(event)?.toInt() ?: 0
+        val minClickDelay = this.minClickDelayExpr?.getSingle(event)?.toInt()
 
         val properties = MenuProperties(
             defaultTitle,
             hidePlayerInventoryFlag,
             mode,
-            minClickDelay,
+            minClickDelay ?: 50,
             defaultPage ?: 0,
             defaultLayout ?: listOf()
         )

@@ -15,7 +15,7 @@ class Cooldown(
     val property: MenuProperties
 ) {
 
-    private val defaultCooldown: Int
+    private val cooldown: Int
         get() = property.minClickDelay
 
     private val lastClickedData: MutableMap<UUID, Long> = ConcurrentHashMap()
@@ -29,7 +29,7 @@ class Cooldown(
      * @param cooldownMillis the cooldown duration in milliseconds
      * @return true if the cooldown has expired and was consumed, false otherwise
      */
-    fun tryConsumeCooldown(player: Player, cooldownMillis: Int = defaultCooldown): Boolean {
+    fun tryConsumeCooldown(player: Player, cooldownMillis: Int = cooldown): Boolean {
         val now = System.currentTimeMillis()
         val last = lastClickedData[player.uniqueId] ?: 0L
         if (now - last < cooldownMillis) return false
@@ -44,7 +44,7 @@ class Cooldown(
      * @param cooldownMillis the cooldown duration in milliseconds
      * @return the remaining cooldown time in milliseconds, or 0 if the cooldown has expired
      */
-    fun remainingCooldown(player: Player, cooldownMillis: Int = defaultCooldown): Long {
+    fun remainingCooldown(player: Player, cooldownMillis: Int = cooldown): Long {
         val now = System.currentTimeMillis()
         val last = lastClickedData[player.uniqueId] ?: 0L
         val remaining = cooldownMillis - (now - last)

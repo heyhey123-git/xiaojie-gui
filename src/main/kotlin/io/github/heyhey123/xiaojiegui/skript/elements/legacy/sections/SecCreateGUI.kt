@@ -100,7 +100,7 @@ class SecCreateGUI : EffectSection() {
                 Component.text(id ?: "gui_${System.currentTimeMillis()}"),
                 true,
                 mode,
-                0,
+                50,
                 0,
                 shape?.filterNotNull() ?: listOf()
             )
