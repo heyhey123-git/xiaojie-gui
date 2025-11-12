@@ -97,12 +97,6 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
             (layout as ViewLayout).type,
             title,
         )
-        PacketHelper.instance.sendContainerSetSlot(
-            viewer!!,
-            windowId = 0,
-            slot = 45,
-            item = null
-        )
         refresh()
     }
 

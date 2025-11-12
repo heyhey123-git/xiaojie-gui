@@ -9,6 +9,7 @@ import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
+import net.minecraft.network.protocol.game.ClientboundSetCursorItemPacket
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
@@ -107,12 +108,15 @@ private class PacketHelperImpl : PacketHelper() {
     }
 
     override fun sendContainerSetSlot(player: Player, windowId: Int, slot: Int, item: ItemStack?) {
-        val packet = ClientboundContainerSetSlotPacket(
+        val setSlotPacket = ClientboundContainerSetSlotPacket(
             windowId,
             -1,
             slot,
             item.asNMSCopy()
         )
-        player.sendPacket(packet)
+        player.sendPacket(setSlotPacket)
+
+        val setCursorPacket = ClientboundSetCursorItemPacket(ItemStack.empty().asNMSCopy())
+        player.sendPacket(setCursorPacket)
     }
 }
