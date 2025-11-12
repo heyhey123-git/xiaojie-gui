@@ -112,8 +112,8 @@ class ViewReceptacleTest {
 
     @Test
     fun `factory create returns concrete types`() {
-//        val phantom = ViewReceptacle.create(Component.text("p"), layout, Receptacle.Mode.PHANTOM)
-//        assertTrue(phantom is PhantomReceptacle)
+        val phantom = ViewReceptacle.create(Component.text("p"), layout, Receptacle.Mode.PHANTOM)
+        assertTrue(phantom is PhantomReceptacle)
 
         val holder = mockk<StaticInventory.Holder>(relaxed = true)
         mockkObject(StaticInventory)
