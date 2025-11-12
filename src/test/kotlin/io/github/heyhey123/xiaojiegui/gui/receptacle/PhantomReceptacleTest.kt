@@ -43,7 +43,6 @@ class PhantomReceptacleTest {
             )
         } just Runs
         every { mockedPacketHelper.sendContainerSetContent(player, 114, any()) } just Runs
-        every { mockedPacketHelper.sendContainerSetSlot(player, 0, 45, null) } just Runs
 
         val receptacle = PhantomReceptacle(title, layout).apply {
             hidePlayerInventory = true // jump over player inventory setup
@@ -57,7 +56,6 @@ class PhantomReceptacleTest {
             )
         }
         verify(exactly = 1) { mockedPacketHelper.sendContainerSetContent(player, 114, any()) }
-        verify(exactly = 1) { mockedPacketHelper.sendContainerSetSlot(player, 0, 45, null) }
     }
 
     @Test
@@ -83,7 +81,6 @@ class PhantomReceptacleTest {
 
         every { mockedPacketHelper.sendOpenScreen(player, 114, layout.type, any()) } just Runs
         every { mockedPacketHelper.sendContainerSetContent(player, 114, any()) } just Runs
-        every { mockedPacketHelper.sendContainerSetSlot(player, 0, 45, null) } just Runs
 
         receptacle.open(player)
 
@@ -112,7 +109,6 @@ class PhantomReceptacleTest {
             )
         } just Runs
         every { mockedPacketHelper.sendContainerSetContent(player, 114, any()) } just Runs
-        every { mockedPacketHelper.sendContainerSetSlot(player, 0, 45, null) } just Runs
 
         val receptacle = PhantomReceptacle(initialTitle, layout).apply {
             hidePlayerInventory = true // jump over player inventory setup
@@ -148,7 +144,6 @@ class PhantomReceptacleTest {
 
         every { mockedPacketHelper.sendOpenScreen(player, 114, layout.type, any()) } just Runs
         every { mockedPacketHelper.sendContainerSetContent(player, 114, any()) } just Runs
-        every { mockedPacketHelper.sendContainerSetSlot(player, 0, 45, null) } just Runs
         every { mockedPacketHelper.sendContainerClose(player) } just Runs
 
         val receptacle = PhantomReceptacle(title, layout).apply {
