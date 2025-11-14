@@ -15,6 +15,11 @@
 - Paper 服务器或其衍生版 (不保证与 Spigot/Bukkit 的兼容性)
 - 与您的服务器运行时兼容的 JDK
 
+依赖插件:
+- [Skript](https://github.com/SkriptLang/Skript/releases)
+- [PacketEvents](https://github.com/retrooper/packetevents/releases)
+- [SkBee](https://github.com/ShaneBeee/SkBee/releases) (可选，用于在菜单标题中使用 textcomponent)
+
 ## 构建和测试
 
 - Windows (PowerShell 或命令提示符):

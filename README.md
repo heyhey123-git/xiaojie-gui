@@ -15,6 +15,11 @@ Inventory GUI framework for Bukkit/Paper-based Minecraft servers, written in Kot
 - Paper server or maybe Paper's fork (Spigot/Bukkit compatibility is not guaranteed)
 - JDK compatible with your server runtime
 
+plugins:
+- [Skript](https://github.com/SkriptLang/Skript/releases)
+- [PacketEvents](https://github.com/retrooper/packetevents/releases)
+- [SkBee](https://github.com/ShaneBeee/SkBee/releases) (optional, for using textcomponent in menu titles)
+
 ## Build and test
 
 - Windows (PowerShell or Command Prompt):
