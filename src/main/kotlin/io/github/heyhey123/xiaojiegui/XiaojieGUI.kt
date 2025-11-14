@@ -1,7 +1,6 @@
 package io.github.heyhey123.xiaojiegui
 
 import ch.njol.skript.Skript
-import ch.njol.skript.SkriptAddon
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.listener.BukkitInventoryListener
 import io.github.heyhey123.xiaojiegui.listener.PlayerQuitListener
@@ -14,7 +13,6 @@ import org.spigotmc.SpigotConfig.config
 class XiaojieGUI : JavaPlugin() {
     companion object {
         lateinit var instance: XiaojieGUI
-        lateinit var skriptAddon: SkriptAddon
 
         val enableAsyncCheck: Boolean
                 by lazy { config.getBoolean("enable-async-check", true) }
@@ -33,9 +31,9 @@ class XiaojieGUI : JavaPlugin() {
         PlayerQuitListener.register()
         StaticInventoryListener.register()
 
-        skriptAddon = Skript.registerAddon(this).apply {
-            loadClasses("io.github.heyhey123.xiaojiegui.skript", "elements")
-        }
+        Skript.registerAddon(this)
+            .loadClasses("io.github.heyhey123.xiaojiegui.skript", "elements")
+
         LogoPrinter.print(pluginMeta.version)
         logger.info("XiaojieGUI has been enabled!")
     }
