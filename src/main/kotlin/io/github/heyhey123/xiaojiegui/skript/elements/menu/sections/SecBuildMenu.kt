@@ -44,12 +44,12 @@ import org.skriptlang.skript.lang.entry.util.LiteralEntryData
     "        override slot 4 in page 0 to diamond named \"Special Item\""
 )
 @Since("1.0-SNAPSHOT")
-class SecCreateMenu : Section() {
+class SecBuildMenu : Section() {
 
     companion object {
         init {
             Skript.registerSection(
-                SecCreateMenu::class.java,
+                SecBuildMenu::class.java,
                 "build [a] menu [%-object%]"
             )
         }
@@ -92,7 +92,7 @@ class SecCreateMenu : Section() {
     private fun parseNode(sectionNode: SectionNode): Boolean {
         ComponentHelper.titleReturnTypes as Array<Class<Any>>
 
-        val builder = EntryValidator.builder()
+        val validator = EntryValidator.builder()
             .addEntryData(LiteralEntryData("mode", "phantom", true, String::class.java))
             .addEntryData(ExpressionEntryData("inventory type", null, false, InventoryType::class.java))
             .addEntryData(ExpressionEntryData("title", null, false, *ComponentHelper.titleReturnTypes))
@@ -102,10 +102,11 @@ class SecCreateMenu : Section() {
             .addEntryData(ExpressionEntryData("click delay", null, true, Number::class.java))
             .addEntryData(LiteralEntryData("hide player inventory", false, true, Boolean::class.java))
             .addSection("edit", true)
+            .build()
 
-        val container = builder.build().validate(sectionNode)
+        val container = validator.validate(sectionNode)
         if (container == null) {
-            Skript.error("Invalid menu section syntax. Please, check your syntax.")
+                        Skript.error("Invalid menu section syntax. Please, check your syntax.")
             return false
         }
 
