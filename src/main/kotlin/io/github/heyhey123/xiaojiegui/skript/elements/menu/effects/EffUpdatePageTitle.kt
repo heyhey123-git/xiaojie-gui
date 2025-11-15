@@ -33,12 +33,12 @@ class EffUpdatePageTitle : Effect() {
         init {
             Skript.registerEffect(
                 EffUpdatePageTitle::class.java,
-                "update title of page %number% [in %-menu%] to (string:%-string%|component:%-textcomponent%) [refresh:(and refresh)]"
+                "update title [of page %-number%] [in %-menu%] to (string:%-string%|component:%-textcomponent%) [refresh:(and refresh)]"
             )
         }
     }
 
-    private lateinit var pageExpr: Expression<Number>
+    private var pageExpr: Expression<Number>? = null
 
     private var menuExpr: Expression<Menu>? = null
 
@@ -81,11 +81,7 @@ class EffUpdatePageTitle : Effect() {
             }
         }
 
-        val page = pageExpr.getSingle(event)?.toInt()
-        if (page == null) {
-            Skript.error("Page number cannot be null.")
-            return
-        }
+        val page = pageExpr?.getSingle(event)?.toInt() ?: menu.properties.defaultPage
 
         if (page !in 0..<menu.size) {
             Skript.error("Page number $page is out of bounds for the menu.")
@@ -115,7 +111,9 @@ class EffUpdatePageTitle : Effect() {
 
     override fun toString(event: Event?, debug: Boolean): String {
         val sb = StringBuilder("update title of page ")
-        sb.append(pageExpr.toString(event, debug))
+        pageExpr?.let {
+            sb.append(it.toString(event, debug))
+        } ?: sb.append("default page")
 
         sb.append(" in ").append(menuExpr?.toString(event, debug) ?: "event menu")
 

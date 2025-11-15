@@ -37,7 +37,7 @@ class EffSecOverrideSlot : EffectSection() {
             Skript.registerSection(
                 EffSecOverrideSlot::class.java,
                 "(override|set) slot %numbers% " +
-                        "in page %numbers% " +
+                        "[in page %-numbers%] " +
                         "[of %-menu%] " +
                         "to %itemstack% " +
                         "[refresh:((and|with) (refresh|update))] " +
@@ -50,7 +50,7 @@ class EffSecOverrideSlot : EffectSection() {
 
     private lateinit var slotsExpr: Expression<Number>
 
-    private lateinit var pagesExpr: Expression<Number>
+    private var pagesExpr: Expression<Number>? = null
 
     private var menuExpr: Expression<Menu>? = null
 
@@ -68,7 +68,7 @@ class EffSecOverrideSlot : EffectSection() {
         triggerItems: List<TriggerItem?>?
     ): Boolean {
         slotsExpr = expressions!![0] as Expression<Number>
-        pagesExpr = expressions[1] as Expression<Number>
+        pagesExpr = expressions[1] as Expression<Number>?
         menuExpr = expressions[2] as Expression<Menu>?
         itemExpr = expressions[3] as Expression<ItemStack>
 
@@ -115,7 +115,7 @@ class EffSecOverrideSlot : EffectSection() {
             return walk(event, false)
         }
 
-        val pages = pagesExpr.getAll(event).map { it.toInt() }
+        val pages = pagesExpr?.getAll(event)?.map { it.toInt() } ?: listOf(menu.properties.defaultPage)
         if (pages.isEmpty()) {
             Skript.error("Page cannot be empty.")
             return walk(event, false)
@@ -157,7 +157,7 @@ class EffSecOverrideSlot : EffectSection() {
 
     override fun toString(event: Event?, debug: Boolean): String {
         val slotStr = slotsExpr.toString(event, debug)
-        val pageStr = pagesExpr.toString(event, debug)
+        val pageStr = pagesExpr?.toString(event, debug)
         val menuStr = menuExpr?.toString(event, debug)
         val itemStr = itemExpr.toString(event, debug)
         val base = "override slot $slotStr in page $pageStr of menu $menuStr to $itemStr"
