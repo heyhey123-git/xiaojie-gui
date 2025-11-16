@@ -23,7 +23,7 @@ import org.bukkit.event.Event
     "    send \"The main menu has been destroyed and can no longer be used.\" to player"
 )
 @Since("1.0-SNAPSHOT")
-class CondMenuDestroyed: Condition() {
+class CondMenuDestroyed : Condition() {
 
     companion object {
         init {
@@ -51,7 +51,7 @@ class CondMenuDestroyed: Condition() {
 
     override fun check(event: Event?): Boolean {
         val menu = exprMenu.getSingle(event)
-        check (menu != null) {
+        check(menu != null) {
             "Menu to check if is destroyed cannot be null."
         } // When null, we shouldn't return true or false, but rather indicate an error.
         val destroyed = menu.isDestroyed

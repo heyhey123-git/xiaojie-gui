@@ -7,6 +7,7 @@ import io.github.heyhey123.xiaojiegui.listener.PlayerQuitListener
 import io.github.heyhey123.xiaojiegui.listener.ReceptaclePacketListener
 import io.github.heyhey123.xiaojiegui.listener.StaticInventoryListener
 import io.github.heyhey123.xiaojiegui.logging.LogoPrinter
+import io.github.heyhey123.xiaojiegui.skript.utils.Button
 import org.bukkit.plugin.java.JavaPlugin
 import org.spigotmc.SpigotConfig.config
 
@@ -45,6 +46,7 @@ class XiaojieGUI : JavaPlugin() {
         BukkitInventoryListener.unregister()
         PlayerQuitListener.unregister()
         StaticInventoryListener.unregister()
+        Button.buttons.clear()
         logger.info("XiaojieGUI has been disabled!")
     }
 }

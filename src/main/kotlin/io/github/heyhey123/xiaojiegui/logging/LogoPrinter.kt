@@ -114,9 +114,11 @@ internal object LogoPrinter {
         for (line in logoLinesGradient(*hex)) {
             logger.info(serializeToAnsi(line))
         }
-        logger.info(serializeToAnsi(
-            MiniMessage.miniMessage().deserialize("<gray>v</gray><rainbow>$version</rainbow>")
-        ))
+        logger.info(
+            serializeToAnsi(
+                MiniMessage.miniMessage().deserialize("<gray>v</gray><rainbow>$version</rainbow>")
+            )
+        )
         logger.info(serializedBorder)
     }
 }

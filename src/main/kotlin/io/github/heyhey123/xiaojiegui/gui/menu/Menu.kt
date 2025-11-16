@@ -182,6 +182,8 @@ class Menu(
      * @param pages The collection of page numbers to update. If null, all pages will be updated.,
      * and the default icon mapper will be updated.
      * @param refresh Whether to refresh the viewers' inventories after updating the icon.
+     * @param callback An optional callback function to execute on click.
+     * If null, the previous callback will be kept.
      */
     fun updateIconForKey(
         key: String,
@@ -207,8 +209,9 @@ class Menu(
         for (targetPage in targetPages) {
             val pageInstance = this.pages[targetPage]
             pageInstance.iconMapper[key] = itemProducer to callback
+            if (callback == null) continue
             pageInstance.keyToSlots[key]?.forEach { slot ->
-                pageInstance.clickCallbacks[slot] = callback ?: {}
+                pageInstance.clickCallbacks[slot] = callback
             }
         }
 
@@ -238,7 +241,8 @@ class Menu(
      * @param pages The collection of page numbers to update. If null, all pages will be updated.,
      * and the default icon mapper will be updated.
      * @param refresh Whether to refresh the viewers' inventories after updating the icon.
-     * @param callback A Consumer callback to execute on click.
+     * @param callback An optional callback function to execute on click.
+     * If null, the previous callback will be kept.
      */
     fun updateIconForKey(
         key: String,
@@ -291,6 +295,7 @@ class Menu(
      * @param item The new ItemStack to set in the slot, or null to clear it.
      * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
      * @param callback An optional callback function to execute on click for the overridden slot.
+     * If null, the previous callback will be kept.
      */
     fun overrideSlot(
         pages: Collection<Int>?,
@@ -313,7 +318,9 @@ class Menu(
 
             val pageInstance = this.pages[page]
             pageInstance.slotOverrides[slot] = item ?: ItemStack.empty()
-            pageInstance.clickCallbacks[slot] = callback ?: {}
+            if (callback != null) {
+                pageInstance.clickCallbacks[slot] = callback
+            }
 
             for (viewer in viewers) {
                 val session = MenuSession.querySession(viewer)
@@ -343,6 +350,7 @@ class Menu(
      * @param item The new ItemStack to set in the slot, or null to clear it.
      * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
      * @param callback A Consumer callback to execute on click for the overridden slot.
+     * If null, the previous callback will be kept.
      */
     fun overrideSlot(
         pages: Collection<Int>,
@@ -361,6 +369,7 @@ class Menu(
      * @param item The new ItemStack to set in the slot, or null to clear it.
      * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
      * @param callback An optional callback function to execute on click for the overridden slot.
+     * If null, the previous callback will be kept.
      */
     fun overrideSlot(
         page: Int,
@@ -379,6 +388,7 @@ class Menu(
      * @param item The new ItemStack to set in the slot, or null to clear it.
      * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
      * @param callback A Consumer callback to execute on click for the overridden slot.
+     * If null, the previous callback will be kept.
      */
     fun overrideSlot(
         page: Int,
@@ -396,6 +406,7 @@ class Menu(
      * @param item The new ItemStack to set in the slot, or null to clear it.
      * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
      * @param callback An optional callback function to execute on click for the overridden slot.
+     * If null, the previous callback will be kept.
      */
     fun overrideSlots(
         pages: Collection<Int>?,
@@ -422,6 +433,7 @@ class Menu(
      * @param item The new ItemStack to set in the slot, or null to clear it.
      * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
      * @param callback A Consumer callback to execute on click for the overridden slot.
+     * If null, the previous callback will be kept.
      */
     fun overrideSlots(
         pages: Collection<Int>?,
@@ -439,6 +451,7 @@ class Menu(
      * @param item The new ItemStack to set in the slot, or null to clear it.
      * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
      * @param callback An optional callback function to execute on click for the overridden slot.
+     * If null, the previous callback will be kept.
      */
     fun overrideSlots(
         page: Int,
@@ -457,6 +470,7 @@ class Menu(
      * @param item The new ItemStack to set in the slot, or null to clear it.
      * @param refresh Whether to refresh the viewers' inventories after overriding the slot.
      * @param callback A Consumer callback to execute on click for the overridden slot.
+     * If null, the previous callback will be kept.
      */
     fun overrideSlots(
         page: Int,

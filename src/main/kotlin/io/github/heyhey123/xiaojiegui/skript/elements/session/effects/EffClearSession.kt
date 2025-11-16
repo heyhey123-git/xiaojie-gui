@@ -22,7 +22,7 @@ import org.bukkit.event.Event
     "clear the menu session player's menu session and refresh"
 )
 @Since("1.0-SNAPSHOT")
-class EffClearSession: Effect() {
+class EffClearSession : Effect() {
 
     companion object {
         init {

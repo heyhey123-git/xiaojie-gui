@@ -35,7 +35,7 @@ import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
     "    title: \"New Page\""
 )
 @Since("1.0-SNAPSHOT")
-class SecInsertPage: Section() {
+class SecInsertPage : Section() {
 
     companion object {
         init {
@@ -69,7 +69,8 @@ class SecInsertPage: Section() {
         menuExpr = expressions?.get(1) as Expression<Menu>?
         if (
             menuExpr == null &&
-            !parser.isCurrentEvent(ProvideMenuEvent::class.java, MenuEvent::class.java)) {
+            !parser.isCurrentEvent(ProvideMenuEvent::class.java, MenuEvent::class.java)
+        ) {
             Skript.error("Menu expression is required unless in a menu event.")
             return false
         }
@@ -82,7 +83,14 @@ class SecInsertPage: Section() {
         val validator = EntryValidator.builder()
             .addEntryData(ExpressionEntryData("layout", null, true, String::class.java))
             .addEntryData(ExpressionEntryData("player inventory layout", null, true, String::class.java))
-            .addEntryData(ExpressionEntryData("title", null, true, *ComponentHelper.titleReturnTypes as Array<Class<Any>>))
+            .addEntryData(
+                ExpressionEntryData(
+                    "title",
+                    null,
+                    true,
+                    *ComponentHelper.titleReturnTypes as Array<Class<Any>>
+                )
+            )
             .build()
 
         val container = validator.validate(sectionNode)

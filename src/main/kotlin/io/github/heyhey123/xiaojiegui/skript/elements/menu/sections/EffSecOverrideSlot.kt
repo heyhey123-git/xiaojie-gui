@@ -16,14 +16,16 @@ import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
-import io.github.heyhey123.xiaojiegui.skript.utils.LocalsScopeRunner
+import io.github.heyhey123.xiaojiegui.skript.utils.Button
+import io.github.heyhey123.xiaojiegui.skript.utils.MenuCallbackUtils
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 
 @Name("Override Slot")
 @Description(
     "Override a specific slot in a specific page of a menu with a new item.",
-    "You can optionally provide a section to handle click events on the overridden slot."
+    "You can optionally provide a section to handle click events on the overridden slot.",
+    "Tips: If you didn't provide a section, the slot will simply be overridden without changing previous click behavior."
 )
 @Examples(
     "override slot 10 in page 0 of menu with id \"main_menu\" to diamond named \"Clicked Item\" refresh and when clicked:",
@@ -39,7 +41,7 @@ class EffSecOverrideSlot : EffectSection() {
                 "(override|set) slot %numbers% " +
                         "[in page %-numbers%] " +
                         "[of %-menu%] " +
-                        "to %itemstack% " +
+                        "to (%-itemstack%|button %-string%) " +
                         "[refresh:((and|with) (refresh|update))] " +
                         "[when:(and when (clicked|interacted|pressed))]"
             )
@@ -54,7 +56,9 @@ class EffSecOverrideSlot : EffectSection() {
 
     private var menuExpr: Expression<Menu>? = null
 
-    private lateinit var itemExpr: Expression<ItemStack>
+    private var itemExpr: Expression<ItemStack>? = null
+
+    private var buttonIdExpr: Expression<String>? = null
 
     private var refreshFlag: Boolean = false
 
@@ -70,7 +74,8 @@ class EffSecOverrideSlot : EffectSection() {
         slotsExpr = expressions!![0] as Expression<Number>
         pagesExpr = expressions[1] as Expression<Number>?
         menuExpr = expressions[2] as Expression<Menu>?
-        itemExpr = expressions[3] as Expression<ItemStack>
+        itemExpr = expressions[3] as Expression<ItemStack>?
+        buttonIdExpr = expressions[4] as Expression<String>?
 
         if (parseResult!!.hasTag("refresh")) {
             refreshFlag = true
@@ -82,6 +87,13 @@ class EffSecOverrideSlot : EffectSection() {
         }
 
         if (hasSection()) {
+            if (buttonIdExpr != null) {
+                Skript.warning(
+                    "Both a button ID and a section were provided in the override slot expression. The button will be used and the section will be ignored."
+                )
+                return true
+            }
+
             trigger = SectionUtils.loadLinkedCode(
                 "override slot"
             ) { beforeLoading: Runnable?, afterLoading: Runnable? ->
@@ -92,6 +104,11 @@ class EffSecOverrideSlot : EffectSection() {
                     afterLoading,
                     MenuInteractEvent::class.java
                 )
+            }
+
+            if (trigger == null) {
+                Skript.error("Failed to load the section for handling icon interaction in expression: $this")
+                return false
             }
         }
 
@@ -126,42 +143,64 @@ class EffSecOverrideSlot : EffectSection() {
             return walk(event, false)
         }
 
-        val item = itemExpr.getSingle(event)
+        val button = buttonIdExpr?.getSingle(event)?.let { Button.buttons[it] }
 
-        if (trigger == null) {
-            menu.overrideSlots(pages, slots, item, refreshFlag)
+        val item = button?.let { button.item } ?: itemExpr?.getSingle(event)
+
+        if (button == null && buttonIdExpr != null) {
+            Skript.error("Button with ID '${buttonIdExpr?.getSingle(event)}' not found.")
             return walk(event, false)
         }
 
-        val executor = LocalsScopeRunner(event) { menuEvent ->
-            walk(trigger, menuEvent)
-        }
-
-        menu.overrideSlots(pages, slots, item, refreshFlag) { menuEvent ->
-            try {
-                executor(menuEvent)
-            } catch (e: Throwable) {
+        val clickHandler = MenuCallbackUtils.buildClickHandler(
+            button = button,
+            trigger = trigger,
+            sourceEvent = event,
+            runTrigger = { trig, ev -> walk(trig, ev) },
+            onError = { e ->
                 val id = menu.id ?: "<unnamed>"
-
                 Skript.exception(
                     e,
                     Thread.currentThread(),
-                    "Error occurred in a slot callback for menu $id.This callback was added when overriding slot $slots in page $pages to item $item."
+                    "Error occurred in a slot callback for menu $id. This callback was added when overriding slot $slots in page $pages to item $item."
                 )
             }
-        }
+        )
+
+        clickHandler?.let {
+            menu.overrideSlots(pages, slots, item, refreshFlag, clickHandler)
+        } ?: menu.overrideSlots(pages, slots, item, refreshFlag)
+
 
         return walk(event, false)
     }
 
 
     override fun toString(event: Event?, debug: Boolean): String {
-        val slotStr = slotsExpr.toString(event, debug)
-        val pageStr = pagesExpr?.toString(event, debug)
-        val menuStr = menuExpr?.toString(event, debug)
-        val itemStr = itemExpr.toString(event, debug)
-        val base = "override slot $slotStr in page $pageStr of menu $menuStr to $itemStr"
+        val sb = StringBuilder("override slot ${slotsExpr.toString(event, debug)} ")
 
-        return if (hasSection()) "$base and when clicked do ..." else base
+        pagesExpr?.let {
+            sb.append("in page ${it.toString(event, debug)} ")
+        }
+
+        sb.append("of menu ${menuExpr?.toString(event, debug) ?: "event menu"} to ")
+
+        itemExpr?.let {
+            if (buttonIdExpr != null) {
+                sb.append("item: ${it.toString(event, debug)} ")
+            }
+        }
+
+        buttonIdExpr?.let {
+            sb.append("button: ${it.toString(event, debug)} ")
+        }
+
+        if (refreshFlag) sb.append("and refresh ")
+
+        if (hasSection()) {
+            sb.append("when clicked")
+        }
+
+        return sb.toString()
     }
 }

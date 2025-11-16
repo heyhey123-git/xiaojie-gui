@@ -23,7 +23,7 @@ import org.bukkit.event.Event
     "destroy the menu menu with id \"main_menu\""
 )
 @Since("1.0-SNAPSHOT")
-class EffDestroyMenu: Effect() {
+class EffDestroyMenu : Effect() {
 
     companion object {
         init {

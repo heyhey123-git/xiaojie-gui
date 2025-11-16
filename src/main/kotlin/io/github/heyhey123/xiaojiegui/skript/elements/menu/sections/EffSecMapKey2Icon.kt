@@ -17,14 +17,16 @@ import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
-import io.github.heyhey123.xiaojiegui.skript.utils.LocalsScopeRunner
+import io.github.heyhey123.xiaojiegui.skript.utils.Button
+import io.github.heyhey123.xiaojiegui.skript.utils.MenuCallbackUtils
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 
 @Name("Map Key to Icon")
 @Description(
     "Map a string key to an icon (item) in a menu.",
-    "You can optionally provide a section to handle click events on the icon."
+    "You can optionally provide a section to handle click events on the icon.",
+    "Tips: If you didn't provide a section, the slot will simply be overridden without changing previous click behavior."
 )
 @Examples(
     "map key \"special_item\" to item diamond named \"Special Item\" for menu {_menu} and refresh and when clicked:",
@@ -38,7 +40,7 @@ class EffSecMapKey2Icon : EffectSection() {
             Skript.registerSection(
                 EffSecMapKey2Icon::class.java,
                 "map key %string% " +
-                        "to (icon|item)[s] %itemstacks% " +
+                        "to ((icon|item)[s] %itemstacks%|button %-string%) " +
                         "[for [(menu|gui)] %-menu%] " +
                         "[on page(s) %-numbers%)]" +
                         "[refresh:(and (refresh|update))] " +
@@ -51,7 +53,9 @@ class EffSecMapKey2Icon : EffectSection() {
 
     private lateinit var keyExpr: Expression<String>
 
-    private lateinit var itemExpr: Expression<ItemStack>
+    private var itemExpr: Expression<ItemStack>? = null
+
+    private var buttonIdExpr: Expression<String>? = null
 
     private var menuExpr: Expression<Menu>? = null
 
@@ -69,9 +73,10 @@ class EffSecMapKey2Icon : EffectSection() {
         triggerItems: List<TriggerItem?>?
     ): Boolean {
         keyExpr = expressions!![0] as Expression<String>
-        itemExpr = expressions[1] as Expression<ItemStack>
-        menuExpr = expressions[2] as Expression<Menu>?
-        pageExpr = expressions[3] as Expression<Number>?
+        itemExpr = expressions[1] as Expression<ItemStack>?
+        buttonIdExpr = expressions[2] as Expression<String>?
+        menuExpr = expressions[3] as Expression<Menu>?
+        pageExpr = expressions[4] as Expression<Number>?
 
         if (parseResult!!.hasTag("refresh")) {
             refreshFlag = true
@@ -83,7 +88,12 @@ class EffSecMapKey2Icon : EffectSection() {
         }
 
         if (hasSection()) {
-            val trigger = SectionUtils.loadLinkedCode(
+            if (buttonIdExpr != null) {
+                Skript.warning("Both a button ID and a section were provided in the override slot expression. The button will be used and the section will be ignored.")
+                return true
+            }
+
+            trigger = SectionUtils.loadLinkedCode(
                 "interact with icon"
             ) { beforeLoading: Runnable?, afterLoading: Runnable? ->
                 loadCode(
@@ -95,8 +105,7 @@ class EffSecMapKey2Icon : EffectSection() {
                 )
             }
 
-            this.trigger = trigger
-            if (this.trigger == null) {
+            if (trigger == null) {
                 Skript.error("Failed to load the section for handling icon interaction in expression: $this")
                 return false
             }
@@ -124,9 +133,16 @@ class EffSecMapKey2Icon : EffectSection() {
 
         val pages: List<Int>? = pageExpr?.getArray(event)?.map { it.toInt() }
 
-        val items = itemExpr.getArray(event)
+        val button = buttonIdExpr?.getSingle(event)?.let { Button.buttons[it] }
 
-        val iconProducer = when (items.size) {
+        if (button == null && buttonIdExpr != null) {
+            Skript.error("Button with ID '${buttonIdExpr!!.getSingle(event)}' not found.")
+            return walk(event, false)
+        }
+
+        val items: Array<ItemStack> = button?.let { arrayOf(button.item) } ?: itemExpr?.getArray(event)!!
+
+        val iconProducer: IconProducer = when (items.size) {
             0 -> {
                 Skript.error("At least one item must be provided to map to an icon.")
                 return walk(event, false)
@@ -137,39 +153,52 @@ class EffSecMapKey2Icon : EffectSection() {
             else -> IconProducer.MultipleIconProducer(items.toList())
         }
 
-
-        if (trigger == null) {
-            menu.updateIconForKey(key, iconProducer, refreshFlag, pages)
-            return walk(event, false)
-        }
-
-        val executor = LocalsScopeRunner(event) { menuEvent ->
-            walk(trigger, menuEvent)
-        }
-
-        menu.updateIconForKey(key, iconProducer, refreshFlag, pages) { menuEvent ->
-            try {
-                executor(menuEvent)
-            } catch (e: Throwable) {
+        val clickHandler = MenuCallbackUtils.buildClickHandler(
+            button = button,
+            trigger = trigger,
+            sourceEvent = event,
+            runTrigger = { trig, ev -> walk(trig, ev) },
+            onError = { e ->
                 val id = menu.id ?: "<unnamed>"
-
+                val itemDesc = items.joinToString { it.type.name }
                 Skript.exception(
                     e,
                     Thread.currentThread(),
-                    "Error occurred in slot callback for menu $id. This callback was added when mapping key $key to item $itemExpr."
+                    "Error in icon callback for menu $id when mapping key '$key' to items [$itemDesc]."
                 )
             }
-        }
+        )
+
+        clickHandler?.let {
+            menu.updateIconForKey(key, iconProducer, refreshFlag, pages, clickHandler)
+        } ?: menu.updateIconForKey(key, iconProducer, refreshFlag, pages)
 
         return walk(event, false)
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
-        val keyStr = keyExpr.toString(event, debug)
-        val itemStr = itemExpr.toString(event, debug)
-        val menuStr = menuExpr?.toString(event, debug)
-        val base = "map key $keyStr to item $itemStr for menu $menuStr"
+        val sb = StringBuilder("map key ${keyExpr.toString(event, debug)} to ")
 
-        return if (hasSection()) "$base and when clicked do ..." else base
+        buttonIdExpr?.let {
+            sb.append("button ${it.toString(event, debug)} ")
+        } ?: run {
+            sb.append("item ${itemExpr!!.toString(event, debug)} ")
+        }
+
+        sb.append("for menu ${menuExpr?.toString(event, debug) ?: "event menu"} ")
+
+        pageExpr?.let {
+            sb.append("on page ${it.toString(event, debug)} ")
+        }
+
+        if (refreshFlag) {
+            sb.append("and refresh ")
+        }
+
+        trigger?.let {
+            sb.append("when clicked")
+        }
+
+        return sb.toString()
     }
 }

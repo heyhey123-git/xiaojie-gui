@@ -6,7 +6,7 @@ import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 
 /**
-  * An event that is used to provide a menu instance in Skript.
+ * An event that is used to provide a menu instance in Skript.
  *
  * @property menu The menu that is being provided.
  */

@@ -5,11 +5,7 @@ import io.papermc.paper.adventure.PaperAdventure
 import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.common.ClientCommonPacketListener
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
-import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ClientboundSetCursorItemPacket
+import net.minecraft.network.protocol.game.*
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
@@ -79,7 +75,7 @@ private class PacketHelperImpl : PacketHelper() {
         serverPlayer.connection.send(packet) // The ItemStacks conversion in PacketEvents causes performance problem.
     }
 
-    private fun  ItemStack?.asNMSCopy(): net.minecraft.world.item.ItemStack =
+    private fun ItemStack?.asNMSCopy(): net.minecraft.world.item.ItemStack =
         CraftItemStack.asNMSCopy(this)
 
     override fun sendContainerClose(player: Player) {

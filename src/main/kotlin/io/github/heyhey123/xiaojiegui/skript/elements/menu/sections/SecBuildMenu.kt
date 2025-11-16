@@ -106,7 +106,7 @@ class SecBuildMenu : Section() {
 
         val container = validator.validate(sectionNode)
         if (container == null) {
-                        Skript.error("Invalid menu section syntax. Please, check your syntax.")
+            Skript.error("Invalid menu section syntax. Please, check your syntax.")
             return false
         }
 
