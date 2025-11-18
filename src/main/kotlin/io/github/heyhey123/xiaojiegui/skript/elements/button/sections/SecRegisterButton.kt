@@ -2,6 +2,10 @@ package io.github.heyhey123.xiaojiegui.skript.elements.button.sections
 
 import ch.njol.skript.Skript
 import ch.njol.skript.config.SectionNode
+import ch.njol.skript.doc.Description
+import ch.njol.skript.doc.Examples
+import ch.njol.skript.doc.Name
+import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.Section
 import ch.njol.skript.lang.SkriptParser
@@ -15,6 +19,18 @@ import org.bukkit.inventory.ItemStack
 import org.skriptlang.skript.lang.entry.EntryValidator
 import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
 
+@Name("Register Button")
+@Description(
+    "Registers a button with the specified ID and icon.",
+    "You must provide a 'when clicked' section to handle button click events."
+)
+@Examples(
+    "register button \"my_button\"",
+    "    icon: stone",
+    "    when clicked:",
+    "        send \"You clicked the button!\" to player"
+)
+@Since("1.0.4")
 class SecRegisterButton : Section() {
     companion object {
         init {

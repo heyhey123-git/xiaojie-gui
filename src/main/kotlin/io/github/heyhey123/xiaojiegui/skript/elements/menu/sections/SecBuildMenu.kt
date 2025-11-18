@@ -43,7 +43,7 @@ import org.skriptlang.skript.lang.entry.util.LiteralEntryData
     "    edit:",
     "        override slot 4 in page 0 to diamond named \"Special Item\""
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.3")
 class SecBuildMenu : Section() {
 
     companion object {
