@@ -12,6 +12,7 @@ import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.TriggerItem
 import ch.njol.skript.lang.util.SectionUtils
 import ch.njol.util.Kleenean
+import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.Button
 import io.github.heyhey123.xiaojiegui.skript.utils.LocalsScopeRunner
 import org.bukkit.event.Event
@@ -19,24 +20,25 @@ import org.bukkit.inventory.ItemStack
 import org.skriptlang.skript.lang.entry.EntryValidator
 import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
 
-@Name("Register Button")
+@Name("Define Button")
 @Description(
-    "Registers a button with the specified ID and icon.",
-    "You must provide a 'when clicked' section to handle button click events."
+    "Defines a button with the specified ID and icon.",
+    "You must provide a 'when clicked' section to handle button click events.",
+    "If a button with the same ID already exists, the new definition will overwrite the previous one."
 )
 @Examples(
-    "register button \"my_button\"",
+    "define button \"my_button\":",
     "    icon: stone",
     "    when clicked:",
     "        send \"You clicked the button!\" to player"
 )
 @Since("1.0.4")
-class SecRegisterButton : Section() {
+class SecDefineButton : Section() {
     companion object {
         init {
             Skript.registerSection(
-                SecRegisterButton::class.java,
-                "register button %string%"
+                SecDefineButton::class.java,
+                "define [a] button %string%"
             )
         }
     }
@@ -94,7 +96,7 @@ class SecRegisterButton : Section() {
                 "register button",
                 beforeLoading,
                 afterLoading,
-                Event::class.java
+                MenuInteractEvent::class.java
             )
         }
         if (callbackTrigger == null) {

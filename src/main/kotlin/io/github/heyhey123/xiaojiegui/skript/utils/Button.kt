@@ -1,5 +1,6 @@
 package io.github.heyhey123.xiaojiegui.skript.utils
 
+import io.github.heyhey123.xiaojiegui.XiaojieGUI
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import org.bukkit.inventory.ItemStack
 import java.util.concurrent.ConcurrentHashMap
@@ -18,10 +19,10 @@ class Button(
     val callback: (MenuInteractEvent) -> Unit
 ) {
     init {
-        val previous = buttons.putIfAbsent(id, this)
-        require(previous == null) {
-            "Button with id '$id' is already registered."
+        check(XiaojieGUI.instance.isEnabled) {
+            "Cannot create Button when XiaojieGUI is not enabled."
         }
+        buttons[id] = this
     }
 
     companion object {

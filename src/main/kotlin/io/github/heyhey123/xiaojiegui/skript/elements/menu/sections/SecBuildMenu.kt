@@ -34,7 +34,7 @@ import org.skriptlang.skript.lang.entry.util.LiteralEntryData
 @Examples(
     "build a menu {_menu}",
     "    mode: phantom",
-    "    inventory type: chest",
+    "    inventory type: chest inventory",
     "    title: \"Main Menu\"",
     "    layout: \"AAA\", \"ABA\", \"AAA\"",
     "    id: \"main_menu\"",
