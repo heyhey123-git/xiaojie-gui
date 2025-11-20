@@ -40,7 +40,7 @@ class EffSecMapKey2Icon : EffectSection() {
             Skript.registerSection(
                 EffSecMapKey2Icon::class.java,
                 "map key %string% " +
-                        "to ((icon|item)[s] %itemstacks%|button %-string%) " +
+                        "to ((icon|item)[s] %-itemstacks%|button %-string%) " +
                         "[for [(menu|gui)] %-menu%] " +
                         "[on page(s) %-numbers%)]" +
                         "[refresh:(and (refresh|update))] " +
