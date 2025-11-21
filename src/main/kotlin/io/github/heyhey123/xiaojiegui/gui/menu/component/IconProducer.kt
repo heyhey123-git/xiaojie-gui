@@ -41,5 +41,13 @@ sealed class IconProducer {
             }
             return items[currentIndex++]
         }
+
+        /**
+         * Reset the producer to start from the beginning again.
+         *
+         */
+        fun reset() {
+            currentIndex = 0
+        }
     }
 }

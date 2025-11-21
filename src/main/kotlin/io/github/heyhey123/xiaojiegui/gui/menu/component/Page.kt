@@ -172,6 +172,10 @@ class Page(
 
         receptacle.hidePlayerInventory = menu.properties.hidePlayerInventory
 
+        for (icon in iconMapper.values) {
+            (icon.first as? IconProducer.MultipleIconProducer)?.reset()
+        } // ??
+
         receptacle.onClose { player, _ ->
             querySession(player)!!.run {
                 MenuCloseEvent(this, player, menu).callEvent()
