@@ -23,6 +23,7 @@ import org.bukkit.event.inventory.InventoryType
 import org.skriptlang.skript.lang.entry.EntryValidator
 import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
 import org.skriptlang.skript.lang.entry.util.LiteralEntryData
+import kotlin.jvm.java
 
 @Name("Build Menu")
 @Description(
@@ -100,7 +101,7 @@ class SecBuildMenu : Section() {
             .addEntryData(ExpressionEntryData("id", null, true, String::class.java))
             .addEntryData(ExpressionEntryData("default page", null, true, Number::class.java))
             .addEntryData(ExpressionEntryData("click delay", null, true, Number::class.java))
-            .addEntryData(LiteralEntryData("hide player inventory", false, true, Boolean::class.java))
+            .addEntryData(LiteralEntryData("hide player inventory", false, true, java.lang.Boolean::class.java as Class<Boolean>))
             .addSection("edit", true)
             .build()
 
@@ -150,8 +151,7 @@ class SecBuildMenu : Section() {
         defaultPageExpr = container.getOptional("default page", false) as? Expression<Number>
         clickDelayExpr = container.getOptional("click delay", false) as? Expression<Number>
 
-        val hidePlayerInventoryExpr = container.getOptional("hide player inventory", true) as? Literal<Boolean>
-        hidePlayerInventoryFlag = hidePlayerInventoryExpr?.getSingle() ?: false
+        hidePlayerInventoryFlag = container.getOptional("hide player inventory", true) as? Boolean ?: false
 
         // edit section
         var triggerNode: SectionNode? = null
