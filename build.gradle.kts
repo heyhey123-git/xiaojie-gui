@@ -30,7 +30,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
-    compileOnly("com.github.SkriptLang:Skript:2.12.1")
+    compileOnly("com.github.SkriptLang:Skript:2.13.1")
     compileOnly("com.github.retrooper:packetevents-spigot:2.9.5")
     implementation("xyz.jpenilla:reflection-remapper:0.1.3")
 
