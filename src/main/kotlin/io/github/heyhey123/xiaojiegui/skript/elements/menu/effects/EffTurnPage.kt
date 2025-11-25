@@ -58,7 +58,7 @@ class EffTurnPage : Effect() {
         pageExpr = expressions?.get(0) as Expression<Number>
         playerExpr = expressions[1] as Expression<Player>
         if (parseResult!!.tags.isNotEmpty()) {
-            titleType = TitleType.fromStringTag(parseResult.tags[0])
+            titleType = TitleType.fromParseResult(parseResult)
             newTitleStrExpr = expressions[2] as Expression<String>?
             newTitleComponentExpr = expressions[3] as Expression<Any>?
         }

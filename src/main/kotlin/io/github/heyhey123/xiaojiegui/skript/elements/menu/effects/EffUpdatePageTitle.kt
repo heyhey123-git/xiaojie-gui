@@ -65,7 +65,7 @@ class EffUpdatePageTitle : Effect() {
         }
         titleStrExpr = expressions[2] as Expression<String>?
         titleComponentExpr = expressions[3] as Expression<Any>?
-        titleType = TitleType.fromStringTag(parseResult!!.tags[0])
+        titleType = TitleType.fromParseResult(parseResult!!)
         refreshFlag = parseResult.hasTag("refresh")
 
         return true

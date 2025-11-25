@@ -89,7 +89,7 @@ class EffSecCreateMenu : EffectSection() {
         inventoryTypeExpr = expressions!![0] as Expression<InventoryType>
         titleStrExpr = expressions[1] as Expression<String>?
         titleComponentExpr = expressions[2] as Expression<Any>?
-        titleType = TitleType.fromStringTag(parseResult.tags[1])
+        titleType = TitleType.fromParseResult(parseResult)
         layoutExpr = expressions[3] as Expression<String>
         idExpr = expressions[4] as Expression<String>?
         pageExpr = expressions[5] as Expression<Number>?

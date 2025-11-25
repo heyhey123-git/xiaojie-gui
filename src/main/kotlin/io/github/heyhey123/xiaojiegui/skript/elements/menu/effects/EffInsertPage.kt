@@ -72,7 +72,7 @@ class EffInsertPage : Effect() {
         layoutExpr = expressions?.get(2) as Expression<String>?
         playerInvLayoutExpr = expressions?.get(3) as Expression<String>?
         if (parseResult!!.tags.isNotEmpty()) {
-            titleType = TitleType.fromStringTag(parseResult.tags[0])
+            titleType = TitleType.fromParseResult(parseResult)
             titleStrExpr = expressions?.get(4) as Expression<String>?
             titleComponentExpr = expressions?.get(5) as Expression<Any>?
         }
