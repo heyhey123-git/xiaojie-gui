@@ -38,7 +38,7 @@ class EffTurnPage : Effect() {
         }
     }
 
-    private lateinit var pageExPr: Expression<Number>
+    private lateinit var pageExpr: Expression<Number>
 
     private lateinit var playerExpr: Expression<Player>
 
@@ -55,7 +55,7 @@ class EffTurnPage : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        pageExPr = expressions?.get(0) as Expression<Number>
+        pageExpr = expressions?.get(0) as Expression<Number>
         playerExpr = expressions[1] as Expression<Player>
         if (parseResult!!.tags.isNotEmpty()) {
             titleType = TitleType.fromStringTag(parseResult.tags[0])
@@ -67,7 +67,7 @@ class EffTurnPage : Effect() {
     }
 
     override fun execute(event: Event?) {
-        val page = pageExPr.getSingle(event)?.toInt()
+        val page = pageExpr.getSingle(event)?.toInt()
         if (page == null) {
             Skript.error("Page number cannot be null.")
             return
@@ -112,7 +112,7 @@ class EffTurnPage : Effect() {
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
-        val sb = StringBuilder("turn to page ").append(pageExPr.toString(event, debug))
+        val sb = StringBuilder("turn to page ").append(pageExpr.toString(event, debug))
             .append(" for ").append(playerExpr.toString(event, debug))
         titleType?.let {
             sb.append(" with new title ")
