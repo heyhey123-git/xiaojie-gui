@@ -40,8 +40,8 @@ class EffSecOverrideSlot : EffectSection() {
                 EffSecOverrideSlot::class.java,
                 "(override|set) slot %numbers% " +
                         "[in page %-numbers%] " +
-                        "[of %-menu%] " +
                         "to (%-itemstack%|button %-string%) " +
+                        "for menu %-menu% " +
                         "[refresh:((and|with) (refresh|update))] " +
                         "[when:(and when (clicked|interacted|pressed))]"
             )
@@ -52,9 +52,9 @@ class EffSecOverrideSlot : EffectSection() {
 
     private lateinit var slotsExpr: Expression<Number>
 
-    private var pagesExpr: Expression<Number>? = null
-
     private var menuExpr: Expression<Menu>? = null
+
+    private var pagesExpr: Expression<Number>? = null
 
     private var itemExpr: Expression<ItemStack>? = null
 
@@ -73,9 +73,9 @@ class EffSecOverrideSlot : EffectSection() {
     ): Boolean {
         slotsExpr = expressions!![0] as Expression<Number>
         pagesExpr = expressions[1] as Expression<Number>?
-        menuExpr = expressions[2] as Expression<Menu>?
-        itemExpr = expressions[3] as Expression<ItemStack>?
-        buttonIdExpr = expressions[4] as Expression<String>?
+        itemExpr = expressions[2] as Expression<ItemStack>?
+        buttonIdExpr = expressions[3] as Expression<String>?
+        menuExpr = expressions[4] as Expression<Menu>?
 
         if (parseResult!!.hasTag("refresh")) {
             refreshFlag = true
