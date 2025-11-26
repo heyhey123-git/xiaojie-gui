@@ -42,7 +42,7 @@ class EffSecMapKey2Icon : EffectSection() {
                 "map key %string% " +
                         "to ((icon|item)[s] %-itemstacks%|button %-string%) " +
                         "[for [(menu|gui)] %-menu%] " +
-                        "[on page(s) %-numbers%)]" +
+                        "[on page[s] %-numbers%)]" +
                         "[refresh:(and (refresh|update))] " +
                         "[when:(and when clicked)]"
             )
