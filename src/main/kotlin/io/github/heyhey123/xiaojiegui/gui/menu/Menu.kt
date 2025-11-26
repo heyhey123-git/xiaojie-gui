@@ -200,7 +200,7 @@ class Menu(
 
         val targetPages = pages?.apply {
             forEach {
-                check(it in 0..<size) {
+                check(it in 0..<this@Menu.size) {
                     "Page $it does not exist in this menu."
                 }
             }
