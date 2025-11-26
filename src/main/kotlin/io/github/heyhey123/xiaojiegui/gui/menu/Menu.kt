@@ -15,6 +15,8 @@ import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
 
 
@@ -66,7 +68,7 @@ class Menu(
     /**
      * The pages of the menu.
      */
-    val pages: MutableList<Page> = mutableListOf()
+    val pages: MutableList<Page> = CopyOnWriteArrayList()
 
     /**
      * The number of pages in the menu.
@@ -78,7 +80,7 @@ class Menu(
      * The default icon mapper for the menu.
      */
     val defaultIconMapper: MutableMap<String, Pair<IconProducer, ((event: MenuInteractEvent) -> Unit)?>> =
-        mutableMapOf()
+        ConcurrentHashMap()
 
     /**
      * Open the menu for a player at a specific page.
@@ -198,7 +200,7 @@ class Menu(
 
         val targetPages = pages?.apply {
             forEach {
-                check(it in 0..<this@Menu.size) {
+                check(it in 0..<size) {
                     "Page $it does not exist in this menu."
                 }
             }
@@ -555,7 +557,7 @@ class Menu(
         /**
          * A map of all menus by their unique identifiers.
          */
-        val menusWithId: MutableMap<String, Menu> = mutableMapOf()
+        val menusWithId: MutableMap<String, Menu> = ConcurrentHashMap()
 
         /**
          * A set of all menus, used for cleanup on plugin disable.

@@ -3,6 +3,7 @@ package io.github.heyhey123.xiaojiegui.gui.menu.component
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
 import org.bukkit.entity.Player
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A utility class to manage cooldowns for players.
@@ -17,7 +18,7 @@ class Cooldown(
     private val cooldown: Int
         get() = property.minClickDelay
 
-    private val lastClickedData: MutableMap<UUID, Long> = mutableMapOf()
+    private val lastClickedData: MutableMap<UUID, Long> = ConcurrentHashMap()
 
     /**
      * Try to consume the cooldown for the player.

@@ -13,12 +13,12 @@ import net.kyori.adventure.text.Component
  * @property defaultPage The default page number to open when the menu is first opened.
  */
 class MenuProperties(
-    var defaultTitle: Component,
-    var hidePlayerInventory: Boolean,
+    @Volatile var defaultTitle: Component,
+    @Volatile var hidePlayerInventory: Boolean,
     val mode: Receptacle.Mode,
-    var minClickDelay: Int,
-    var defaultPage: Int,
-    var defaultLayout: List<String>
+    @Volatile var minClickDelay: Int,
+    @Volatile var defaultPage: Int,
+    @Volatile var defaultLayout: List<String>
 ) {
     override fun toString() =
         "MenuProperties(defaultTitle=$defaultTitle, hidePlayerInventory=$hidePlayerInventory, mode=$mode, " +
