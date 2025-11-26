@@ -10,7 +10,6 @@ import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
 import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
 
 /**
@@ -27,7 +26,7 @@ import kotlin.math.min
  */
 class Page(
     inventoryType: InventoryType,
-    @Volatile var title: Component,
+    var title: Component,
     val layoutPattern: List<String>,
     playerInventoryPattern: List<String>,
     val properties: MenuProperties
@@ -71,12 +70,12 @@ class Page(
      * The callback function takes a MenuInteractEvent as a parameter.
      */
     val clickCallbacks: MutableMap<Int, (event: MenuInteractEvent) -> Unit> =
-        ConcurrentHashMap()
+        mutableMapOf()
 
     /**
      * A mapping of slot indices to their overridden item stacks.
      */
-    val slotOverrides: MutableMap<Int, ItemStack> = ConcurrentHashMap()
+    val slotOverrides: MutableMap<Int, ItemStack> = mutableMapOf()
 
     /**
      * The width of the inventory, derived from its default size.
@@ -156,7 +155,7 @@ class Page(
     /**
      * The icon mapper for the menu, mapping keys to ItemStacks and optional click callbacks.
      */
-    val iconMapper: ConcurrentHashMap<String, Pair<IconProducer, ((MenuInteractEvent) -> Unit)?>> = ConcurrentHashMap()
+    val iconMapper: MutableMap<String, Pair<IconProducer, ((MenuInteractEvent) -> Unit)?>> = mutableMapOf()
 
     /**
      * Load in the page into the given menu session.

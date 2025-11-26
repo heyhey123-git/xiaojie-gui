@@ -3,7 +3,6 @@ package io.github.heyhey123.xiaojiegui.skript.utils
 import io.github.heyhey123.xiaojiegui.XiaojieGUI
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import org.bukkit.inventory.ItemStack
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A button in a menu GUI.
@@ -26,6 +25,6 @@ class Button(
     }
 
     companion object {
-        val buttons: ConcurrentHashMap<String, Button> = ConcurrentHashMap()
+        val buttons: MutableMap<String, Button> = mutableMapOf()
     }
 }
