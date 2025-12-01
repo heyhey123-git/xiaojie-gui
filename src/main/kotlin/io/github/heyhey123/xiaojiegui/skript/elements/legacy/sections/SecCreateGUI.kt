@@ -95,7 +95,7 @@ class SecCreateGUI : EffectSection() {
                 true,
                 mode,
                 50,
-                0,
+                1,
                 shape?.filterNotNull() ?: listOf()
             )
             val gui = Menu(id, properties, inventoryType = invType)

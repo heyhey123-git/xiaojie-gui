@@ -144,7 +144,7 @@ class EffSecCreateMenu : EffectSection() {
             hidePlayerInventoryFlag,
             mode,
             minClickDelay ?: 50,
-            defaultPage ?: 0,
+            defaultPage ?: 1,
             defaultLayout ?: listOf()
         )
 

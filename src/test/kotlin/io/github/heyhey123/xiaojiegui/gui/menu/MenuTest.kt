@@ -45,7 +45,7 @@ class MenuTest {
         val props = mockk<MenuProperties>(relaxed = true)
         every { props.mode } returns Receptacle.Mode.STATIC
         every { props.hidePlayerInventory } returns true
-        every { props.defaultPage } returns 0
+        every { props.defaultPage } returns 1
         every { props.defaultTitle } returns Component.text("Default")
         every { props.defaultLayout } returns listOf("aaaaaaaaa")
         mockkObject(XiaojieGUI.Companion)
@@ -75,11 +75,11 @@ class MenuTest {
         every { viewer.uniqueId } returns vid
 
         // Act
-        menu.open(viewer, 0)
+        menu.open(viewer, 1)
 
         val session = MenuSession.getSession(viewer)
         assertSame(menu, session.menu)
-        assertEquals(0, session.page)
+        assertEquals(1, session.page)
         assertSame(receptacle, session.receptacle)
         assertTrue(menu.viewers.contains(vid))
         verify(exactly = 1) { receptacle.open(viewer) }
@@ -100,7 +100,7 @@ class MenuTest {
         every { viewer.uniqueId } returns vid
 
         // Act
-        menu.open(viewer, 0)
+        menu.open(viewer, 1)
 
         val session = MenuSession.getSession(viewer)
         assertSame(null, session.menu)
@@ -113,9 +113,9 @@ class MenuTest {
     fun `turnPage function - turn to specific page & update title & refresh receptacle`() {
         val menu = Menu(null, properties, InventoryType.CHEST)
 
-        val page0 = chestPage(properties, "Page 0")
         val page1 = chestPage(properties, "Page 1")
-        menu.pages.addAll(listOf(page0, page1))
+        val page2 = chestPage(properties, "Page 2")
+        menu.pages.addAll(listOf(page1, page2))
 
         val receptacle = mockk<ViewReceptacle>(relaxed = true)
         mockkObject(ViewReceptacle)
@@ -130,17 +130,17 @@ class MenuTest {
         every { viewer.uniqueId } returns vid
 
         // Open initial page
-        menu.open(viewer, 0)
+        menu.open(viewer, 1)
         val session = MenuSession.getSession(viewer)
 
         mockkConstructor(PageTurnEvent::class)
         every { anyConstructed<PageTurnEvent>().callEvent() } returns true
 
-        // Act: turn to page 1
-        menu.turnPage(viewer, 1)
+        // Act: turn to page 2
+        menu.turnPage(viewer, 2)
 
-        assertEquals(1, session.page)
-        verify(exactly = 1) { receptacle.title(eq(Component.text("Page 1")), true) }
+        assertEquals(2, session.page)
+        verify(exactly = 1) { receptacle.title(eq(Component.text("Page 2")), true) }
     }
 
     @Test
@@ -167,12 +167,12 @@ class MenuTest {
 
         val s1 = MenuSession.getSession(v1).apply {
             this.menu = menu
-            this.page = 0
+            this.page = 1
             this.receptacle = r1
         }
         val s2 = MenuSession.getSession(v2).apply {
             this.menu = menu
-            this.page = 0
+            this.page = 1
             this.receptacle = r2
         }
         // 注册观众以便被 updateIconForKey 遍历
@@ -215,7 +215,7 @@ class MenuTest {
         every { receptacle.refresh(any()) } just Runs
 
         MenuSession.getSession(viewer).apply {
-            this.menu = menu; this.page = 0; this.receptacle = receptacle
+            this.menu = menu; this.page = 1; this.receptacle = receptacle
         }
         menu.viewers.add(id)
 
@@ -223,7 +223,7 @@ class MenuTest {
         val slot = 3
         val cb: (MenuInteractEvent) -> Unit = {}
 
-        menu.overrideSlot(0, slot, item, refresh = true, callback = cb)
+        menu.overrideSlot(1, slot, item, refresh = true, callback = cb)
 
         verify(exactly = 1) { receptacle.setElement(slot, item) }
         verify(exactly = 1) { receptacle.refresh(slot) }

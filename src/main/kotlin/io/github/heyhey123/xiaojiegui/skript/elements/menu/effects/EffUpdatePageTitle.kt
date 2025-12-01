@@ -83,7 +83,7 @@ class EffUpdatePageTitle : Effect() {
 
         val page = pageExpr?.getSingle(event)?.toInt() ?: menu.properties.defaultPage
 
-        if (page !in 0..<menu.size) {
+        if (page !in 1..<menu.size) {
             Skript.error("Page number $page is out of bounds for the menu.")
             return
         }

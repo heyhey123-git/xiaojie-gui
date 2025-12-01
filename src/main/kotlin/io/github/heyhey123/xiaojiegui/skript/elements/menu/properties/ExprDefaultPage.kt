@@ -43,6 +43,6 @@ class ExprDefaultPage : SimplePropertyExpression<Menu, Number>() {
         val menu = expr.getSingle(event) ?: return
         val newPage = delta?.get(0) ?: return
         if (newPage !is Number) return
-        menu.properties.defaultPage = newPage.toInt().coerceAtLeast(0)
+        menu.properties.defaultPage = newPage.toInt().coerceAtLeast(1)
     }
 }

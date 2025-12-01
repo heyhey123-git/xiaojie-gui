@@ -75,7 +75,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
             }
         }
 
-        if (page !in 0..<menu.size) {
+        if (page !in 1..<menu.size) {
             Skript.error(
                 "Page index $page is out of bounds " +
                         "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +

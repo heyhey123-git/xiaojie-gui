@@ -11,6 +11,7 @@ import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Page
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
+import io.github.heyhey123.xiaojiegui.gui.utils.OneBasedList
 import io.mockk.*
 import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.InventoryType
@@ -47,7 +48,7 @@ class PageLoadInTest {
         // Mock Menu and its behaviors
         val menu = mockk<Menu>(relaxed = true)
         every { menu.properties } returns properties
-        every { menu.pages } returns mutableListOf(page)
+        every { menu.pages } returns OneBasedList(mutableListOf(page))
 
         // Icon item & clone behavior
         val icon = mockk<ItemStack>(relaxed = true)

@@ -221,7 +221,7 @@ class SecBuildMenu : Section() {
             hidePlayerInventoryFlag,
             mode,
             minClickDelay = clickDelay ?: 5,
-            defaultPage ?: 0,
+            defaultPage ?: 1,
             defaultLayout = layout.toList()
         )
 

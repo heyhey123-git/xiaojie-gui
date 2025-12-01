@@ -9,6 +9,7 @@ import io.github.heyhey123.xiaojiegui.gui.menu.component.Cooldown
 import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Page
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
+import io.github.heyhey123.xiaojiegui.gui.utils.OneBasedList
 import io.github.heyhey123.xiaojiegui.gui.utils.WeakHashSet
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
@@ -68,7 +69,7 @@ class Menu(
     /**
      * The pages of the menu.
      */
-    val pages: MutableList<Page> = CopyOnWriteArrayList()
+    val pages: OneBasedList<Page> = OneBasedList(CopyOnWriteArrayList())
 
     /**
      * The number of pages in the menu.
@@ -100,7 +101,7 @@ class Menu(
             "Player ${viewer.name} is already viewing this menu."
         }
 
-        check(page in 0..<pages.size) {
+        check(page in 1..pages.size) {
             "Page $page does not exist in this menu."
         }
 
@@ -147,7 +148,7 @@ class Menu(
         check(menu == this) {
             "Player ${viewer.name} is not viewing this menu."
         }
-        check(page in 0..<pages.size) {
+        check(page in 1..pages.size) {
             "Page $page does not exist in this menu."
         }
 
@@ -200,11 +201,11 @@ class Menu(
 
         val targetPages = pages?.apply {
             forEach {
-                check(it in 0..<this@Menu.size) {
+                check(it in 1..this@Menu.size) {
                     "Page $it does not exist in this menu."
                 }
             }
-        } ?: (0..<size).toList()
+        } ?: (1..size).toList()
 
         for (targetPage in targetPages) {
             val pageInstance = this.pages[targetPage]
@@ -266,7 +267,7 @@ class Menu(
     ) {
         checkDestroyed()
 
-        check(page in 0..<size) {
+        check(page in 1..size) {
             "Page $page does not exist in this menu."
         }
         val pageInstance = pages[page]
@@ -308,11 +309,11 @@ class Menu(
 
         val targetPages = pages?.apply {
             forEach {
-                check(it in 0..<size) {
+                check(it in 1..size) {
                     "Page $it does not exist in this menu."
                 }
             }
-        } ?: (0..<size).toList()
+        } ?: (1..size).toList()
 
         targetPages.forEach { page ->
 
@@ -516,7 +517,7 @@ class Menu(
             return
         }
 
-        pages.add(page.coerceIn(0, size), pageInstance)
+        pages.add(page.coerceIn(1, size), pageInstance)
     }
 
     /**

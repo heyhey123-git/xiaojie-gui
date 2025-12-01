@@ -52,7 +52,7 @@ object CmdMenu : Subcommand {
             mode = Receptacle.Mode.PHANTOM,
             hidePlayerInventory = false,
             minClickDelay = 1000,
-            defaultPage = 0
+            defaultPage = 1
         )
 
         testMenu = Menu(null, properties, InventoryType.CHEST).apply {

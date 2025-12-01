@@ -84,7 +84,7 @@ class PageComputeSlotsTest {
         assertNotNull(slots[0])
         assertNotNull(slots[1])
         assertNotNull(slots[2])
-        for (i in 3 until page.layout.containerSize) {
+        for (i in 3..<page.layout.containerSize) {
             assertNull(slots[i])
         }
     }
@@ -113,8 +113,8 @@ class PageComputeSlotsTest {
         assertEquals(page.layout.totalSize, slots.size)
         // 容器区非空，玩家背包区为空
         val containerSize = page.layout.containerSize
-        for (i in 0 until containerSize) assertNotNull(slots[i])
-        for (i in containerSize until slots.size) assertNull(slots[i])
+        for (i in 0..<containerSize) assertNotNull(slots[i])
+        for (i in containerSize..<slots.size) assertNull(slots[i])
 
         verify { iconA.clone() }
     }
@@ -143,8 +143,8 @@ class PageComputeSlotsTest {
         // 仍返回 totalSize，但不会对玩家背包键进行解析
         assertEquals(page.layout.totalSize, slots.size)
         val containerSize = page.layout.containerSize
-        for (i in 0 until containerSize) assertNotNull(slots[i])
-        for (i in containerSize until slots.size) assertNull(slots[i])
+        for (i in 0..<containerSize) assertNotNull(slots[i])
+        for (i in containerSize..<slots.size) assertNull(slots[i])
 
         verify { iconA.clone() }
     }

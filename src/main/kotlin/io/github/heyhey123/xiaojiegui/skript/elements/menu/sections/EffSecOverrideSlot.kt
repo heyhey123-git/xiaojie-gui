@@ -138,7 +138,7 @@ class EffSecOverrideSlot : EffectSection() {
             return walk(event, false)
         }
 
-        if (pages.any { it !in 0..<menu.size }) {
+        if (pages.any { it !in 1..<menu.size }) {
             Skript.error("One or more page numbers are out of bounds for the menu.")
             return walk(event, false)
         }

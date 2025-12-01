@@ -85,7 +85,7 @@ class EffTurnPage : Effect() {
             Skript.error("Player $player does not have an open menu session.")
             return
         }
-        if (page !in 0..<menu.size) {
+        if (page !in 1..<menu.size) {
             Skript.error("Page number $page is out of bounds for the menu.")
             return
         }

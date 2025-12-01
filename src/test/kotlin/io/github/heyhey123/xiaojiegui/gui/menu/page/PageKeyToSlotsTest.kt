@@ -25,7 +25,7 @@ class PageKeyToSlotsTest {
             hidePlayerInventory = hidePI,
             mode = mode,
             minClickDelay = 0,
-            defaultPage = 0,
+            defaultPage = 1,
             defaultLayout = listOf()
         )
         return Page(

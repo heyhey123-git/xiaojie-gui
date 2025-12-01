@@ -57,7 +57,7 @@ class ExprPageTitle : SimpleExpression<Any?>() {
     override fun get(event: Event?): Array<out Any?> {
         val menu = menu.getSingle(event) ?: return emptyArray()
         val page = page.getSingle(event)?.toInt() ?: return emptyArray()
-        if (page !in 0..<menu.size) {
+        if (page !in 1..<menu.size) {
             Skript.error("Page number $page is out of bounds for the menu.")
             return emptyArray()
         }
@@ -95,7 +95,7 @@ class ExprPageTitle : SimpleExpression<Any?>() {
             return
         }
 
-        if (page !in 0..<menu.size) {
+        if (page !in 1..<menu.size) {
             Skript.error("Page number $page is out of bounds for the menu.")
             return
         }
