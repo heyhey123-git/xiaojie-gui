@@ -32,7 +32,7 @@ class EffInsertPage : Effect() {
         init {
             Skript.registerEffect(
                 EffInsertPage::class.java,
-                "insert page [%-number%] " +
+                "insert page [%-numbers%] " +
                         "[to %-menu%] " +
                         "[with layout %-strings%] " +
                         "[with player inv[entory] layout %-strings%] " +
@@ -41,7 +41,7 @@ class EffInsertPage : Effect() {
         }
     }
 
-    private var pageIndexExpr: Expression<Number>? = null
+    private var pagesIndexesExpr: Expression<Number>? = null
 
     private var menuExpr: Expression<Menu>? = null
 
@@ -62,7 +62,7 @@ class EffInsertPage : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        pageIndexExpr = expressions?.get(0) as Expression<Number>?
+        pagesIndexesExpr = expressions?.get(0) as Expression<Number>?
         menuExpr = expressions?.get(1) as Expression<Menu>?
         if (menuExpr == null && parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)) {
             Skript.error("You must specify a menu to insert page to when not in a menu-related event.")
@@ -89,7 +89,11 @@ class EffInsertPage : Effect() {
             Skript.error("You must specify a menu to insert page to when not in a menu event.")
             return
         }
-        val pageIndex = pageIndexExpr?.getSingle(event)?.toInt()
+        val pagesIndexes = pagesIndexesExpr?.getArray(event)?.map { it.toInt() }
+        if (pagesIndexes.isNullOrEmpty()) {
+            Skript.error("Page index is required to insert a page.")
+            return
+        }
         val layout = layoutExpr?.getArray(event)?.toList()
         val playerInvLayout = playerInvLayoutExpr?.getArray(event)?.toList()
         val title = titleType?.let {
@@ -101,12 +105,14 @@ class EffInsertPage : Effect() {
             )
         }
 
-        menu.insertPage(pageIndex, layout, title, playerInvLayout)
+        for (pageIndex in pagesIndexes) {
+            menu.insertPage(pageIndex, layout, title, playerInvLayout)
+        }
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
         val sb = StringBuilder("insert page")
-        pageIndexExpr?.let {
+        pagesIndexesExpr?.let {
             sb.append(' ').append(it.toString(event, debug))
         }
 

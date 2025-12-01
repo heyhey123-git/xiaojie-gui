@@ -101,7 +101,7 @@ class Menu(
             "Player ${viewer.name} is already viewing this menu."
         }
 
-        check(page in 1..pages.size) {
+        check(page in 1..size) {
             "Page $page does not exist in this menu."
         }
 
@@ -148,7 +148,7 @@ class Menu(
         check(menu == this) {
             "Player ${viewer.name} is not viewing this menu."
         }
-        check(page in 1..pages.size) {
+        check(page in 1..size) {
             "Page $page does not exist in this menu."
         }
 
@@ -517,7 +517,7 @@ class Menu(
             return
         }
 
-        pages.add(page.coerceIn(1, size), pageInstance)
+        pages.add(page.coerceIn(1, size + 1), pageInstance)
     }
 
     /**
