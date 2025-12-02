@@ -157,7 +157,7 @@ class Menu(
 
         titleToSet = event.title
 
-        receptacle!!.clear()
+        receptacle!!.clear(render = false)
         session.page = page
 
         session.updatePlayerSlots()
