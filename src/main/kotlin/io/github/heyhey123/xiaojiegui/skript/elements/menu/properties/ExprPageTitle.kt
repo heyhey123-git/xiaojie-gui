@@ -54,7 +54,7 @@ class ExprPageTitle : SimpleExpression<Any?>() {
         return true
     }
 
-    override fun get(event: Event?): Array<out Any?> {
+    override fun get(event: Event?): Array<Any> {
         val menu = menu.getSingle(event) ?: return emptyArray()
         val page = page.getSingle(event)?.toInt() ?: return emptyArray()
         if (page !in 1..menu.size) {
@@ -62,7 +62,7 @@ class ExprPageTitle : SimpleExpression<Any?>() {
             return emptyArray()
         }
         val title = menu.pages[page].title
-        return arrayOf(title)
+        return arrayOf(ComponentHelper.wrapComponentOrString(title))
     }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
