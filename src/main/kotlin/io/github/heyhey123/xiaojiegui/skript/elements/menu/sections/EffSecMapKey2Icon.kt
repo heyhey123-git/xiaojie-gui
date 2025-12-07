@@ -10,6 +10,7 @@ import ch.njol.skript.lang.EffectSection
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.TriggerItem
+import ch.njol.skript.lang.parser.ParserInstance
 import ch.njol.skript.lang.util.SectionUtils
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
@@ -93,6 +94,10 @@ class EffSecMapKey2Icon : EffectSection() {
                 return true
             }
 
+            val parserInstance = ParserInstance.get()
+            val hasDelayBefore = parserInstance.hasDelayBefore
+            parserInstance.hasDelayBefore = Kleenean.TRUE
+
             trigger = SectionUtils.loadLinkedCode(
                 "interact with icon"
             ) { beforeLoading: Runnable?, afterLoading: Runnable? ->
@@ -104,6 +109,8 @@ class EffSecMapKey2Icon : EffectSection() {
                     MenuInteractEvent::class.java
                 )
             }
+
+            parserInstance.hasDelayBefore = hasDelayBefore
 
             if (trigger == null) {
                 Skript.error("Failed to load the section for handling icon interaction in expression: $this")

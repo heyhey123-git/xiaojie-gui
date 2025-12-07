@@ -2,7 +2,8 @@ package io.github.heyhey123.xiaojiegui.gui.utils
 
 import org.bukkit.craftbukkit.inventory.CraftAbstractInventoryView
 import xyz.jpenilla.reflectionremapper.ReflectionRemapper
-import java.lang.reflect.Field
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
 
 /**
  * Reflection utilities for accessing and manipulating private fields and methods in CraftBukkit classes.
@@ -17,15 +18,25 @@ internal object Reflection {
 
 
     object CraftContainerViewProxy {
-        private val titleField = object : ClassValue<Field>() {
-            override fun computeValue(type: Class<*>): Field {
+        private val titleFieldSetter = object : ClassValue<MethodHandle>() {
+            override fun computeValue(type: Class<*>): MethodHandle {
                 val clazz = type.asSubclass(CraftAbstractInventoryView::class.java)
+                val lookup = MethodHandles.privateLookupIn(clazz, MethodHandles.lookup())
                 val runtimeName = reflectionRemapper.remapFieldName(clazz, "title")
-                return clazz.getDeclaredField(runtimeName).apply { isAccessible = true }
+                val setter = lookup.findSetter(
+                    clazz,
+                    runtimeName,
+                    String::class.java
+                )
+                return setter
             }
         }
 
-        fun getFieldTitle(clazz: Class<out CraftAbstractInventoryView>): Field =
-            titleField.get(clazz)
+        fun setTitle(
+            craftInventoryViewObject: CraftAbstractInventoryView,
+            newValue: String,
+        ) {
+            titleFieldSetter.get(craftInventoryViewObject::class.java).invoke(craftInventoryViewObject, newValue)
+        }
     }
 }

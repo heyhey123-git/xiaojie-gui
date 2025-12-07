@@ -111,10 +111,7 @@ object StaticInventory {
             val craftContainerView = view as? CraftAbstractInventoryView
                 ?: throw ClassCastException("InventoryView is not a CraftAbstractInventoryView")
 
-            val craftContainerViewClazz = craftContainerView::class.java
-            Reflection.CraftContainerViewProxy
-                .getFieldTitle(craftContainerViewClazz)
-                .set(
+            Reflection.CraftContainerViewProxy.setTitle(
                     craftContainerView,
                     LegacyComponentSerializer.legacySection().serialize(title)
                 )

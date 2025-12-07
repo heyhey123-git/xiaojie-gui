@@ -10,6 +10,7 @@ import ch.njol.skript.lang.EffectSection
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.TriggerItem
+import ch.njol.skript.lang.parser.ParserInstance
 import ch.njol.skript.lang.util.SectionUtils
 import ch.njol.skript.variables.Variables
 import ch.njol.util.Kleenean
@@ -68,6 +69,10 @@ class EffSecSlotCallback : EffectSection() {
             return false
         }
 
+        val parserInstance = ParserInstance.get()
+        val hasDelayBefore = parserInstance.hasDelayBefore
+        parserInstance.hasDelayBefore = Kleenean.TRUE
+
         trigger = SectionUtils.loadLinkedCode(
             "slot callback"
         ) { beforeLoading: Runnable?, afterLoading: Runnable? ->
@@ -79,6 +84,8 @@ class EffSecSlotCallback : EffectSection() {
                 MenuInteractEvent::class.java
             )
         }
+
+        parserInstance.hasDelayBefore = hasDelayBefore
 
         this.trigger = trigger ?: return false
 

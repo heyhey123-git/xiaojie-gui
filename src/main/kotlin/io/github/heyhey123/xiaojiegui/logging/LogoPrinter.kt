@@ -8,6 +8,8 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
 import net.kyori.ansi.ColorLevel
 import org.bukkit.Bukkit
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodType
 
 internal object LogoPrinter {
 
@@ -50,13 +52,20 @@ internal object LogoPrinter {
      * unless overridden by system property.
      */
     private val serializer: ANSIComponentSerializer by lazy {
-        val ansiComponentSerializer = Class
+        val ansiComponentSerializerClazz = Class
             .forName("net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializerImpl")
-            .getDeclaredConstructor(ColorLevel::class.java, ComponentFlattener::class.java)
-            .apply { isAccessible = true }
-            .newInstance(ColorLevel.TRUE_COLOR, ComponentFlattener.basic()) as ANSIComponentSerializer
+        val lookup = MethodHandles.privateLookupIn(ansiComponentSerializerClazz, MethodHandles.lookup())
+        val constructor = lookup.findConstructor(
+            ansiComponentSerializerClazz,
+            MethodType.methodType(
+                Void.TYPE,
+                ColorLevel::class.java,
+                ComponentFlattener::class.java
+            )
+        )
+        val serializer = constructor.invoke(ColorLevel.TRUE_COLOR, ComponentFlattener.basic())
 
-        return@lazy ansiComponentSerializer
+        return@lazy serializer as ANSIComponentSerializer
     }
 
     /**

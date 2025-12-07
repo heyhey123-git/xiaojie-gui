@@ -6,6 +6,8 @@ import io.github.heyhey123.xiaojiegui.skript.utils.TitleType.STRING
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.event.Event
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodType
 
 object ComponentHelper {
     /**
@@ -15,7 +17,7 @@ object ComponentHelper {
      * @return the extracted Component, or null if extraction failed
      */
     fun extractComponent(obj: Any): Component =
-        fieldComponent!!.get(obj) as Component
+        fieldComponentGetter!!.invoke(obj) as Component
 
     /**
      * Try to extract a Component from an object, which can be either a String or a ComponentWrapper.
@@ -30,7 +32,6 @@ object ComponentHelper {
             else -> null
         }
 
-
     /**
      * Wrap a Component into a suitable object for Skript.
      *
@@ -38,7 +39,7 @@ object ComponentHelper {
      * @return the wrapped object, either a ComponentWrapper (if skbee is present)
      */
     fun wrapComponent(component: Component): Any =
-        methodFromComponent!!.invoke(null, component)!!
+        methodFromComponent!!.invoke(component)
 
     /**
      * Try to wrap a Component into a suitable object for Skript, or serialize it to a legacy string if skbee is not present.
@@ -90,22 +91,34 @@ object ComponentHelper {
         }
     }
 
+    private val lookup = skbeeComponentWrapper?.let { clazz ->
+        MethodHandles.privateLookupIn(clazz, MethodHandles.lookup())
+    }
+
     /**
      * The "fromComponent" method in the ComponentWrapper class, or null if SkBee is not present.
      */
     private val methodFromComponent by lazy {
-        val method = skbeeComponentWrapper?.getDeclaredMethod("fromComponent", Component::class.java)
-        method?.isAccessible = true
-        method
+        if (skbeeComponentWrapper == null) return@lazy null
+        val handle = lookup!!.findStatic(
+            skbeeComponentWrapper,
+            "fromComponent",
+            MethodType.methodType(skbeeComponentWrapper, Component::class.java)
+        )
+        return@lazy handle
     }
 
     /**
      * The "component" field in the ComponentWrapper class, or null if SkBee is not present.
      */
-    private val fieldComponent by lazy {
-        val field = skbeeComponentWrapper?.getDeclaredField("component")
-        field?.isAccessible = true
-        field
+    private val fieldComponentGetter by lazy {
+        if (skbeeComponentWrapper == null) return@lazy null
+        val handle = lookup!!.findGetter(
+            skbeeComponentWrapper,
+            "component",
+            Component::class.java
+        )
+        return@lazy handle
     }
 
     /**
