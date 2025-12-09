@@ -10,6 +10,7 @@ import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
 import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.MenuType
 import kotlin.math.min
 
 /**
@@ -36,6 +37,7 @@ class Page(
      */
     val rows: Int = when {
         inventoryType == InventoryType.CHEST -> min(6, layoutPattern.size) // [0, 6]
+        inventoryType.menuType == MenuType.GENERIC_3X3 -> 3
         inventoryType.defaultSize % 9 == 0 -> inventoryType.defaultSize / 9
         else -> 1
     }
