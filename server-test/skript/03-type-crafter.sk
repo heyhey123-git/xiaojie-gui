@@ -1,0 +1,9 @@
+# The crafter block. It is 3x3 like a crafting table, which is why both exist as layouts: the client
+# draws a different menu for each, and the layout is what tells it which one.
+
+on load:
+    create a phantom menu with crafter inventory titled "Crafter" with layout "AAAAAAAAA" with id "type_crafter":
+        set {_pages} to the page number of the menu with id "type_crafter"
+        log "XIAOJIE_SELFTEST detail: inventory type crafter -> %{_pages}% page(s)"
+    set {_menu} to the menu with id "type_crafter"
+    destroy the menu {_menu}

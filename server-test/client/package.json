@@ -1,0 +1,15 @@
+{
+  "name": "xiaojiegui-client-test",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The client layer of the server test: a real Minecraft client that joins the disposable Paper server, sees a menu and clicks it. Run by the `clientTest` Gradle task; not published.",
+  "type": "module",
+  "license": "AGPL-3.0",
+  "main": "bot.mjs",
+  "scripts": {
+    "start": "node bot.mjs"
+  },
+  "dependencies": {
+    "mineflayer": "4.39.0"
+  }
+}

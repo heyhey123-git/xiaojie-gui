@@ -159,7 +159,12 @@ which is created on first start. No keys were renamed.
 
 - `cancel event` inside `on menu open` and `on page turn` now works. One of the two ignored the argument
   and cancelled regardless, the other never cancelled.
-- `viewers of menu` no longer keeps reporting players who left that menu for another one.
+- `the page` inside `on menu interact` reports 1 for the first page. It used to report the page's 0-based
+  position in the menu's list, so it disagreed with every other page number a script sees.
+- `viewers of menu` no longer keeps reporting players who left that menu for another one. The syntax is
+  `the menu viewers of {_menu}` now: Skript 2.16 registers a `viewer[s]` property of its own over any
+  object and registers it before this addon, so `the viewers of {_menu}` was answered by Skript and
+  returned nothing. `all players viewing {_menu}` is unchanged.
 - Static menus no longer send the whole window twice on every page turn, and a menu closed by the player
   is not reopened by a title update that was still in flight.
 - `expr` used outside a menu event, a page number out of range, or a null menu now report something
@@ -168,24 +173,38 @@ which is created on first start. No keys were renamed.
   every viewer of the menu, so a player on another page saw that page's title until they turned a page.
 - `open menu {_menu} for player` for a player who already has that menu open now goes to the page you
   asked for instead of failing with `already viewing this menu`.
-- `barrel`, `ender chest`, `dispenser`, `enchanting` and `cartography` menus can be created; they used to
-  report `Unsupported inventory type`, because no layout existed for them. Skript's names for the last
-  two are `enchanting table inventory` and `cartography table inventory`, not `enchanting inventory` and
-  `cartography inventory`.
+- `barrel`, `ender chest`, `dispenser`, `enchanting`, `cartography` and `crafter` menus can be created;
+  they used to report `Unsupported inventory type`, because no layout existed for them. Skript's names for
+  two of them are `enchanting table inventory` and `cartography table inventory`, not `enchanting
+  inventory` and `cartography inventory`.
+- `/skript reload` closes every menu before the new scripts load. A menu holds the callbacks of the scripts
+  that built it, so a menu that survived a reload answered the next click with code that was no longer in
+  any script. The reloaded scripts build their menus again, as they do on start.
 
 ### Known issues
 
-- Clicks are tested on the server side. Anything that depends on the client — how slots line up, items
-  that appear to exist client-side only, dragging — is verified separately with a real client.
+- Clicks, slot alignment and titles are covered by a real client now (`./gradlew clientTest`): a Minecraft
+  client joins the test server, reads the window the server opens for it and clicks in it. Two things it
+  cannot check: item *types* (the client speaks 26.1 and reads 26.2's item ids with the wrong table, so the
+  test asserts the items' names instead), and dragging.
+- `composter`, `chiseled bookshelf`, `decorated pot`, `shelf` and `jukebox` are not supported: what the
+  client draws for a menu in one of them is not verified, so `create menu` reports `Unsupported inventory
+  type` rather than guessing a menu shape.
 - `insert page` and `with page` are the only ways to create a page; there is no declarative page block.
   A page is a layout plus a title, and that is deliberate.
 
 ### Reliability
 
-The addon now has three test layers, and the third one is new: unit tests, and a real Paper 26.2 server
-that is booted with Skript and PacketEvents, runs a set of Skript scripts against the addon, and has its
-log checked. That layer is what found the title crash above, the page contract and several pattern
-problems — failures that a server otherwise reports as one line of prose while it happily keeps running.
+The addon has four test layers now. Unit tests cover what needs no server; a real Paper 26.2 server is
+booted with Skript and PacketEvents, runs a set of Skript scripts against the addon and has its log
+checked; every `@Examples` annotation is parsed by that same server, so a documented example that Skript
+cannot read fails the build; and `./gradlew clientTest` connects a real Minecraft client, which reads the
+window the server opens for it and clicks in it.
+
+What the layers found is the reason they exist: the title crash above, the page contract, several pattern
+problems, `the page` reporting a 0-based index in `on menu interact`, and `the viewers of` being claimed by
+Skript's own property. A failure Skript reports in prose while the server keeps running is exactly what a
+build has to notice.
 
 Two pieces of the console output no longer go through Skript's or Adventure's internals:
 

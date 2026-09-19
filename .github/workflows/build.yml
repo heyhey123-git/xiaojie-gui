@@ -54,6 +54,15 @@ jobs:
       - name: Run the server test
         run: ./gradlew serverTest --stacktrace
 
+      # The client layer: a real Minecraft client joins that same server, is shown the menu the plugin
+      # opens for it, clicks it, and both what the client saw and what the server did are asserted. Paper
+      # is already in the run directory from the step above, so this downloads nothing new. The bot's
+      # dependencies are installed by the task itself -- `npm install` in `server-test/client`, using the
+      # pinned versions in its `package.json` and lock file -- and `node_modules` is not checked in. Node
+      # ships on `ubuntu-latest`; no setup step is needed for it.
+      - name: Run the client test
+        run: ./gradlew clientTest --stacktrace
+
       - name: Upload the jar
         uses: actions/upload-artifact@v4
         with:

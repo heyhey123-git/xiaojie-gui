@@ -72,50 +72,26 @@ If you would rather manage the state yourself, change nothing: keep one page and
 
 ## Skript integration
 
-Example (from the 1.x README: it shows the shape of a menu, not syntax that runs — lines like
-`with (chest inventory)` and `when slot 5 … is clicked` are not part of the syntax):
+An example that runs — the test suite boots a server with Skript and executes exactly this, so it cannot
+quietly stop working. It builds a one-page menu with two buttons and a command that opens it:
+
 ```skript
 on load:
-    #> -------------
-    #> 菜单 Shape
-    #> -------------
-    add "#########" to {_shape::*}
-    add "#AAAAAAA#" to {_shape::*}
-    add "#AAAAAAA#" to {_shape::*}
-    add "#AAAAAAA#" to {_shape::*}
-    add "#AAAAAAA#" to {_shape::*}
-    add "##<#x#>##" to {_shape::*}
-    create phantom menu with (chest inventory) titled "<white>awa" with layout {_shape::*}:
-        #> -------------------
-        #> 无需物品的回调执行
-        #> -------------------
-        when slot 5 in page 1 is clicked:
-            send "不要再戳我啦!" to event-player
-        #> ------
-        #> 翻页
-        #> ------
-        if {_page} > 1:
-            map key "<" to icon paper named "&eprevious page" for event-menu:
-                turn to page {_page} - 1 for {_p}
-        else if {_page} = 1:
-            map key "<" to icon gray stained glass pane for event-menu
-        if {_page} < {_maxpage}:
-            map key ">" to icon paper named "&enext page" for event-menu:
-                turn to page {_page} + 1 for {_p}
-        else:
-            map key ">" to icon gray stained glass pane for event-menu
-        #> -------------------
-        #> Fill specifit area with items
-        #> -------------------
-        map key "A" to items {-_allSkull::*} for event-menu:
-            set {_teleporter} to "%{_player}%"
-            set {_server} to server of vplayer {_teleporter}
-            functionawa({_teleporter},{_server})
-        map key "x" to icon clock named "&ereturn to menu" for event-menu:
-            close menu for {_p}
-        #> when you "Create menu", If the "Default Page" didn't set, we will insert "Page 0" as default.
-        open menu event-menu to {_p}
+    create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########", "#  A  B #", "#########" with id "main":
+        map key "A" to icon diamond named "&bSay hello" for menu with id "main" and when clicked:
+            send "Hello!" to player
+        map key "B" to icon clock named "&eClose" for menu with id "main" and when clicked:
+            close the menu for player
+
+command /menu:
+    trigger:
+        set {_menu} to the menu with id "main"
+        open menu {_menu} for player
 ```
+
+The layout strings are the menu's shape, one string per row, and each character names a slot you can fill
+with `map key` or `override slot`. The [wiki](https://github.com/heyhey123-git/xiaojie-gui/wiki) is the
+syntax reference: every statement, what it takes, and the pitfalls worth knowing.
 
 ## Contributing
 

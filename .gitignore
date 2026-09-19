@@ -3,6 +3,9 @@
 .gradle-home/
 # The disposable server the `serverTest` task boots: world, logs, downloaded jars.
 server-test/run/
+# The client layer's dependencies: `clientTest` installs them from `server-test/client/package.json`
+# (and its lock file) when they are missing, so they are a build product rather than source.
+server-test/client/node_modules/
 # The agent tooling this repository was worked on with, not part of the plugin.
 .dsh/
 build/

@@ -71,49 +71,26 @@
 
 ## Skript 集成
 
-下面的例子来自 1.x 的 README：它展示的是一个菜单长什么样，**不是能跑的语法**
-（`with (chest inventory)`、`when slot 5 … is clicked` 这些都不是本插件的写法）：
+下面这个例子是**真能跑的** —— 测试套件会启动一个带 Skript 的服务端，原样执行它，所以它不会悄悄失效。
+它建了一个单页菜单、两个按钮，以及一个打开它的命令：
+
 ```skript
 on load:
-    #> -------------
-    #> 菜单 Shape
-    #> -------------
-    add "#########" to {_shape::*}
-    add "#AAAAAAA#" to {_shape::*}
-    add "#AAAAAAA#" to {_shape::*}
-    add "#AAAAAAA#" to {_shape::*}
-    add "#AAAAAAA#" to {_shape::*}
-    add "##<#x#>##" to {_shape::*}
-    create phantom menu with (chest inventory) titled "<white>awa" with layout {_shape::*}:
-        #> -------------------
-        #> 无需物品的回调执行
-        #> -------------------
-        when slot 5 in page 1 is clicked:
-            send "不要再戳我啦!" to event-player
-        #> ------
-        #> 翻页
-        #> ------
-        if {_page} > 1:
-            map key "<" to icon paper named "&e上一页" for event-menu:
-                turn to page {_page} - 1 for {_p}
-        else if {_page} = 1:
-            map key "<" to icon gray stained glass pane for event-menu
-        if {_page} < {_maxpage}:
-            map key ">" to icon paper named "&e下一页" for event-menu:
-                turn to page {_page} + 1 for {_p}
-        else:
-            map key ">" to icon gray stained glass pane for event-menu
-        #> -------------------
-        #> 使用物品填充目标区域
-        #> -------------------
-        map key "A" to items {-_allSkull::*} for event-menu:
-            set {_teleporter} to "%{_player}%"
-            set {_server} to server of vplayer {_teleporter}
-            functionawa({_teleporter},{_server})
-        map key "x" to icon clock named "&e返回菜单" for event-menu:
-            close menu for {_p}
-        open menu event-menu to {_p}
+    create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########", "#  A  B #", "#########" with id "main":
+        map key "A" to icon diamond named "&bSay hello" for menu with id "main" and when clicked:
+            send "Hello!" to player
+        map key "B" to icon clock named "&eClose" for menu with id "main" and when clicked:
+            close the menu for player
+
+command /menu:
+    trigger:
+        set {_menu} to the menu with id "main"
+        open menu {_menu} for player
 ```
+
+`layout` 的字符串就是菜单的形状，一行一个字符串，每个字符代表一个可以用 `map key` 或
+`override slot` 填充的槽位。完整的语法参考在 [wiki](https://github.com/heyhey123-git/xiaojie-gui/wiki)：
+每条语句怎么写、参数是什么、以及哪些坑值得提前知道。
 
 ## 贡献
 

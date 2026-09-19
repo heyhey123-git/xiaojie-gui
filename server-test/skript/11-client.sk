@@ -1,0 +1,88 @@
+# The client layer's server side: the menu a real Minecraft client is shown, and what it makes the
+# server do.
+#
+# This is the only script here that needs a client. `on join` is the trigger, so nothing below runs in
+# `serverTest` (which has no player at all); the `clientTest` task starts the bot in `server-test/client`,
+# waits for these lines in the log of that run, and asserts the messages next to the names in
+# `clientTestExpectedDetails` in `build.gradle.kts`.
+#
+# The slots are counted from 0, and both sides agree on that: `the slots of key "A"` below is 0, the
+# first cell of the layout, and 0 is also the slot the packet carries, the slot the client holds the item
+# in, and the number `the clicked slot` reports. There is no off-by-one between the addon's view and the
+# protocol's to get wrong, which is what makes the bot's slot numbers an assertion rather than a guess.
+#
+# Page 1 puts one key in each of the first four cells, one per click the bot makes:
+#   A -> stone    a plain left click
+#   B -> diamond  a shift click
+#   C -> emerald  number key 3
+#   N -> clock    the button that turns to page 2
+#
+# Every icon is *named*, and the name is what the bot asserts. An item on the wire is a registry id and
+# the item registry is part of the game, not something a server sends: minecraft-data has no data for
+# 26.2 (its newest is 26.1, and 26.2 inserted items into the registry, so 26.2's diamond id is not 26.1's
+# diamond id), which means a 26.1 client -- the newest the bot can be, see `server-test/client/bot.mjs` --
+# decodes 26.2's ids with the wrong table and names the wrong item. The item's `custom_name` component is
+# a string that both versions read the same way, so it carries the identity of what the menu put in the
+# slot, and the item's type stays something only a real 26.2 client (or its own registry) can name.
+
+on join:
+    # The click delay defaults to 50 ms and exists to stop a player spamming clicks. Every click of this
+    # scenario is asserted, so a click this guard swallows would be a missing detail line, and the bot
+    # would be racing a setting that has nothing to do with what the layer covers. Setting it to 0 in the
+    # create section keeps the delay out of the scenario instead of out of the log.
+    create a phantom menu with chest inventory titled "Client Page One" with layout "ABCN     ", "         ", "         " with id "client" with 0 ms click delay:
+        map key "A" to icon stone named "slot-a-stone" for menu with id "client"
+        map key "B" to icon diamond named "slot-b-diamond" for menu with id "client"
+        map key "C" to icon emerald named "slot-c-emerald" for menu with id "client"
+        map key "N" to icon clock named "slot-n-clock" for menu with id "client"
+        # Page 2 is what makes the title on the client's screen change, and its own title is what it
+        # changes to: `turn to page 2` below passes no title, so the page's title is used. Its one item is
+        # an apple, which page 1 does not show, so the bot can tell a title change apart from a change of
+        # the items behind it -- and it sees both.
+        insert page with layout "Z        ", "         ", "         " with title "Client Page Two"
+        map key "Z" to icon apple named "slot-z-apple" for menu with id "client" on page 2
+    set {_menu} to the menu with id "client"
+    set {_a::*} to the slots of key "A" in page 1 of {_menu}
+    set {_b::*} to the slots of key "B" in page 1 of {_menu}
+    set {_c::*} to the slots of key "C" in page 1 of {_menu}
+    set {_n::*} to the slots of key "N" in page 1 of {_menu}
+    # The addon's side of the slot contract the bot asserts from the protocol's side: A at slot 0, which
+    # is the client slot the bot has to see it in, and the same for the three clicks and the page button.
+    log "XIAOJIE_SELFTEST detail: client menu layout -> A at %{_a::*}%, B at %{_b::*}%, C at %{_c::*}%, N at %{_n::*}%"
+    open menu {_menu} for player
+    set {_page} to the page of the menu session of player
+    # No viewer count here: at `on join` the player is not yet resolvable through Bukkit, so `viewers of`
+    # answers nothing even though the menu was just opened for them. The count is asserted on the clicks
+    # below, where it has to be 1, and the caveat is written down in the wiki's boundary list.
+    log "XIAOJIE_SELFTEST detail: client menu opened -> title %the default title of {_menu}%, page %{_page}% of %the page number of {_menu}%"
+
+on menu interact:
+    # One name per click rather than one name carrying the clicked slot: the names have to be readable in
+    # the script for the undeclared-name check to work, and a slot baked into the name at runtime is not
+    # something that check can read. The message carries the clicked slot from the protocol's side, the
+    # click type, and the number key, which is nothing (`<none>`) for every click that is not one.
+    set {_menu} to the event-menu
+    set {_key} to the pressed number key
+    set {_viewers::*} to the menu viewers of {_menu}
+    # `the menu viewers of`, not `the viewers of`: Skript 2.16 registers a `viewer[s]` property of its own
+    # over any object, so the shorter form is answered by Skript and returns nothing at all.
+    set {_message} to "slot %the clicked slot% on page %the page%, type %the click type%, key %{_key}%, %size of {_viewers::*}% viewer(s)"
+    if the clicked slot is 0:
+        log "XIAOJIE_SELFTEST detail: client plain click -> %{_message}%"
+    else if the clicked slot is 1:
+        log "XIAOJIE_SELFTEST detail: client shift click -> %{_message}%"
+    else if the clicked slot is 2:
+        log "XIAOJIE_SELFTEST detail: client number key click -> %{_message}%"
+    else if the clicked slot is 3:
+        log "XIAOJIE_SELFTEST detail: client page 2 button -> %{_message}%"
+        # The page turn is the part only a client can confirm: the server knows which page it moved to,
+        # but whether the *screen* still shows a menu, and which title and items it shows, is the client's
+        # half. Nothing here reads the bot's answer; that is the job of the bot's own assertions.
+        turn to page 2 for player
+    else:
+        # A click on a slot the bot never clicks means the two layers disagree about slots, which is the
+        # failure this scenario exists to catch, so it is reported as one.
+        log "XIAOJIE_SELFTEST detail: client click on an unknown slot FAILED -> %{_message}%"
+
+on page turn:
+    log "XIAOJIE_SELFTEST detail: client page turned -> %the page% -> %the future page%"

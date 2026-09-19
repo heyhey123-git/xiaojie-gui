@@ -76,6 +76,14 @@ jobs:
       - name: Build, verify and run the server test
         run: ./gradlew clean build serverTest --stacktrace
 
+      # The other half of CI, and the reason this workflow runs it too: a release is only ever of a jar
+      # that a real client has been driven through. Paper is already in the run directory from the step
+      # above; the bot's dependencies are installed here by the task itself (`npm install` in
+      # `server-test/client`, from the pinned versions in its `package.json` and lock file, into the
+      # `node_modules` that is not checked in). Node ships on `ubuntu-latest`.
+      - name: Run the client test
+        run: ./gradlew clientTest --stacktrace
+
       - name: Check the jar agrees with the version
         run: |
           jar="build/dist/xiaojiegui-${{ steps.version.outputs.version }}.jar"

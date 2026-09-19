@@ -1,0 +1,20 @@
+# The example the README shows, kept here as a script so that a README example which stops parsing, or
+# stops doing what it claims, fails the build instead of going stale in a document. The last line is the
+# only thing added: the layer has no player, so the buttons cannot be clicked.
+
+on load:
+    create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########", "#  A  B #", "#########" with id "main":
+        map key "A" to icon diamond named "&bSay hello" for menu with id "main" and when clicked:
+            send "Hello!" to player
+        map key "B" to icon clock named "&eClose" for menu with id "main" and when clicked:
+            close the menu for player
+    set {_menu} to the menu with id "main"
+    # A list, not a single variable: the slots of a key are a set, even when it holds one slot.
+    set {_slots::*} to the slots of key "A" in page 1 of {_menu}
+    log "XIAOJIE_SELFTEST detail: readme example menu -> %the page number of {_menu}% page(s), key A at slot %{_slots::*}%"
+
+# The other half of the README example: the command that opens the menu.
+command /menu:
+    trigger:
+        set {_menu} to the menu with id "main"
+        open menu {_menu} for player

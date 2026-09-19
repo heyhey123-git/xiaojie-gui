@@ -141,7 +141,11 @@ on menu interact:
 
 - `on menu open` 和 `on page turn` 里的 `cancel event` 现在真的生效了（这两者一个忽略参数恒取消、一个
   永远不取消）。
-- `viewers of menu` 不再一直把"已经切到别的菜单的玩家"算进来。
+- `on menu interact` 里的 `the page` 现在第 1 页就是 1。它以前报的是"该页在菜单列表里的 0 基下标"，
+  和脚本能看到的其它所有页码都对不上。
+- `viewers of menu` 不再一直把"已经切到别的菜单的玩家"算进来。写法现在是 `the menu viewers of {_menu}`：
+  Skript 2.16 自己注册了一个声明在**任何对象**上的 `viewer[s]` 属性，而且注册在插件之前，所以
+  `the viewers of {_menu}` 会被 Skript 接走并返回空。`all players viewing {_menu}` 不变。
 - 静态菜单翻页不再重复整包发送；玩家自己关掉菜单后，不会再被一个"迟到的标题更新"重新弹出窗口。
 - 在菜单事件之外用 `expr`、页码越界、菜单为空这些情况，现在给的是可读报错，而不是在 Skript 里抛异常
   （旧日志里的 `Page 0 does not exist`、`index out of bounds` 之类）。
@@ -149,24 +153,32 @@ on menu interact:
   的人会一直看到第 1 页的标题，直到他翻页）。
 - 对一个已经打开该菜单的玩家再执行 `open menu {_menu} for player`，现在会跳到你指定的那一页，而不是报
   `already viewing this menu`。
-- `barrel`、`ender chest`、`dispenser`、`enchanting`、`cartography` 现在都能创建菜单了：以前它们会报
-  `Unsupported inventory type`，因为没有对应的布局。后两者在 Skript 里要写
+- `barrel`、`ender chest`、`dispenser`、`enchanting`、`cartography`、`crafter` 现在都能创建菜单了：以前
+  它们会报 `Unsupported inventory type`，因为没有对应的布局。其中两个在 Skript 里要写
   `enchanting table inventory` / `cartography table inventory`，不是 `enchanting inventory` /
   `cartography inventory`。
+- `/skript reload` 会先关掉所有菜单再加载新脚本。菜单里存着"创建它的那批脚本"的回调，所以挺过一次重载的
+  菜单，下一次点击执行的是已经不在任何脚本里的代码。重载后的脚本会像启动时一样重新建自己的菜单。
 
 ### 已知问题
 
-- 目前只在服务端验证点击。依赖客户端表现的部分（槽位是否对齐、只在客户端存在的"幽灵物品"、拖拽）
-  需要真实客户端单独验证。
+- 点击、槽位对齐、标题现在由**真实客户端**覆盖（`./gradlew clientTest`）：一个 Minecraft 客户端连进测试
+  服务端，读取服务端为它打开的窗口并在里面点击。它验不了的两件事：物品**类型**（客户端说的是 26.1 的包、
+  用错的注册表去读 26.2 的物品 id，所以测试断言的是物品的名字），以及拖拽。
+- `composter`、`chiseled bookshelf`、`decorated pot`、`shelf`、`jukebox` 暂不支持：客户端为它们画的菜单
+  长什么样还没验证过，所以 `create menu` 会明确报 `Unsupported inventory type`，而不是猜一个形状。
 - 页面只能通过 `insert page` / 创建时的 `with page` 产生，没有声明式的 page 段落 —— 一页 = 一个布局
   + 一个标题，这是有意为之。
 
 ### 可靠性
 
-插件现在有三层测试，第三层是这次新增的：单元测试，以及一个**真实启动的 Paper 26.2 服务端**（带
-Skript 与 PacketEvents），让一组 Skript 脚本去跑插件，再检查服务端日志。上面那个"标题一用就崩"、
-页面契约、以及一批 pattern 问题都是这一层抓出来的 —— 这类失败在服务端里通常只是日志里一行散文，
-服务器照常启动。
+插件现在有四层测试：单元测试；一个**真实启动的 Paper 26.2 服务端**（带 Skript 与 PacketEvents）跑一组
+Skript 脚本并检查日志；同一个服务端还会解析每一个 `@Examples` 注解，让文档里读不了的例子直接构建失败；
+以及 `./gradlew clientTest` 连接一个真实客户端，读服务端打开的窗口并在里面点击。
+
+这些层抓出来的东西就是它们存在的理由："标题一用就崩"、页面契约、一批 pattern 问题、
+`on menu interact` 里 `the page` 报 0 基下标、以及 `the viewers of` 被 Skript 自己的属性接走。
+Skript 用散文报告、服务端照常启动的那类失败，正是构建必须发现的东西。
 
 另外有两处控制台输出不再走 Skript / Adventure 的内部实现：
 

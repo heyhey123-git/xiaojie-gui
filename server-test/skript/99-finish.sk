@@ -3,7 +3,13 @@
 # Nothing in this file uses addon syntax, so it also runs when the addon is the thing that broke, and
 # the verify task reads the marker as the point after which the log is complete. Ten seconds is enough
 # for every `on load` trigger above to have run and logged its detail line.
+#
+# A player being online means the client layer is running: `clientTest` starts that server itself for the
+# bot and stops it once the bot is done, so stopping it from here would cut the session short -- the timer
+# fires about ten seconds after `Done (`, which is only part of a bot run. `serverTest` never has a player
+# online, so it reaches the marker and the stop exactly as it always did.
 
 every 10 seconds:
-    log "XIAOJIE_SELFTEST=STOPPED"
-    stop the server
+    if size of all players is 0:
+        log "XIAOJIE_SELFTEST=STOPPED"
+        stop the server

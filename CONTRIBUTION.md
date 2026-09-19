@@ -103,8 +103,40 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
 - A single-page menu is the normal case. Nothing in the API should force a user to think about pages
   before they want more than one.
 - Runtime diagnostics use `Skript.warning`/quiet no-ops, not the parse-time `Skript.error`.
+- **Do not name a property what Skript already names one.** Skript 2.16 registers properties of its own
+  (`viewer[s]`, `id`, `name`, …) over *any* object, and registers them before this addon, so a pattern like
+  `[the] viewers of %menu%` is answered by Skript and returns nothing — silently, and only for the scripts
+  that pass an untyped variable or a value Skript's property accepts. `ExprMenuViewers` is called
+  `menu viewers` for that reason, and `Menu.kt`'s viewer comment says the same thing from the other side.
+- A `%type%` slot preceded by the literal word of that type (`menu %menu%`) parses its argument as a lookup
+  by id, so a variable put there finds nothing. Write the slot first: `menu viewers of %menu%`, not
+  `viewers of menu %menu%`.
 
-## 4. Versions
+## 4. Tests
+
+Four layers, each catching what the one below it cannot:
+
+- **Unit tests** (`src/test`) cover what needs no server at all: the page model, click types, colour
+  codes. They run with `./gradlew build`.
+- **The server test** (`./gradlew serverTest`) boots a real Paper 26.2 server with Skript, PacketEvents
+  and SkBee, runs the scripts in `server-test/skript/`, and checks the log. It is the only layer that can
+  see registration and parse failures: MockBukkit cannot host Skript at all (Skript's main class is
+  final and MockBukkit loads a plugin by subclassing it), and Skript reports those failures in prose while
+  the server keeps running.
+- **The example gate** is part of that run: `prepareServerTest` writes `07-examples.sk` from every
+  `@Example`/`@Examples` annotation and lets Skript parse it, so a documented example that does not parse
+  fails the build. A `@Examples` annotation is one example; one that starts with `on ...:` or
+  `command /...:` is written out as it stands, everything else is wrapped in a command trigger.
+- **The client test** (`./gradlew clientTest`) connects a real client to the same prepared server, so what
+  only a client can see — the window it is shown, the items in its slots, the title after a page turn —
+  is asserted rather than assumed.
+
+Assertions live next to the log they read (`build.gradle.kts`), not in the scripts: the scripts report
+`XIAOJIE_SELFTEST detail: <name> -> <message>` and the task requires a message for every name it expects,
+and rejects a name it does not. A script whose element stopped working therefore fails instead of quietly
+shrinking what is covered.
+
+## 5. Versions
 
 One source per version. The plugin version lives in `gradle.properties` and is expanded into
 `plugin.yml` by `processResources`; the jar name, the tag and the release notes all follow it. The
@@ -119,7 +151,24 @@ that CHANGELOG section. Correcting the notes of a release that is already out is
 hand: `./gradlew releaseNotes`, then
 `gh release edit v<version> --notes-file build/release-notes.md`.
 
-## 5. Commits
+## 6. Documentation
+
+Two halves, for two readers:
+
+- The **README** is the front page: what the plugin is, how to install it, and one example that runs.
+  Both languages, and the example is also a script in `server-test/skript/` so it cannot go stale.
+- The **wiki** is the syntax reference, because the addon API's registration is invisible to skUnity's
+  automatic jar import: there is no import to keep correct, so the pages are the list. They are written in
+  `docs/guide/*.zh-CN.md`, mapped to page names by `scripts/wiki-pages.tsv`, listed by
+  `scripts/wiki-sidebar.md`, and published by `scripts/publish-wiki.ps1`, which
+  `.github/workflows/wiki.yml` runs on every push to `master`.
+
+A page may only describe syntax that exists: read the element's own patterns and prefer its `@Examples`
+verbatim, since those are the ones the example gate parses. A claim about a trap belongs in the page only
+if the code says so — `override slot` following the menu's default page, for example, is in
+`EffSecOverrideSlot` and nowhere else.
+
+## 7. Commits
 
 Write the subject in the imperative mood and explain the **why** in the body when the change is not
 self-evident. Keep unrelated changes in separate commits.

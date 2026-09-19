@@ -42,7 +42,7 @@ on load:
     set {_default} to the default page of {_menu}
     set the default page of {_menu} to 1
     set {_delay} to the minimum click delay of {_menu}
-    set {_viewers::*} to the viewers of {_menu}
+    set {_viewers::*} to the menu viewers of {_menu}
     log "XIAOJIE_SELFTEST detail: menu defaults -> page %{_default}%, delay %{_delay}%, %size of {_viewers::*}% viewer(s)"
 
 on load:
