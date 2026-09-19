@@ -1,0 +1,177 @@
+# 更新日志
+
+## 2.0.0
+
+这一版把插件搬到 Minecraft 26.2 / Skript 2.16，并修好了那些**从来没能真正用起来**的菜单语法。日常
+用法基本没变，下面按"要改什么、为什么"来说。
+
+### 运行环境
+
+| | 之前 | 现在 |
+|---|---|---|
+| 服务端 | Paper 1.21.8 | **Paper 26.2** |
+| Skript | 2.13.1 | **2.16.2** |
+| PacketEvents | 2.9.5 | **2.13.0** |
+| Java | 21 | **25** |
+
+Skript 2.16.2 支持到 Paper 26.2；Paper 26.2 本身要求 Java 25。插件声明了 `api-version: 26.2`，所以更旧
+的服务端会**直接拒绝加载**，而不是加载成功后在运行时报奇怪的错。
+
+### 标题写法（以前一用就崩）
+
+所有带标题的语法——`create menu … titled …`、`insert page … with title …`、`update title …`、
+`update session title …`、`turn to page … with title …`——只要脚本执行到就会抛内部异常，**菜单根本
+没被创建出来**。现在修好了。
+
+可用写法就是给值本身：
+
+```skript
+create a phantom menu with chest inventory titled "主菜单" with layout "#########" with id "main":
+update title of page 1 in {_menu} to "第一页"
+```
+
+**不要**写 `string:"主菜单"` 或 `component:"主菜单"`。这两个前缀来自旧文档，**它们不是语法的一部分**：
+那是插件给自己 pattern 用的分支标记，输入里只有冒号**后面**的内容。写上前缀会让整段文字（含前缀）
+成为标题 —— 2.0.0 起会明确报错，而不是渲染出一个以 `string:` 开头的标题。
+
+标题是文本，所以里面的颜色码就是"格式"：`&a`、`&l` 这些**和 Skript 其它地方一样可用**，`§` 同样可用。
+标题是以**文本组件**的形式发给客户端的（不是纯字符串），颜色和格式因此能保留下来。十六进制用
+Adventure 的 `&x&f&f&5&5&0&0` 写法（每一位数字都带自己的 `&`）；`&#ff5500` 不属于这套语法。
+
+有一个要和物品名一致的副作用：`&` 后面跟着颜色字符时会被当成颜色码。如果标题里真的要显示字面的
+`&B`，`&` 做不到 —— 这一点和 Spigot 的物品名完全相同。
+
+### 关于页面
+
+- **页码从 1 开始。** 不存在 `page 0`；旧文档里写 `page 0` 的地方是错的，`in page 1` 才是第一页。
+- **创建菜单时给的 `layout` 永远是第 1 页。** `with page N`（或 `default page`）只决定 `open menu`
+  先显示第几页。以前一旦写了它，插件就**不创建任何页面**，而没有页面的菜单打不开 —— 也就是说
+  `create menu … with layout … with page 2` 过去会造出一个打不开的菜单。
+- `insert page 1 …` 会把新页插到第 1 位（原本的 layout 页顺延成第 2 页）；`insert page 2 …` 插在第 1 页
+  之后；`insert page …`（不写页码）追加到末尾。
+- 菜单默认只有一页。分页是"需要时才加"的功能：如果你只想换页内容，就保留一页、用 `override slot` /
+  `map key` 改内容即可。
+
+`update title of page N …` 的**本意**是只改"正在看第 N 页的玩家"看到的窗口标题。目前它会改掉该菜单
+**所有**观众的窗口标题（无论他在第几页）—— 见"已知问题"。
+
+### 在语法里指代菜单
+
+`menu` 这个词在可读性需要的地方保留，但在本来就可选的组里现在是可选的，所以下面这些都能解析了：
+
+```skript
+map key "A" to icon stone for {_menu}
+override slot 2 in page 1 to diamond for {_menu}
+set {_slots::*} to the slots of key "A" in page 1 of {_menu}
+set {_key} to the key of slot 1 in page 1 of {_menu}
+```
+
+`destroy` 现在也接受按 id 的写法（以前得把 `menu` 写两遍）：
+
+```skript
+destroy the menu {_menu}
+destroy the menu with id "main"
+```
+
+### 旧的 `gui` 语法已删除
+
+`create a gui …`、`%players% (has|have) a gui [open]`、`the player's gui` 都来自更早的 skript-gui 插件。
+它们一直没人维护，也不遵守这个插件其余部分的约定：`create gui` 的页码从 0 开始，只要传进去的库存里有
+物品就会崩；它写死的那个模式（`removable items` 即 static）现在也有了正式写法。所以它们是**删掉**而不
+是修好，2.0.0 的脚本请用菜单语法：
+
+| 已删除 | 现在这样写 |
+|---|---|
+| `create a gui with {_inv} with id "main":` | `create a phantom menu with chest inventory titled "…" with layout "…" with id "main":`，或 `build a menu:` 段落 |
+| `the player's gui` | `the menu of the menu session of player` |
+| `if player has a gui open:` | `if the menu session of player is set:` |
+| `create a gui … with removable items` | `create a static menu …`，或在 `build a menu` 里写 `mode: static` |
+
+### 菜单的模式是文本
+
+`the mode of {_menu}` 返回 `phantom` 或 `static` —— 就是 `build a menu` 里 `mode:` 那一项接受的两个词 ——
+所以比较起来就是普通的文本比较：
+
+```skript
+if the mode of {_menu} is "phantom":
+```
+
+原来的 `receptaclemode` 类型随之取消。顺带说清一个坑：**Skript 里枚举常量的字面量来自它的语言文件**，而
+插件要自己提供带版本号的 `default.lang` 才有。没提供时，唯一能解析的字面量是自动生成的
+`static receptacle mode`；而 `phantom` 这个词属于 Minecraft 的幻翼实体，所以 `is phantom` 会悄悄地和一
+个实体类型比较，永远不成立。文本不需要这套机制。
+
+同样的坑也在 `on menu interact` 里等着。插件以前注册了自己的 `menu click type` 和 `menu click mode`
+类型，两个在脚本里都没法写，打印出来是 `LEFT`。现在都取消了 —— 脚本看到的点击类型就是 **Skript 自己的**
+点击类型，也就是 `on inventory click` 给你的那个，用的是 Skript 的词和它的字面量：
+
+```skript
+on menu interact:
+    if the event-clicktype is left mouse button:
+        send "Left click!" to player
+```
+
+这条能成立，是因为插件注册了一个转换器：把自己更细的点击类型（知道按键和点击模式）转成 Bukkit 的，而
+Skript 会通过已注册的转换器去解析事件值。把同一个值再注册成"我们自己的类型"，只会给它一个更差的名字。
+
+在 `on menu interact` 里 `the click type` 和 `the event-clicktype` 都能用，而且是同一个值：Skript 自己的
+`the click type` 属于 `on inventory click`，在别的事件里会拒绝解析，但插件为自己的事件注册了这个属性，所以
+不带前缀的写法在这里也能得到答案。
+
+插件自己的事件值都按脚本会说的说法写，不带 `event-` 前缀：`the clicked slot`、`the clicked icon`、
+`the page`、`the pressed number key`；`event-` 形式作为别名保留，照顾已经这么写的脚本。
+
+Skript 的点击类型唯一带不了的信息是**按的是哪个数字键**：九个键全都报成同一个 `number key`。而插件本来就
+有九个 `NUMBER_KEY_*` 类型，所以这个数字单独可读：
+
+```skript
+on menu interact:
+    if the pressed number key is 1:
+        send "You pressed 1!" to player
+```
+
+`the pressed number key` 在 `number key` 点击时是 1 到 9，其它点击什么都不是 —— 想用数字键当快捷键就需要它。
+
+### 配置终于生效了
+
+`enable-async-check` 和 `force-truecolor` 以前读的是 Spigot 自己的配置文件，所以插件 `config.yml` 里
+写的值**完全没用**。现在读的是 `plugins/xiaojie-gui/config.yml`（首次启动生成）。键名没变。
+
+### 玩家能感觉到的行为变化
+
+- `on menu open` 和 `on page turn` 里的 `cancel event` 现在真的生效了（这两者一个忽略参数恒取消、一个
+  永远不取消）。
+- `viewers of menu` 不再一直把"已经切到别的菜单的玩家"算进来。
+- 静态菜单翻页不再重复整包发送；玩家自己关掉菜单后，不会再被一个"迟到的标题更新"重新弹出窗口。
+- 在菜单事件之外用 `expr`、页码越界、菜单为空这些情况，现在给的是可读报错，而不是在 Skript 里抛异常
+  （旧日志里的 `Page 0 does not exist`、`index out of bounds` 之类）。
+- `update title of page N` 现在只改**正在看第 N 页**的玩家，以前会改掉该菜单所有观众的窗口标题（在第 2 页
+  的人会一直看到第 1 页的标题，直到他翻页）。
+- 对一个已经打开该菜单的玩家再执行 `open menu {_menu} for player`，现在会跳到你指定的那一页，而不是报
+  `already viewing this menu`。
+- `barrel`、`ender chest`、`dispenser`、`enchanting`、`cartography` 现在都能创建菜单了：以前它们会报
+  `Unsupported inventory type`，因为没有对应的布局。后两者在 Skript 里要写
+  `enchanting table inventory` / `cartography table inventory`，不是 `enchanting inventory` /
+  `cartography inventory`。
+
+### 已知问题
+
+- 目前只在服务端验证点击。依赖客户端表现的部分（槽位是否对齐、只在客户端存在的"幽灵物品"、拖拽）
+  需要真实客户端单独验证。
+- 页面只能通过 `insert page` / 创建时的 `with page` 产生，没有声明式的 page 段落 —— 一页 = 一个布局
+  + 一个标题，这是有意为之。
+
+### 可靠性
+
+插件现在有三层测试，第三层是这次新增的：单元测试，以及一个**真实启动的 Paper 26.2 服务端**（带
+Skript 与 PacketEvents），让一组 Skript 脚本去跑插件，再检查服务端日志。上面那个"标题一用就崩"、
+页面契约、以及一批 pattern 问题都是这一层抓出来的 —— 这类失败在服务端里通常只是日志里一行散文，
+服务器照常启动。
+
+另外有两处控制台输出不再走 Skript / Adventure 的内部实现：
+
+- 语法注册改用 Skript 的 addon API，不再用 Skript 2.16 已标记为"将要移除"的静态 `Skript.register…`。
+  脚本写法没有任何变化，变的是注册不再依赖那批正在退场的调用。
+- 横幅自己写颜色转义序列，不再用反射去摸 Adventure 的 ANSI serializer。那段反射**可能在插件启用时失败**
+  —— 对一个横幅来说是最糟的时机；而且 Paper 判定控制台不支持颜色时，横幅会变成灰色。`force-truecolor:
+  false` 仍然会打印无颜色的版本。

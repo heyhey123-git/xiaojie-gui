@@ -57,8 +57,22 @@
 - **容器 (Receptacle)**: 底层的物品栏容器抽象 (静态/视图/虚拟)。
 - **事件 (Events)**: 打开、关闭、交互、翻页和容器事件。
 
+### 关于页面
+
+菜单**默认就是单页**，这也是最常见的用法：创建菜单时给出的 `layout` 会成为第 1 页，你在它上面映射
+的东西就都在这一页里。分页是按需添加的：
+
+- `insert page [N] ... with layout "..."`：新增一页（默认追加到末尾，给了 `N` 就插到该位置）。
+- `turn to page N for {_玩家}`：给某个玩家翻页，配合 `on page turn` 事件做后续处理。
+- `with page N`（或 `default page`）**只决定 `open menu` 先显示第几页**，不会改变菜单有几页。
+
+如果你想自己管状态，什么都不用改：只保留一页，用 `override slot` / `map key` 换页内容，把"页码"
+存在自己的脚本变量里即可。
+
 ## Skript 集成
 
+下面的例子来自 1.x 的 README：它展示的是一个菜单长什么样，**不是能跑的语法**
+（`with (chest inventory)`、`when slot 5 … is clicked` 这些都不是本插件的写法）：
 ```skript
 on load:
     #> -------------
@@ -74,7 +88,7 @@ on load:
         #> -------------------
         #> 无需物品的回调执行
         #> -------------------
-        when slot 5 in page 0 is clicked:
+        when slot 5 in page 1 is clicked:
             send "不要再戳我啦!" to event-player
         #> ------
         #> 翻页
@@ -103,8 +117,7 @@ on load:
 
 ## 贡献
 
-欢迎参与！可以提出 issue 或提交拉取请求 (PR)。
-以下是 KDoc 文档：[KDoc 文档](https://heyhey123.github.io/xiaojie-gui/)
+欢迎参与！可以提出 issue 或提交拉取请求 (PR)。构建、测试与代码风格说明见 `CONTRIBUTION.md`。
 
 ## 免责声明
 

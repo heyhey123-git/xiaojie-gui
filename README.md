@@ -57,9 +57,23 @@ plugins:
 - Receptacle: low-level inventory container abstraction (static/view/phantom).
 - Events: open, close, interact, page turn, and receptacle events.
 
+### Pages
+
+A menu is a single page by default, and that is the normal case: the `layout` you give when creating it
+becomes page 1, and everything you map onto it lives there. Paging is something you add when you need it:
+
+- `insert page [N] ... with layout "..."` adds a page (at the end, or at position `N`).
+- `turn to page N for {_player}` moves a viewer, and `on page turn` is the event to hook.
+- `with page N` (or `default page`) only decides which page `open menu` shows first; it never changes how
+  many pages exist.
+
+If you would rather manage the state yourself, change nothing: keep one page and swap what is in it with
+`override slot` / `map key`, keeping the "page number" in a script variable of your own.
+
 ## Skript integration
 
-Example (pseudo-Skript):
+Example (from the 1.x README: it shows the shape of a menu, not syntax that runs — lines like
+`with (chest inventory)` and `when slot 5 … is clicked` are not part of the syntax):
 ```skript
 on load:
     #> -------------
@@ -75,7 +89,7 @@ on load:
         #> -------------------
         #> 无需物品的回调执行
         #> -------------------
-        when slot 5 in page 0 is clicked:
+        when slot 5 in page 1 is clicked:
             send "不要再戳我啦!" to event-player
         #> ------
         #> 翻页
@@ -105,8 +119,8 @@ on load:
 
 ## Contributing
 
-Feel free to dive in! Open an issue or submit pull requests (PRs).
-Here's the KDoc reference: [KDoc](https://heyhey123-git.github.io/xiaojie-gui/).
+Feel free to dive in! Open an issue or submit pull requests (PRs). `CONTRIBUTION.md` explains how this
+repository is built, tested and styled.
 
 ## Disclaimer
 
