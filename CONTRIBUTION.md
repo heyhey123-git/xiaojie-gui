@@ -135,6 +135,10 @@ Four layers, each catching what the one below it cannot:
 - **The client test** (`./gradlew clientTest`) connects a real client to the same prepared server, so what
   only a client can see — the window it is shown, the items in its slots, the title after a page turn —
   is asserted rather than assumed.
+- **The manual pass** (`docs/manual-acceptance.zh-CN.md`) covers what no layer here can: a real 26.2
+  client rather than the 26.1 one the client test connects through Via, dragging, ghost items, two clients
+  side by side, and whether a window looks right at all. It is deliberately short, and anything on it that
+  can be expressed as an assertion should be moved into one of the layers above.
 
 Assertions live next to the log they read (`build.gradle.kts`), not in the scripts: the scripts report
 `XIAOJIE_SELFTEST detail: <name> -> <message>` and the task requires a message for every name it expects,
