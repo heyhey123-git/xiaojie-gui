@@ -1,4 +1,10 @@
 .gradle
+# A workspace-local Gradle home, for machines whose shared one cannot be written to.
+.gradle-home/
+# The disposable server the `serverTest` task boots: world, logs, downloaded jars.
+server-test/run/
+# The agent tooling this repository was worked on with, not part of the plugin.
+.dsh/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/

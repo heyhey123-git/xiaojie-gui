@@ -1,0 +1,54 @@
+# The single entry point for every version this build depends on.
+#
+# Versions that have to agree across modules live here exactly once: the Paper API the plugin
+# compiles against is also the one the server test will run on, and the Skript it compiles against is
+# also the jar that test loads. Keeping a copy in each module invites the copies to drift apart.
+#
+# What the build *produces* is not here: its group and version live in `gradle.properties`, because
+# `plugin.yml` is expanded from the same values the jars are named with.
+
+[versions]
+kotlin = "2.3.21"
+
+# Pinned to a concrete build, and to a *stable* one: the 26.3 line is published as ALPHA, and neither
+# Skript 2.16.2 nor Paper's own download page recommends it for production yet.
+#
+# `paper` and `api-version` in plugin.yml are the same fact written twice. Paper refuses to load a
+# plugin whose `api-version` is newer than the server, so the file must not claim more than the API
+# compiled against; declaring less lets Paper load the plugin on a server that lacks the methods it
+# calls, which fails later as a `NoSuchMethodError` instead of a clean refusal. The build derives the
+# api version from this entry instead of repeating it, so bumping Paper moves both.
+paper = "26.2.build.124-stable"
+
+skript = "2.16.2"
+packetevents = "2.13.0"
+
+# The artifact name carries the Paper line (`-v26.2`), so this version and `paper` above move
+# together: a newer Paper line needs the matching MockBukkit artifact, not just a newer version.
+mockbukkit = "4.116.1"
+mockk = "1.14.9"
+
+# The only third-party libraries that are shaded into the jar are Kotlin's own runtime and its
+# annotations: everything else is either `compileOnly` (Paper, Skript, PacketEvents) or part of the
+# JDK.
+shadow = "9.2.2"
+ktlint = "14.2.0"
+paperweight = "2.0.0-beta.23"
+
+# Downloads and boots the Paper server the `serverTest` task runs against. Held at 3.0.0 rather than
+# the newer 3.1.0, which requires Gradle 9.7 while this build is on 9.1.
+run-paper = "3.0.0"
+
+[libraries]
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+skript = { module = "com.github.SkriptLang:Skript", version.ref = "skript" }
+packetevents = { module = "com.github.retrooper:packetevents-spigot", version.ref = "packetevents" }
+mockbukkit = { module = "org.mockbukkit.mockbukkit:mockbukkit-v26.2", version.ref = "mockbukkit" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }

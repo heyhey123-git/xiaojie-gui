@@ -1,0 +1,56 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Kotlin style rules, shared by IntelliJ IDEA and ktlint.
+# IntelliJ reads the ij_ properties, ktlint reads the ktlint_ properties, and both read the
+# generic properties above, so the IDE and the command line agree.
+[*.{kt,kts}]
+
+# Base the rules on the IntelliJ defaults this code base was written with. The ktlint_official
+# style would additionally require a trailing comma and one parameter per line in every
+# multi-line signature, which this code base does not use.
+ktlint_code_style = intellij_idea
+
+# Long single-line artifacts are intentional and not worth wrapping:
+#   - @Description annotations, whose text reads better as one literal string,
+#   - element signatures, whose parameter lists mirror the base declaration.
+# This also keeps the wrapping rules inert, so no expression is reflowed just to fit.
+max_line_length = off
+
+# With max_line_length off, both rules would collapse every multi-line signature that happens to
+# fit on one line. This code base writes signatures multi-line on purpose, so the choice stays
+# with the author.
+ktlint_standard_class-signature = disabled
+ktlint_standard_function-signature = disabled
+
+# Every Skript addon imports the doc annotations this way (@Name, @Description, @Example), so that
+# one package stays a wildcard. Remove the entry to require explicit imports instead.
+#
+# Keep the list to a single entry. ktlint parses it with `split(",").onEach { it.trim() }`, and
+# `onEach` discards the trimmed string, so every entry after the first would keep its leading
+# space and never match: writing the list as ", "-separated silently disables all but the first
+# entry. `java.util` is imported explicitly so that this list never needs a second entry.
+ij_kotlin_packages_to_use_import_on_demand = ch.njol.skript.doc.*
+
+# IntelliJ collapses any package imported five or more times into a wildcard. Only the package
+# above may be one, so raise both thresholds out of reach; otherwise *Reformat Code* recreates
+# wildcards that `ktlintCheck` then rejects.
+ij_kotlin_name_count_to_use_star_import = 2147483647
+ij_kotlin_name_count_to_use_star_import_for_members = 2147483647
+
+# Keep multi-line argument and parameter lists without a trailing comma.
+ij_kotlin_allow_trailing_comma = false
+ij_kotlin_allow_trailing_comma_on_call_site = false
+
+# Let ktlint clean and normalize imports whenever auto-correction or ktlintFormat runs.
+# Wildcard imports listed in ij_kotlin_packages_to_use_import_on_demand remain allowed.
+ktlint_standard_no-unused-imports = enabled
+ktlint_standard_import-ordering = enabled
+ktlint_standard_no-wildcard-imports = enabled
