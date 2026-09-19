@@ -170,6 +170,13 @@ Two halves, for two readers:
   Every page is a bilingual pair: `docs/guide/<name>.zh-CN.md` is the Chinese half and keeps the plain
   page name, `docs/guide/<name>.md` is the English half and takes the `-English` suffix, and each half's
   first line switches to the other, so a syntax change has to be made in both files.
+- `./gradlew gendocs` is the SkriptHub import. SkriptHubDocsTool only writes documentation on a *running*
+  server, so the task boots a disposable one under `build/gendocs-server/`, has it run `/gendocs`, and
+  copies the JSON to `build/skripthub/xiaojie-gui.json` for the SkriptHub dashboard's JSON import. Unlike
+  skUnity's jar import, the tool reads Skript's registry, so syntax registered through the addon API does
+  reach the file — but only conditions, effects, expressions and sections: the events are not in the
+  export, and the wiki stays the list for those. The version in the JSON comes from `gradle.properties`,
+  so it cannot disagree with the jar.
 
 A page may only describe syntax that exists: read the element's own patterns and prefer its `@Examples`
 verbatim, since those are the ones the example gate parses. A claim about a trap belongs in the page only

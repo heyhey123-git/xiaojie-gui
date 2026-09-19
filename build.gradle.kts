@@ -2,6 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import xyz.jpenilla.runpaper.task.RunServer
 import java.io.IOException
 import java.net.URI
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.concurrent.TimeUnit
 
 plugins {
@@ -1096,4 +1098,464 @@ abstract class ClientTest : DefaultTask() {
         private const val POLL_INTERVAL_MS = 500L
         private const val LOG_TAIL_LINES = 40
     }
+}
+
+// --- SkriptHub documentation ------------------------------------------------------------------------
+//
+// SkriptHub does not read a jar: it reads a JSON file that SkriptHubDocsTool writes *on a running
+// server* that has the addon loaded, because half of what an element says about itself (its patterns,
+// its return type, the event values that belong to its event) only exists once Skript has registered
+// it. `./gradlew gendocs` does the whole thing locally -- it boots the same disposable Paper server
+// `serverTest` uses, has it run the tool's `/gendocs` console command, and leaves the JSON under
+// `build/`, which is what a person pastes into the SkriptHub dashboard's JSON import.
+//
+// `/gendocs` writes its file locally and needs no account, no token and no network: the upload is the
+// dashboard import, done by hand. That is the reason this task can be a build step at all.
+//
+// What the tool can and cannot see is the question this task exists to answer, and the answer is in
+// the generated file rather than in the tool's own logs: it enumerates Skript's *legacy* registry
+// accessors (`Skript.getEffects()` and friends), and Skript 2.16 answers those out of the same
+// `SyntaxRegistry` the addon API writes to, so syntax registered the way `SkriptSyntax.kt` registers it
+// does reach the file. `GendocsReport` below reports what it found so that a re-run says the same
+// thing without anyone opening the JSON by hand.
+
+// The tool is a server plugin published as a GitHub release asset and has no Maven coordinates, so the
+// URL is the pin, exactly as it is for `serverTestPlugins`. 1.17 is the release that knows the
+// `org.skriptlang.skript` API this addon registers through.
+val skriptHubDocsToolVersion = "1.17"
+val skriptHubDocsToolUrl =
+    "https://github.com/SkriptHub/SkriptHubDocsTool/releases/download/" +
+        "$skriptHubDocsToolVersion/skripthubdocstool-$skriptHubDocsToolVersion.jar"
+val skriptHubDocsToolJar = layout.buildDirectory.file("tools/skripthubdocstool-$skriptHubDocsToolVersion.jar")
+
+// The run directory the documentation server gets. It is not `server-test/run`:
+//
+//   * `server-test/skript/*.sk` stops the server ten seconds after it is up (`99-finish.sk`), which is
+//     the opposite of what this run wants -- it has to be up long enough to be told `/gendocs`;
+//   * the tool's jar cannot be left where `serverTest` boots from, and a run directory of its own is a
+//     stronger guarantee of that than a cleanup step anything can skip.
+//
+// Everything below `build/` is a build product, so this directory is disposable: `clean` removes it.
+val skriptHubDocsDirectory = layout.buildDirectory.dir("gendocs-server")
+val skriptHubDocsJson = layout.buildDirectory.file("skripthub/xiaojie-gui.json")
+
+// The server this task boots is the one `runServer` downloaded, copied rather than downloaded again: a
+// second Paper of the same version under `build/` would be eighty megabytes of duplication for no
+// difference. Only what a boot needs is copied -- the patched jar, the libraries it extracted next to
+// it, Mojang's client jar from `cache/` and Paper's own `config/` -- and the world and logs are left
+// behind so each run starts from a clean one.
+//
+// This list lives inside the task that uses it rather than beside it: a nested class in this script may
+// not read a script-level `val`, because the Kotlin DSL compiler answers such a read through a
+// *synthetic accessor on the script object* and then has to compile the class as an **inner** class --
+// which Gradle refuses to instantiate as a task ("is a non-static inner class"). Only classes and
+// members the task itself declares are safe.
+
+val downloadSkriptHubDocsTool by tasks.registering {
+    description = "Downloads the tool that generates a SkriptHub documentation JSON."
+    group = "documentation"
+
+    val tool = skriptHubDocsToolJar
+    inputs.property("url", skriptHubDocsToolUrl)
+    outputs.file(tool)
+
+    doLast {
+        val jar = tool.get().asFile
+        // The version is in the file name, so a file that is already here is the file the URL names.
+        if (jar.isFile && jar.length() > 0L) {
+            logger.lifecycle("${jar.name} is already downloaded.")
+            return@doLast
+        }
+        jar.parentFile.mkdirs()
+        logger.lifecycle("Downloading ${jar.name}")
+        // Written beside the real name and moved onto it, so an interrupted transfer is never taken
+        // for the complete file by the next run. Replacing is what makes a second download work on
+        // Windows, where a plain rename refuses to overwrite.
+        val partial = File(jar.parentFile, jar.name + ".part")
+        URI(skriptHubDocsToolUrl).toURL().openStream().use { input ->
+            partial.outputStream().use { input.copyTo(it) }
+        }
+        Files.move(
+            partial.toPath(),
+            jar.toPath(),
+            StandardCopyOption.REPLACE_EXISTING
+        )
+    }
+}
+
+/**
+ * Boots the documentation server, runs `/gendocs` on its console, and leaves the JSON the tool wrote.
+ *
+ * This is `ClientTest`'s process handling, not run-paper's: run-paper runs a server in the foreground
+ * and stops it when the *server* says so, and this task has to decide when, because it is waiting for a
+ * file the server produces. So the server is a background process of this task, its console is stdin,
+ * and `stop` goes there like an operator's would.
+ */
+abstract class GenerateGendocs : DefaultTask() {
+
+    /** The run directory `serverTest` prepared; only its server and libraries are used. */
+    @get:Internal
+    abstract val sourceServerDirectory: DirectoryProperty
+
+    /** The documentation server's own run directory, under `build/`. */
+    @get:Internal
+    abstract val runDirectory: DirectoryProperty
+
+    /** The Minecraft version the run directory (and so the server jar) is for. */
+    @get:Input
+    abstract val minecraftVersion: Property<String>
+
+    /** The shaded jar, which is the addon the documentation is generated for. */
+    @get:Internal
+    abstract val pluginJar: RegularFileProperty
+
+    /** The plugins the server needs besides ours, as file name to download URL. */
+    @get:Input
+    abstract val serverPlugins: MapProperty<String, String>
+
+    /** The SkriptHubDocsTool jar, downloaded by `downloadSkriptHubDocsTool`. */
+    @get:Internal
+    abstract val docsToolJar: RegularFileProperty
+
+    /** Where the tool writes its documentation, relative to the run directory. */
+    @get:Internal
+    abstract val generatedFile: RegularFileProperty
+
+    /** The Java the server runs on, which Paper 26.2 requires to be 25. */
+    @get:Input
+    abstract val javaExecutable: Property<String>
+
+    /** Where this task writes the server's console output for the run. */
+    @get:Internal
+    abstract val serverLog: RegularFileProperty
+
+    @TaskAction
+    fun generate() {
+        val source = sourceServerDirectory.get().asFile
+        val paperJar = source.resolve("versions/${minecraftVersion.get()}/paper-${minecraftVersion.get()}.jar")
+        if (!paperJar.isFile) {
+            throw GradleException(
+                "The prepared server is missing $paperJar, and this task copies the server `serverTest` " +
+                    "downloaded rather than downloading a second one. Run `./gradlew serverTest` once, " +
+                    "then this task again."
+            )
+        }
+
+        val dir = runDirectory.get().asFile
+        val log = serverLog.get().asFile
+        prepare(dir, source, paperJar, log)
+        val process = start(dir, paperJar, log)
+        try {
+            awaitServerReady(process, log)
+            // `/gendocs` from the console, one line, exactly as an operator would type it. The tool
+            // answers on stdout, which is the log this task reads back afterwards.
+            process.outputStream.write("/gendocs\n".toByteArray())
+            process.outputStream.flush()
+            awaitGeneratedFile(process, log)
+        } finally {
+            stopServer(process)
+        }
+    }
+
+    /**
+     * Makes [dir] a server that can boot and that has exactly the plugins this run needs in it.
+     *
+     * The directory is rebuilt from scratch every time rather than kept: Paper, Skript and the tool all
+     * write state into it (Skript rewrites its config, the tool writes its output), and a stale copy of
+     * any of that is a bug that only shows up on the second run.
+     */
+    private fun prepare(dir: File, source: File, paperJar: File, log: File) {
+        dir.deleteRecursively()
+        dir.mkdirs()
+        // The server and its libraries come from the prepared run directory, which is where `runServer`
+        // put them. `libraries/` matters: Paper 26.2 does not boot from `java -jar`, which is why the
+        // classpath below is the paper jar followed by every jar in there.
+        BOOTSTRAPPED_DIRECTORIES.forEach { name ->
+            val from = source.resolve(name)
+            if (from.isDirectory) from.copyRecursively(dir.resolve(name), overwrite = true)
+        } // Paper refuses to start without this. As in the server test, it records acceptance of the
+        // Minecraft EULA (https://aka.ms/MinecraftEULA) for this disposable server and no other.
+        dir.resolve("eula.txt").writeText("eula=true\n")
+        dir.resolve("server.properties").writeText(gendocsServerProperties())
+
+        val plugins = dir.resolve("plugins")
+        plugins.mkdirs()
+        // A flat world and no players, so the boot is as short as it can be and the console has no
+        // player events to interleave with the tool's output.
+        serverPlugins.get().forEach { (name, url) ->
+            val jar = plugins.resolve(name)
+            if (!jar.isFile) {
+                logger.lifecycle("Downloading $name")
+                URI(url).toURL().openStream().use { input -> jar.outputStream().use { input.copyTo(it) } }
+            }
+        }
+        docsToolJar.get().asFile.copyTo(plugins.resolve(docsToolJar.get().asFile.name), overwrite = true)
+        // The addon under test goes in last, so the file the documentation describes is this build's.
+        pluginJar.get().asFile.copyTo(plugins.resolve(pluginJar.get().asFile.name), overwrite = true)
+        // No scripts: `server-test/skript/*.sk` reports self-test lines and one of them stops the
+        // server, and this run wants neither. An empty scripts folder is what Skript reads.
+        dir.resolve("plugins/Skript/scripts").mkdirs()
+        log.parentFile.mkdirs()
+        log.delete()
+    }
+
+    /**
+     * The properties the documentation server runs with.
+     *
+     * The port is the one `server-test/server.properties` uses, because this task never runs at the same
+     * time as the layers that boot that server. The pause is off for the reason `runServer` turns it off:
+     * an empty server would stop ticking, and Skript's scheduler -- which is what the tool's own
+     * generation runs on -- would stop with it.
+     */
+    private fun gendocsServerProperties(): String = """
+        online-mode=false
+        server-port=25598
+        level-type=minecraft:flat
+        generator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:dirt","height":2},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}
+        level-name=world
+        spawn-protection=0
+        max-players=1
+        view-distance=2
+        simulation-distance=2
+        difficulty=peaceful
+        enable-command-block=false
+        enable-status=false
+        pause-when-empty-seconds=-1
+        sync-chunk-writes=false
+    """.trimIndent() + "\n"
+
+    /**
+     * Starts the server the way Paperclip re-launches the patched jar: from the command line, because
+     * `java -jar` on it ends in `NoClassDefFoundError`.
+     *
+     * The order matters. `libraries/` holds an older `com.mojang:logging` than the patched jar carries,
+     * and with the libraries first the server dies in `LogUtils.getClassLogger()` before it opens a port.
+     */
+    private fun start(dir: File, paperJar: File, log: File): Process {
+        val classpath = buildList {
+            add(paperJar.absolutePath)
+            dir.resolve("libraries").walkTopDown()
+                .filter { it.isFile && it.extension == "jar" }
+                .forEach { add(it.absolutePath) }
+        }.joinToString(File.pathSeparator)
+
+        return ProcessBuilder(
+            javaExecutable.get(),
+            "-Xms1G",
+            "-Xmx1G",
+            "-cp",
+            classpath,
+            "org.bukkit.craftbukkit.Main",
+            "--nogui"
+        )
+            // The run directory is what makes the server find its own `server.properties` and plugins.
+            .directory(dir)
+            .redirectErrorStream(true)
+            .redirectOutput(log)
+            .start()
+    }
+
+    /** Waits for the server to finish starting, or fails with what the log holds instead. */
+    private fun awaitServerReady(process: Process, log: File) {
+        val deadline = System.currentTimeMillis() + SERVER_START_TIMEOUT_MS
+        while (System.currentTimeMillis() < deadline) {
+            if (log.isFile && log.readText().contains("Done (")) return
+            if (!process.isAlive) {
+                throw GradleException(
+                    "The documentation server exited with code ${process.exitValue()} before it finished " +
+                        "starting." + logTail(log)
+                )
+            }
+            Thread.sleep(POLL_INTERVAL_MS)
+        }
+        throw GradleException(
+            "The documentation server did not reach `Done (` within ${SERVER_START_TIMEOUT_MS / 1000} s." +
+                logTail(log)
+        )
+    }
+
+    /**
+     * Waits for the file `/gendocs` writes, and reports the server's own console output as the failure
+     * if it never appears.
+     *
+     * A file that exists is not a file that is complete: the tool opens it and then writes, so a size
+     * that has stopped changing is the signal to read it, not its existence.
+     */
+    private fun awaitGeneratedFile(process: Process, log: File) {
+        val file = generatedFile.get().asFile
+        val deadline = System.currentTimeMillis() + GENDOCS_TIMEOUT_MS
+        var settledSize = -1L
+        while (System.currentTimeMillis() < deadline) {
+            if (file.isFile) {
+                val size = file.length()
+                if (size > 0L && size == settledSize) return
+                settledSize = size
+            }
+            if (!process.isAlive) {
+                throw GradleException(
+                    "The documentation server exited with code ${process.exitValue()} before the tool " +
+                        "wrote ${file.absolutePath}." + logTail(log)
+                )
+            }
+            Thread.sleep(POLL_INTERVAL_MS)
+        }
+        throw GradleException(
+            "The documentation tool wrote no ${file.absolutePath} within ${GENDOCS_TIMEOUT_MS / 1000} s of " +
+                "`/gendocs`. Its own console output is in the log." + logTail(log)
+        )
+    }
+
+    /** Stops the server the way a console would, and kills it only if that does not work. */
+    private fun stopServer(process: Process) {
+        if (!process.isAlive) return
+        runCatching {
+            // Paper reads console commands from stdin, so `stop` is the same shutdown an operator asks
+            // for: the world is saved and the plugins are disabled. Killing the process cannot do that,
+            // and the tool has already written its file by the time this is called.
+            process.outputStream.write("stop\n".toByteArray())
+            process.outputStream.flush()
+        }.onFailure { logger.warn("Could not write `stop` to the documentation server: ${it.message}") }
+
+        if (!process.waitFor(SERVER_STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            logger.warn("The documentation server did not stop within ${SERVER_STOP_TIMEOUT_MS / 1000} s of `stop`; killing it.")
+            process.destroyForcibly()
+            process.waitFor(SERVER_STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        }
+    }
+
+    /** The end of a log, for a failure message that has to say what the run actually did. */
+    private fun logTail(log: File): String {
+        if (!log.isFile) return "\n  (no log at ${log.absolutePath})"
+        return "\n  --- the last $LOG_TAIL_LINES lines of ${log.absolutePath} ---\n" +
+            log.readLines().takeLast(LOG_TAIL_LINES).joinToString("\n") { "  $it" }
+    }
+
+    companion object {
+        /** What `prepare` copies out of the prepared run directory; see the note above the task. */
+        private val BOOTSTRAPPED_DIRECTORIES = listOf("versions", "libraries", "cache", "config")
+
+        private const val SERVER_START_TIMEOUT_MS = 5 * 60 * 1000L
+        private const val SERVER_STOP_TIMEOUT_MS = 60 * 1000L
+        private const val GENDOCS_TIMEOUT_MS = 180 * 1000L
+        private const val POLL_INTERVAL_MS = 500L
+        private const val LOG_TAIL_LINES = 40
+    }
+}
+
+/**
+ * Reads the file `/gendocs` wrote, reports what is in it, and leaves it under `build/`.
+ *
+ * The reporting is the point of the task: SkriptHub cannot be asked what it sees, so the only way to
+ * know whether a publishing step has anything to import is to say out loud what the generated file
+ * holds. This counts the entries per kind and names every one, which is what makes "the addon's syntax
+ * is in there" a check rather than a hope -- and what makes it visible when a Skript upgrade stops the
+ * tool from seeing the addon at all.
+ *
+ * The file itself is copied out of the run directory because the run directory is rebuilt from scratch
+ * each time: `build/skripthub/xiaojie-gui.json` is the artifact a person uploads.
+ */
+abstract class GendocsReport : DefaultTask() {
+
+    /** What the tool wrote on the server that just ran. */
+    @get:InputFile
+    abstract val generated: RegularFileProperty
+
+    /** Where the generated file is left, for a person to paste into SkriptHub. */
+    @get:OutputFile
+    abstract val destination: RegularFileProperty
+
+    @TaskAction
+    fun collect() {
+        val source = generated.get().asFile
+        if (!source.isFile) {
+            throw GradleException(
+                "The documentation tool wrote no ${source.absolutePath}, so either the server never ran " +
+                    "it or it failed to. `generateSkriptHubDocs` would have failed first in either case; " +
+                    "its console output is in build/gendocs-server.log."
+            )
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        val document = groovy.json.JsonSlurper().parse(source) as Map<String, Any?>
+        // Every kind the tool can write. An addon that uses none of them is not an error, so the kinds
+        // this addon has no elements of are not required to be there -- but every one that is there is
+        // reported, which is how a kind going missing gets noticed.
+        val kinds = listOf(
+            "events",
+            "conditions",
+            "effects",
+            "expressions",
+            "types",
+            "functions",
+            "sections",
+            "structures"
+        )
+        val entries = kinds.map { kind ->
+            kind to (document[kind] as? List<*> ?: emptyList<Any?>()).filterIsInstance<Map<*, *>>()
+        }
+        val total = entries.sumOf { it.second.size }
+        val metadata = document["metadata"] as? Map<*, *>
+
+        val report = buildString {
+            appendLine("The SkriptHub documentation tool wrote ${source.name}:")
+            appendLine("  metadata: version='${metadata?.get("version")}' apiVersion='${metadata?.get("apiVersion")}'")
+            appendLine("  $total element(s) in total")
+            entries.filter { it.second.isNotEmpty() }.forEach { (kind, ofKind) ->
+                appendLine("  $kind (${ofKind.size}):")
+                ofKind.forEach { entry ->
+                    // The tool writes an element's name and its patterns; the patterns are what a reader
+                    // recognises a syntax by, so both are printed.
+                    val patterns = (entry["patterns"] as? List<*>).orEmpty().joinToString(" | ") { it.toString() }
+                    appendLine("    - ${entry["name"]} :: $patterns")
+                }
+            }
+        }
+        // On the console rather than in the file: the file is an artifact, and this is the answer to
+        // "did the addon's syntax get documented or not".
+        logger.lifecycle(report)
+
+        val target = destination.get().asFile
+        target.parentFile.mkdirs()
+        source.copyTo(target, overwrite = true)
+        logger.lifecycle(
+            "The generated documentation is at ${target.absolutePath} " +
+                "($total element(s)), ready for SkriptHub's JSON import."
+        )
+    }
+}
+
+val generateSkriptHubDocs by tasks.registering(GenerateGendocs::class) {
+    description = "Boots a server carrying this addon and SkriptHubDocsTool and runs `/gendocs` on it."
+    group = "documentation"
+    dependsOn(downloadSkriptHubDocsTool, tasks.named("prepareServerTest"), tasks.named("shadowJar"))
+
+    sourceServerDirectory.set(serverTestDirectory)
+    runDirectory.set(skriptHubDocsDirectory)
+    minecraftVersion.set(paperMinecraftVersion)
+    pluginJar.set(tasks.named<ShadowJar>("shadowJar").flatMap { it.archiveFile })
+    serverPlugins.set(serverTestPlugins)
+    docsToolJar.set(skriptHubDocsToolJar)
+    // Named after the plugin, which is the name SkriptHub knows the addon by: the tool writes one file
+    // per addon and names each after that addon's plugin.
+    generatedFile.set(
+        skriptHubDocsDirectory.map { it.file("plugins/SkriptHubDocsTool/documentation/xiaojie-gui.json") }
+    )
+    javaExecutable.set(
+        javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+            .map { it.executablePath.asFile.absolutePath }
+    )
+    serverLog.set(layout.buildDirectory.file("gendocs-server.log"))
+    // A task that boots a server is never up to date: reporting success because nothing it reads has
+    // changed would mean reporting success without having generated anything.
+    outputs.upToDateWhen { false }
+}
+
+val gendocs by tasks.registering(GendocsReport::class) {
+    description = "Generates the SkriptHub documentation JSON from a server carrying this addon."
+    group = "documentation"
+    dependsOn(generateSkriptHubDocs)
+    generated.set(
+        skriptHubDocsDirectory.map { it.file("plugins/SkriptHubDocsTool/documentation/xiaojie-gui.json") }
+    )
+    destination.set(skriptHubDocsJson)
 }
