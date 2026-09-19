@@ -40,6 +40,11 @@
 - [ ] 写 `with hide player inventory` 的菜单：下半部分玩家背包不可见，也放不进东西。
 - [ ] `create a static menu with merchant inventory ...` 给出的是一句**人话**（说明 static 不支持商人），
       不是 Bukkit 的异常堆栈。
+- [ ] **拖拽**（只有 `static` 下才有意义，机制见 `docs/guide/dragging.zh-CN.md`）：
+      - [ ] 拿一叠物品按住左键扫过几个空的自有格子，松手后**每一格**都应有它那一份。
+      - [ ] 扫过一个被脚本 `cancel event` 拒绝的格子：整次拖拽都不生效，**所有**被扫过的格子都不动。
+      - [ ] 只拿 **1 件**物品拖过 2 格：效果应该和点一下完全一样（游戏本身会把它变成一次点击）。
+      - [ ] 光标为空时拖拽：什么都不发生，控制台没有异常。
 
 ## 3. 每种容器类型
 
@@ -114,4 +119,4 @@
 | 单元测试 | `./gradlew test` | 点击类型、点击冷却、页面计算、每个布局的格子数（对齐 Bukkit 自己的库存大小） |
 | 真实服务端 | `./gradlew serverTest` | 元素能否注册、脚本能否解析、42 条行为断言、每个 `@Examples` 的解析 |
 | 真实客户端 | `./gradlew clientTest` | 26.1 客户端穿过 Via 翻译层：窗口、标题、物品**类型**、四种点击、翻页 |
-| 文档导出 | `./gradlew gendocs` | SkriptHub 用的 JSON（50 个元素；事件不在导出里） |
+| 文档导出 | `./gradlew gendocs` | SkriptHub 用的 JSON（52 个元素；事件不在导出里） |

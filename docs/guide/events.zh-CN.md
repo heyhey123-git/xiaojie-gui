@@ -35,8 +35,10 @@ on menu close:
 
 | 值 | 意思 | 在哪些事件里 |
 |---|---|---|
-| `the clicked slot` | 被点击的格子编号（0 起） | `on menu interact` |
+| `the clicked slot` | 被点击的格子编号（0 起）；拖拽时是**第一个**被碰到的格子 | `on menu interact` |
 | `the clicked icon` | 被点击的格子里那件物品 | `on menu interact` |
+| `the dragged slots` | 拖拽扫过的所有格子；点一下时什么都不是 | `on menu interact` |
+| `the cursor item` | 玩家手里拿着的东西（`static` 模式下才有值） | `on menu interact` |
 | `the pressed number key` | 按下的数字键，1–9；其它点击什么都不是 | `on menu interact` |
 | `the page` | 事件发生在第几页 | `on menu open`、`on menu interact`、`on page turn`（出发页） |
 | `the future page` | 正在翻到第几页 | `on page turn` |
@@ -49,6 +51,10 @@ on menu close:
 
 `the clicked icon` 还有更短的历史别名 `the icon`。`the pressed number key` 没有 `event-` 形式 ——
 `the event-pressed number key` 不是一句人话。
+
+玩家拖拽时，一次拖拽仍然是**一次** `on menu interact`，`the dragged slots` 就是它扫过的所有格子，
+`cancel event` 会拒绝整次拖拽。拖拽的完整机制（为什么只有多格拖拽才看得到、为什么它只能放不能拿）
+写在[拖拽是怎么工作的](dragging.zh-CN.md)。
 
 ### `the future page` 的边界
 

@@ -187,6 +187,16 @@ which is created on first start. No keys were renamed.
   create that inventory at all. `workbench inventory` is the crafting-table window.
 - `create a static menu with merchant inventory ...` now stops with a sentence naming the type instead of
   Bukkit's own exception. Merchant windows come from the merchant API and only work in `phantom` mode.
+- Dragging works. A drag used to reach the addon only when it happened to touch a single slot, which the
+  game itself delivers as a click; a real drag, the kind that spreads a stack over several slots, changed
+  the window with `on menu interact` never running, so a shop could not refuse it and a backpack could not
+  see it. A drag is now one interaction, with every slot it reached in `the dragged slots` and the stack
+  the player carried in `the cursor item`, and `cancel event` refuses all of it at once — the protocol
+  cannot apply half a drag. Every detail, including why a drag can only put items and never take them, is
+  in the new wiki page *How drags work*.
+- A click in the player's own half of a `static` window is reported with the window slot the client used.
+  The old number was relative to that half, so it named a container slot the player never touched and ran
+  a callback for it.
 - `/skript reload` closes every menu before the new scripts load. A menu holds the callbacks of the scripts
   that built it, so a menu that survived a reload answered the next click with code that was no longer in
   any script. The reloaded scripts build their menus again, as they do on start.

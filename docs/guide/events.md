@@ -36,8 +36,10 @@ prefix**:
 
 | Value | Meaning | In which events |
 |---|---|---|
-| `the clicked slot` | the number of the slot that was clicked (0-based) | `on menu interact` |
+| `the clicked slot` | the number of the slot that was clicked (0-based); for a drag, the **first** slot it reached | `on menu interact` |
 | `the clicked icon` | the item in the slot that was clicked | `on menu interact` |
+| `the dragged slots` | every slot a drag reached; nothing for a click | `on menu interact` |
+| `the cursor item` | what the player is holding (only set in `static` mode) | `on menu interact` |
 | `the pressed number key` | the number key that was pressed, 1–9; nothing for any other click | `on menu interact` |
 | `the page` | which page the event happened on | `on menu open`, `on menu interact`, `on page turn` (the page it is leaving) |
 | `the future page` | which page it is turning to | `on page turn` |
@@ -51,6 +53,11 @@ as aliases, for scripts already written that way: `the event-page`, `the event-t
 
 `the clicked icon` also has the shorter historical alias `the icon`. `the pressed number key` has no
 `event-` form — `the event-pressed number key` is not something a person says.
+
+When the player drags, one drag is still **one** `on menu interact`, `the dragged slots` holds every slot
+it reached, and `cancel event` refuses the whole drag. The full mechanism — why only a many-slot drag is
+visible at all, and why a drag can only put items and never take them — is in
+[How drags work](dragging.md).
 
 ### The boundaries of `the future page`
 

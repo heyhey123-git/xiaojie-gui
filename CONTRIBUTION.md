@@ -116,6 +116,11 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
 - A `%type%` slot preceded by the literal word of that type (`menu %menu%`) parses its argument as a lookup
   by id, so a variable put there finds nothing. Write the slot first: `menu viewers of %menu%`, not
   `viewers of menu %menu%`.
+- One interaction is **one** event, however many slots it touched. A drag over four slots must not run a
+  handler four times: a handler that pays out or gives an item would do it four times. Per-slot callbacks
+  are the exception, and only because each belongs to one slot and is handed an event whose slot and icon
+  are its own; `Page.loadInPage` is where that is written, and `docs/guide/dragging.zh-CN.md` is what a
+  script author reads about it.
 
 ## 4. Tests
 
@@ -180,7 +185,8 @@ Two halves, for two readers:
   skUnity's jar import, the tool reads Skript's registry, so syntax registered through the addon API does
   reach the file — but only conditions, effects, expressions and sections: the events are not in the
   export, and the wiki stays the list for those. The version in the JSON comes from `gradle.properties`,
-  so it cannot disagree with the jar.
+  so it cannot disagree with the jar; a 2.0.0 run reports 52 elements, which is the 57 this addon
+  registers minus its five events.
 
 A page may only describe syntax that exists: read the element's own patterns and prefer its `@Examples`
 verbatim, since those are the ones the example gate parses. A claim about a trap belongs in the page only

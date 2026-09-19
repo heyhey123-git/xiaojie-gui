@@ -14,6 +14,7 @@
 **交互**
 
 - [事件与事件值](Events)
+- [拖拽是怎么工作的](Dragging)
 - [会话](Sessions)
 - [条件](Conditions)
 
@@ -39,6 +40,7 @@
 **Interaction**
 
 - [Events and Event Values](Events-English)
+- [How Drags Work](Dragging-English)
 - [Sessions](Sessions-English)
 - [Conditions](Conditions-English)
 
