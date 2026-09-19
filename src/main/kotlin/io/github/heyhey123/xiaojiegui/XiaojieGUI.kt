@@ -5,6 +5,7 @@ import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.listener.BukkitInventoryListener
 import io.github.heyhey123.xiaojiegui.listener.PlayerQuitListener
 import io.github.heyhey123.xiaojiegui.listener.ReceptaclePacketListener
+import io.github.heyhey123.xiaojiegui.listener.ScriptLoadListener
 import io.github.heyhey123.xiaojiegui.listener.StaticInventoryListener
 import io.github.heyhey123.xiaojiegui.logging.LogoPrinter
 import io.github.heyhey123.xiaojiegui.skript.registerElements
@@ -33,6 +34,7 @@ class XiaojieGUI : JavaPlugin() {
         BukkitInventoryListener.register()
         PlayerQuitListener.register()
         StaticInventoryListener.register()
+        ScriptLoadListener.register()
 
         Skript.instance().registerAddon(XiaojieGUI::class.java, pluginMeta.name)
             .let(::registerElements)
@@ -42,12 +44,13 @@ class XiaojieGUI : JavaPlugin() {
     }
 
     override fun onDisable() {
-        Menu.menus.forEach { it.destroy() }
+        Menu.destroyAll()
 
         ReceptaclePacketListener.unregister()
         BukkitInventoryListener.unregister()
         PlayerQuitListener.unregister()
         StaticInventoryListener.unregister()
+        ScriptLoadListener.unregister()
         Button.buttons.clear()
         logger.info("XiaojieGUI has been disabled!")
     }

@@ -41,13 +41,14 @@ sealed class ViewLayout(
     sealed class FixedContainer(type: LayoutType, inventoryType: InventoryType, slotRange: IntRange) :
         ViewLayout(type, inventoryType, slotRange) {
         object GENERIC_3X3 : FixedContainer(LayoutType.GENERIC_3X3, InventoryType.DROPPER, 0..8)
-        object CRAFTER_3X3 : FixedContainer(LayoutType.CRAFTER_3X3, InventoryType.WORKBENCH, 0..8)
+        object WORKBENCH : FixedContainer(LayoutType.WORKBENCH, InventoryType.WORKBENCH, 0..8)
         object ANVIL : FixedContainer(LayoutType.ANVIL, InventoryType.ANVIL, 0..2)
         object BARREL : FixedContainer(LayoutType.GENERIC_9X3, InventoryType.BARREL, 0..26)
         object BEACON : FixedContainer(LayoutType.BEACON, InventoryType.BEACON, 0..2)
         object BLAST_FURNACE : FixedContainer(LayoutType.BLAST_FURNACE, InventoryType.BLAST_FURNACE, 0..2)
         object BREWING_STAND : FixedContainer(LayoutType.BREWING_STAND, InventoryType.BREWING, 0..4)
         object CRAFTING : FixedContainer(LayoutType.CRAFTING, InventoryType.CRAFTING, 0..4)
+        object CRAFTER : FixedContainer(LayoutType.CRAFTER, InventoryType.CRAFTER, 0..8)
         object DISPENSER : FixedContainer(LayoutType.GENERIC_3X3, InventoryType.DISPENSER, 0..8)
         object ENCHANTMENT : FixedContainer(LayoutType.ENCHANTMENT, InventoryType.ENCHANTING, 0..2)
         object ENDER_CHEST : FixedContainer(LayoutType.GENERIC_9X3, InventoryType.ENDER_CHEST, 0..26)
@@ -68,7 +69,8 @@ sealed class ViewLayout(
         fun fromInventoryType(type: InventoryType): ViewLayout = when (type) {
             InventoryType.CHEST -> Chest.GENERIC_9X3
             InventoryType.DROPPER -> FixedContainer.GENERIC_3X3
-            InventoryType.WORKBENCH -> FixedContainer.CRAFTER_3X3
+            InventoryType.WORKBENCH -> FixedContainer.WORKBENCH
+            InventoryType.CRAFTER -> FixedContainer.CRAFTER
             InventoryType.ANVIL -> FixedContainer.ANVIL
             InventoryType.BARREL -> FixedContainer.BARREL
             InventoryType.BEACON -> FixedContainer.BEACON

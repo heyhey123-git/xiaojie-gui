@@ -132,7 +132,7 @@ class Menu(
             val previous = session.menu!!
             MenuCloseEvent(session, viewer, previous).callEvent()
             // The session is about to point at this menu, so the old one stops counting the player
-            // as a viewer. Nothing else removes the entry, and `viewers of menu` would report a
+            // as a viewer. Nothing else removes the entry, and `the menu viewers of` would report a
             // player who left it for as long as the menu lives.
             previous.viewers.remove(viewer.uniqueId)
             session.shutTemporarily()
@@ -581,5 +581,16 @@ class Menu(
          * A set of all menus, used for cleanup on plugin disable.
          */
         val menus: WeakHashSet<Menu> = WeakHashSet()
+
+        /**
+         * Destroy every menu that exists, closing it for the players looking at it.
+         *
+         * A menu holds the callbacks of the scripts that built it, so this is what runs before those
+         * scripts are unloaded: a menu that outlived the reload would answer the next click with a
+         * callback whose trigger no longer exists. Scripts build their menus again when they load.
+         */
+        fun destroyAll() {
+            menus.forEach { it.destroy() }
+        }
     }
 }

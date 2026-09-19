@@ -110,14 +110,14 @@ class Page(
 
         fun processLine(line: String, yIndex: Int, baseIndex: Int) {
             var i = 0
-            var visualX = 0 // 实际上容器里的 x 坐标
+            var visualX = 0 // the x coordinate inside the container, which is what a slot is counted in
 
             while (i < line.length && visualX < width) {
                 val ch = line[i]
                 if (ch == '`') {
                     val closing = line.indexOf('`', i + 1)
                     if (closing == -1) {
-                        // 不成对，按普通字符处理
+                        // Not a pair: a lone backquote is an ordinary key of its own.
                         addKey('`', visualX, yIndex, baseIndex)
                         i += 1
                         visualX += 1
@@ -125,7 +125,7 @@ class Page(
                     }
                     val keyName = line.substring(i + 1, closing)
                     addKey(keyName, visualX, yIndex, baseIndex)
-                    visualX += 1 // 整个反引号块占 1 个可视格
+                    visualX += 1 // a whole backquoted block is one visible cell
                     i = closing + 1
                 } else {
                     addKey(ch, visualX, yIndex, baseIndex)
@@ -135,14 +135,14 @@ class Page(
             }
         }
 
-        // 主布局
+        // The page's own layout.
         layoutPattern.asSequence()
             .take(rows)
             .forEachIndexed { rowIndex, patternLine ->
                 processLine(patternLine, rowIndex, 0)
             }
 
-        // 玩家背包（PHANTOM，从 containerSize 之后开始）
+        // The player's inventory, for a phantom page that shows it: it starts after the container.
         if (properties.mode == Receptacle.Mode.PHANTOM && !properties.hidePlayerInventory) {
             this.playerInventoryPattern.asSequence()
                 .take(4)
@@ -203,7 +203,9 @@ class Page(
                 session,
                 viewer = player,
                 menu,
-                menu.pages.indexOf(this),
+                // The session's page, not `menu.pages.indexOf(this)`: that is a 0-based list index, and
+                // every page number a script sees is 1-based, including the one `on page turn` reports.
+                session.page,
                 event.slot,
                 event.receptacle.getElement(event.slot),
                 event.clickType

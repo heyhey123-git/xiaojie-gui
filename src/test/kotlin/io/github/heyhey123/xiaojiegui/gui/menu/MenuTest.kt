@@ -303,6 +303,19 @@ class MenuTest {
     }
 
     @Test
+    fun `destroyAll - every menu goes with the scripts that built it`() {
+        val first = Menu(null, properties, InventoryType.CHEST)
+        val second = Menu(null, properties, InventoryType.CHEST)
+        first.pages.add(chestPage(properties))
+        second.pages.add(chestPage(properties))
+
+        Menu.destroyAll()
+
+        assertTrue(first.isDestroyed)
+        assertTrue(second.isDestroyed)
+    }
+
+    @Test
     fun `insertPage - insert the specific page properly`() {
         val menu = Menu(null, properties, InventoryType.CHEST)
 

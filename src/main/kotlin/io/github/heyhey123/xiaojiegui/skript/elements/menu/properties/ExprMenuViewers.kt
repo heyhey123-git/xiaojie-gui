@@ -17,10 +17,16 @@ import org.bukkit.event.Event
 import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Menu Viewers")
-@Description("All players currently viewing a menu.")
+@Description(
+    "All players currently viewing a menu.",
+    "The property is called `menu viewers` rather than `viewers` because Skript 2.16 registers a `viewer[s]`",
+    "property of its own over *any* object, and it is registered before this addon's syntax, so",
+    "`the viewers of {_menu}` is answered by Skript and returns nothing. `all players viewing {_menu}` is the",
+    "same value under a name Skript does not claim."
+)
 @Examples(
-    "broadcast \"There are currently %size of viewers of menu {_menu}% players viewing the menu.\"",
-    "loop viewers of menu {_menu}:",
+    "broadcast \"There are currently %size of the menu viewers of {_menu}% players viewing the menu.\"",
+    "loop the menu viewers of {_menu}:",
     "    send \"You are not alone! There are other players viewing this menu.\" to loop-player"
 )
 @Since("1.0.0")
@@ -32,8 +38,11 @@ class ExprMenuViewers : SimpleExpression<Player>() {
                 addon,
                 ExprMenuViewers::class.java,
                 Player::class.java,
-                "[the] viewers of [the] [(menu|gui)] %menu%",
-                "%menu%'[s] viewers",
+                // No `the viewers of %menu%` pattern: see the description. `[the] menu viewers of %menu%`
+                // deliberately has no `menu` literal before the slot, because a `%menu%` slot preceded by
+                // the word `menu` parses `{_menu}` as a lookup by id, which finds nothing.
+                "[the] menu viewers of %menu%",
+                "%menu%'[s] menu viewers",
                 "[all] [(players|viewers)] viewing [the] [(menu|gui)] %menu%",
                 priority = PropertyExpression.DEFAULT_PRIORITY
             )
@@ -59,7 +68,7 @@ class ExprMenuViewers : SimpleExpression<Player>() {
     }
 
     override fun toString(event: Event?, debug: Boolean): String =
-        "the viewers of the menu ${menuExpr.toString(event, debug)}"
+        "the menu viewers of ${menuExpr.toString(event, debug)}"
 
     override fun isSingle() = false
 

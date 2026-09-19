@@ -5,43 +5,50 @@ import net.minecraft.world.inventory.MenuType
 /**
  * LayoutType defines various standard inventory layouts.
  *
- * Each layout type corresponds to a specific arrangement of slots in a GUI.
- *
- * @property id The unique identifier for the layout type.
+ * Each layout type corresponds to a specific arrangement of slots in a GUI **and** to the menu the client
+ * draws for it: [toNMSType] is what the open-screen packet carries, so a layout has to name the menu the
+ * client will actually show rather than one that merely looks similar. A crafting table and the crafter
+ * block are both 3x3 and are still different menus here.
  */
-enum class LayoutType(val id: Int) {
+enum class LayoutType {
 
     // chest
-    GENERIC_9X1(0),
-    GENERIC_9X2(1),
-    GENERIC_9X3(2),
-    GENERIC_9X4(3),
-    GENERIC_9X5(4),
-    GENERIC_9X6(5),
+    GENERIC_9X1,
+    GENERIC_9X2,
+    GENERIC_9X3,
+    GENERIC_9X4,
+    GENERIC_9X5,
+    GENERIC_9X6,
 
-    // dropper
-    GENERIC_3X3(6),
+    // dropper and dispenser
+    GENERIC_3X3,
 
-    // crafter
-    CRAFTER_3X3(7),
+    // crafting table
+    WORKBENCH,
 
-    ANVIL(8),
-    BEACON(9),
-    BLAST_FURNACE(10),
-    BREWING_STAND(11),
-    CRAFTING(12),
-    ENCHANTMENT(13),
-    FURNACE(14),
-    GRINDSTONE(15),
-    HOPPER(16),
-    LECTERN(17),
-    LOOM(18),
-    MERCHANT(19),
-    SHULKER_BOX(20),
-    SMITHING(21),
-    SMOKER(22),
-    CARTOGRAPHY_TABLE(23),
-    STONECUTTER(24);
+    ANVIL,
+    BEACON,
+    BLAST_FURNACE,
+    BREWING_STAND,
+
+    // the player's own crafting grid, not a block
+    CRAFTING,
+
+    // the crafter block, which is a 3x3 menu of its own
+    CRAFTER,
+
+    ENCHANTMENT,
+    FURNACE,
+    GRINDSTONE,
+    HOPPER,
+    LECTERN,
+    LOOM,
+    MERCHANT,
+    SHULKER_BOX,
+    SMITHING,
+    SMOKER,
+    CARTOGRAPHY_TABLE,
+    STONECUTTER;
 
     fun toNMSType(): MenuType<*> =
         when (this) {
@@ -52,12 +59,13 @@ enum class LayoutType(val id: Int) {
             GENERIC_9X5 -> MenuType.GENERIC_9x5
             GENERIC_9X6 -> MenuType.GENERIC_9x6
             GENERIC_3X3 -> MenuType.GENERIC_3x3
-            CRAFTER_3X3 -> MenuType.CRAFTING
+            WORKBENCH -> MenuType.CRAFTING
             ANVIL -> MenuType.ANVIL
             BEACON -> MenuType.BEACON
             BLAST_FURNACE -> MenuType.BLAST_FURNACE
             BREWING_STAND -> MenuType.BREWING_STAND
             CRAFTING -> MenuType.CRAFTING
+            CRAFTER -> MenuType.CRAFTER_3x3
             ENCHANTMENT -> MenuType.ENCHANTMENT
             FURNACE -> MenuType.FURNACE
             GRINDSTONE -> MenuType.GRINDSTONE
