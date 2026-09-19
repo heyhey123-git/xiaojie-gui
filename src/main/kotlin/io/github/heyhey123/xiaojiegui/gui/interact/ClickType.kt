@@ -60,12 +60,6 @@ enum class ClickType(
 
     RIGHT_DROP(ClickMode.THROW, 1, BukkitClickType.CONTROL_DROP),
 
-    LEFT_MOUSE_DRAG_ADD(ClickMode.QUICK_CRAFT, 1, null),
-
-    RIGHT_MOUSE_DRAG_ADD(ClickMode.QUICK_CRAFT, 5, null),
-
-    MIDDLE_MOUSE_DRAG_ADD(ClickMode.QUICK_CRAFT, 9, null),
-
     DOUBLE_CLICK(ClickMode.PICK_UP_ALL, 0, BukkitClickType.DOUBLE_CLICK),
 
     UNKNOWN(ClickMode.UNKNOWN, -1, BukkitClickType.UNKNOWN);
@@ -137,7 +131,7 @@ enum class ClickType(
      *
      * @return `true` if this ClickType requires creative action, `false` otherwise.
      */
-    private fun mustBeCreativeAction(): Boolean = this == MIDDLE || this == MIDDLE_MOUSE_DRAG_ADD
+    private fun mustBeCreativeAction(): Boolean = this == MIDDLE
 
     override fun toString(): String =
         name.lowercase().replace('_', ' ')

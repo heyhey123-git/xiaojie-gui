@@ -1,0 +1,69 @@
+# The drag half of the client layer. A drag is not one packet but a run of them, and how a menu sees it
+# is the thing `docs/guide/how-drags-work.zh-CN.md` explains: this file is where that explanation is
+# held to the server's actual behaviour.
+#
+# Four things are checked here, and every one of them needs a real client, because only a real client
+# sends the packets a player's mouse would:
+#
+#   1. a drag that touched one slot arrives as an ordinary click (the game rewrites it, so a script
+#      written for clicks keeps working and never has to know a drag happened);
+#   2. a drag that touched several slots arrives once, with all of them (`the dragged slots`);
+#   3. a script can refuse a drag, and refusing it refuses all of it -- the items stay where they were;
+#   4. `the cursor item` is the stack the player dragged.
+#
+# The menu is `static`, because a drag only matters where the items are real: in `phantom` mode the
+# window is the server's own invention and nothing can be taken or placed for real.
+#
+# A and B are the "fixed" slots of a shop: this script cancels every interaction with them, which is the
+# whole protection mechanism, and slots 11 to 20 are the free ones a backpack or a payment area would
+# leave empty. C is a stack of two and D a single item, because the same gesture means different things
+# depending on how many items the cursor carries: one item can only ever fill one slot.
+
+on load:
+    create a static menu with chest inventory titled "Drag Test" with layout "ABCD     ", "         ", "         " with id "dragtest" with 0 ms click delay:
+        map key "A" to icon diamond named "drag-a" for menu with id "dragtest"
+        map key "B" to icon emerald named "drag-b" for menu with id "dragtest"
+        map key "C" to icon 2 stone named "drag-two" for menu with id "dragtest"
+        map key "D" to icon apple named "drag-one" for menu with id "dragtest"
+
+# Opened by the bot rather than on join: the client scenario runs first, and a second window opening on
+# its own would be a window the first half of the run did not ask for.
+command /dragtest:
+    trigger:
+        set {_menu} to the menu with id "dragtest"
+        open menu {_menu} for player
+        set {_slots::*} to the slots of key "A" in page 1 of {_menu}
+        log "XIAOJIE_SELFTEST detail: client drag menu opened -> A at %{_slots::*}%"
+
+on menu interact:
+    set {_menu} to the event-menu
+    if {_menu} is not the menu with id "dragtest":
+        stop
+
+    # Slots 0 and 1 are a shop's goods and slot 5 is reserved: any interaction that touches one of them is
+    # refused, whatever it is. That is the whole protection mechanism -- a script's `cancel event`, which
+    # for a drag refuses every slot it reached at once, because a drag cannot be applied halfway.
+    set {_dragged::*} to the dragged slots
+
+    if {_dragged::*} is not set:
+        # One slot was touched. A one-item drag is delivered as exactly this click, and nothing here can
+        # tell it from a click -- which is the point: a script written for clicks keeps working. Only the
+        # slots the bot drags into are logged, or every pickup click would be a line of its own.
+        if the clicked slot is 0 or 1 or 5:
+            cancel event
+            stop
+        if the clicked slot is 11 or 12 or 13 or 14:
+            log "XIAOJIE_SELFTEST detail: client one slot drag came in as a click -> slot %the clicked slot%, type %the click type%"
+        stop
+
+    loop {_dragged::*}:
+        if loop-value is 0 or 1 or 5:
+            cancel event
+            # `the cursor item` is what the player carried into the drag. A drag never takes anything out
+            # of a slot, so for a drag this is always the stack that came in with it.
+            log "XIAOJIE_SELFTEST detail: client drag onto protected slots -> cancelled for slots %{_dragged::*}%, cursor %the amount of the cursor item%"
+            stop
+
+    # Nothing was cancelled, so the drag happens: every touched slot keeps the item it was given, which is
+    # what the bot then reads out of its own window.
+    log "XIAOJIE_SELFTEST detail: client multi slot drag -> slots %{_dragged::*}%, type %the click type%"

@@ -14,6 +14,7 @@ import io.mockk.verify
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -159,6 +160,15 @@ private class TestViewReceptacle(
 
     override fun clicked(clickType: ClickType, slot: Int, staticInventoryEvent: InventoryClickEvent?) {
         // click logic is not asserted here
+    }
+
+    override fun dragged(
+        clickType: ClickType,
+        slots: List<Int>,
+        cursor: ItemStack?,
+        dragEvent: InventoryDragEvent?
+    ) {
+        // drag logic is not asserted here
     }
 
     override fun getElement(slot: Int): ItemStack {

@@ -6,8 +6,10 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType
 import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.gui.receptacle.PhantomReceptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.gui.utils.TaskUtil
 
@@ -31,6 +33,15 @@ object ReceptaclePacketListener :
             PacketType.Play.Client.CLICK_WINDOW -> {
                 val packet = WrapperPlayClientClickWindow(event)
                 val slot = packet.slot
+                if (packet.windowClickType == WindowClickType.QUICK_CRAFT) {
+                    // A drag arrives as a run of these packets, with the phase packed into the button, and
+                    // none of them means anything on its own: the window is ours, so the run is collected
+                    // here and reported as one interaction when it ends. See `QuickCraft`.
+                    val phantom = receptacle as? PhantomReceptacle ?: return
+                    TaskUtil.sync { phantom.dragPacket(slot, packet.button) }
+                    event.isCancelled = true
+                    return
+                }
                 val clickType = ClickType.from(
                     mode = packet.windowClickType.ordinal,
                     button = packet.button,

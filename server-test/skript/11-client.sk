@@ -62,6 +62,10 @@ on menu interact:
     # something that check can read. The message carries the clicked slot from the protocol's side, the
     # click type, and the number key, which is nothing (`<none>`) for every click that is not one.
     set {_menu} to the event-menu
+    # The drag scenario opens a menu of its own, and its clicks arrive here too: this handler answers only
+    # for the menu below, or it would report that menu's slots as unknown ones.
+    if {_menu} is not the menu with id "client":
+        stop
     set {_key} to the pressed number key
     set {_viewers::*} to the menu viewers of {_menu}
     # `the menu viewers of`, not `the viewers of`: Skript 2.16 registers a `viewer[s]` property of its own

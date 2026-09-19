@@ -20,6 +20,8 @@ import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEven
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprAllMenuIds
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprAllMenus
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprCurrentPage
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprEventCursorItem
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprEventDraggedSlots
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprEventIcon
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprEventNumberKey
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprEventPage
@@ -88,6 +90,8 @@ internal fun registerElements(addon: SkriptAddon) {
     ExprAllMenuIds.register(addon)
     ExprAllMenus.register(addon)
     ExprCurrentPage.register(addon)
+    ExprEventCursorItem.register(addon)
+    ExprEventDraggedSlots.register(addon)
     ExprEventIcon.register(addon)
     ExprEventNumberKey.register(addon)
     ExprEventPage.register(addon)

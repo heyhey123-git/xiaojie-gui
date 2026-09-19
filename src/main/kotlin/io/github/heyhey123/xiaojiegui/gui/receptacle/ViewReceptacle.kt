@@ -6,6 +6,8 @@ import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryDragEvent
+import org.bukkit.inventory.ItemStack
 import java.util.HashMap
 import java.util.UUID
 
@@ -73,6 +75,24 @@ abstract class ViewReceptacle(
      * @param staticInventoryEvent the bukkit InventoryClickEvent, or null if not applicable
      */
     internal abstract fun clicked(clickType: ClickType, slot: Int, staticInventoryEvent: InventoryClickEvent?)
+
+    /**
+     * Dispatch one interaction that touched several slots at once, which can only be a drag.
+     *
+     * A drag that touched a single slot never reaches this: the server delivers it as an ordinary click,
+     * so it goes through [clicked] and a script sees exactly what it would see for a click.
+     *
+     * @param clickType the button the drag was made with
+     * @param slots every slot the drag touched, in ascending order
+     * @param cursor what the player was holding, or null when the server did not say
+     * @param dragEvent the bukkit drag event to cancel, or null for a receptacle that cannot be cancelled
+     */
+    internal abstract fun dragged(
+        clickType: ClickType,
+        slots: List<Int>,
+        cursor: ItemStack?,
+        dragEvent: InventoryDragEvent?
+    )
 
     /**
      * Handle the receptacle being closed (by player), triggering the appropriate events and actions.

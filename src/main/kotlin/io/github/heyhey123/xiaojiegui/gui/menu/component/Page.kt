@@ -199,6 +199,9 @@ class Page(
                 return@onClick
             }
 
+            // One interaction is one event, however many slots it touched. A drag is one thing the player
+            // did, so a handler that pays out, gives an item or logs must not run once per slot: the slots
+            // it touched are `the dragged slots`, and the first of them is `the clicked slot`.
             val menuEvent = MenuInteractEvent(
                 session,
                 viewer = player,
@@ -208,14 +211,42 @@ class Page(
                 session.page,
                 event.slot,
                 event.receptacle.getElement(event.slot),
-                event.clickType
+                event.clickType,
+                event.slots,
+                event.cursor
             )
 
-            clickCallbacks[event.slot]?.invoke(menuEvent)
+            // A slot callback belongs to one slot, so it is handed an event whose slot and icon are its
+            // own: a callback written for a click keeps working when the player drags over that slot
+            // instead. A click's one slot makes the two the same event, so nothing changes for clicks.
+            for (slot in event.slots) {
+                val callback = clickCallbacks[slot] ?: continue
+                val slotEvent = if (event.slots.size == 1) {
+                    menuEvent
+                } else {
+                    MenuInteractEvent(
+                        session,
+                        viewer = player,
+                        menu,
+                        session.page,
+                        slot,
+                        event.receptacle.getElement(slot),
+                        event.clickType,
+                        event.slots,
+                        event.cursor
+                    )
+                }
+
+                callback(slotEvent)
+
+                if (!slotEvent.callEvent()) {
+                    doCancel()
+                    return@onClick
+                }
+            }
 
             if (!menuEvent.callEvent()) {
                 doCancel()
-                return@onClick
             }
         }
 

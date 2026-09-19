@@ -265,10 +265,14 @@ val serverTestExpectedDetails = mapOf(
 // `11-client.sk` is left out of this check: it reports its lines only while a real client is connected,
 // which this run never has, and those names are declared in `clientTestExpectedDetails` below instead.
 // `clientTest` reads the same file for its own version of this check, so the names stay covered.
+// The scripts of the client scenario, whose `XIAOJIE_SELFTEST` lines need a player and are therefore
+// declared next to the bot's run (`clientTestExpectedDetails`) rather than next to the server test's.
+// Both undeclared-name checks read every script, so both have to know which files to leave out.
+val clientOnlyScripts = setOf("11-client.sk", "12-client-drag.sk")
+
 val serverTestUndeclaredDetails = providers.provider {
-    val clientScript = serverTestScripts.file("11-client.sk").asFile
     val reported = serverTestScripts.asFile.walkTopDown()
-        .filter { it.isFile && it.extension == "sk" && it != clientScript }
+        .filter { it.isFile && it.extension == "sk" && it.name !in clientOnlyScripts }
         .flatMap { file ->
             // Comments describe the line format, so they would otherwise be read as names nothing declares.
             file.readLines()
@@ -677,14 +681,24 @@ val clientTestExpectedDetails = mapOf(
     "client shift click" to "slot 1 on page 1, type left mouse button with shift, key <none>, 1 viewer(s)",
     "client number key click" to "slot 2 on page 1, type number key, key 3, 1 viewer(s)",
     "client page 2 button" to "slot 3 on page 1, type left mouse button, key <none>, 1 viewer(s)",
-    "client page turned" to "1 -> 2"
+    "client page turned" to "1 -> 2",
+    // The drag scenario (`12-client-drag.sk`), which needs a `static` menu because a drag is the one way
+    // a real inventory can be changed without a click: the menu's own layout, a drag that the game
+    // rewrote into a click because the cursor held one item, a drag that filled two slots and was
+    // reported as one interaction, and a drag a script refused -- which has to refuse all of it.
+    "client drag menu opened" to "A at 0",
+    "client one slot drag came in as a click" to "slot 11, type left mouse button",
+    "client multi slot drag" to "slots 13 and 14, type left mouse button",
+    "client drag onto protected slots" to "cancelled for slots 5 and 6, cursor 2"
 )
 
-// The names `11-client.sk` reports that the map above does not declare. `serverTestUndeclaredDetails`
-// leaves that file out (its lines need a player), so this is where those names are held to the same
-// rule: a line in the client scenario that nothing declares fails the build.
+// The names the client scenario's scripts report that the map above does not declare.
+// `serverTestUndeclaredDetails` leaves those files out (their lines need a player), so this is where
+// those names are held to the same rule: a line in the client scenario that nothing declares fails the
+// build. Every script the bot's run drives has to be listed here, or its lines go unchecked.
 val clientTestUndeclaredDetails = providers.provider {
-    val reported = serverTestScripts.file("11-client.sk").asFile.readLines()
+    val reported = clientOnlyScripts
+        .flatMap { serverTestScripts.file(it).asFile.readLines() }
         .filterNot { it.trimStart().startsWith("#") }
         .flatMap { line ->
             Regex("""XIAOJIE_SELFTEST detail:\s*(.+?)\s*->""")

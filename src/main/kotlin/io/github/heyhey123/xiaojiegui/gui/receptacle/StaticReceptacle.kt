@@ -6,6 +6,7 @@ import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.inventory.ItemStack
 
 class StaticReceptacle(
@@ -19,9 +20,14 @@ class StaticReceptacle(
     private var currentInventoryHolder: StaticInventory.Holder = StaticInventory.create(layout, title)
 
     override fun getElement(slot: Int): ItemStack? =
-        currentInventoryHolder.inventory.getItem(slot)
+        // Slots past the container belong to the player's own inventory, which this mode does not own: an
+        // item placed there is the player's, and there is nothing here that could be read or written.
+        if (slot in layout.containerSlotRange) currentInventoryHolder.inventory.getItem(slot) else null
 
     override fun setElement(slot: Int, item: ItemStack?) {
+        require(slot in layout.containerSlotRange) {
+            "Slot $slot is not part of this menu: a ${mode.id} menu owns its ${layout.containerSize} container slots, and the rest of the window is the player's own inventory."
+        }
         currentInventoryHolder.inventory.setItem(slot, item)
     }
 
@@ -60,6 +66,22 @@ class StaticReceptacle(
 
         if (!event.callEvent()) {
             staticInventoryEvent!!.isCancelled = true
+        }
+    }
+
+    override fun dragged(
+        clickType: ClickType,
+        slots: List<Int>,
+        cursor: ItemStack?,
+        dragEvent: InventoryDragEvent?
+    ) {
+        val event = ReceptacleInteractEvent(viewer!!, this, clickType, slots.first(), slots, cursor)
+        onClick(event)
+
+        // The inventory behind this mode is real, so a cancelled drag has to be stopped here and now:
+        // the items are already in the slots the drag reached, and nothing else would put them back.
+        if (!event.callEvent()) {
+            dragEvent!!.isCancelled = true
         }
     }
 }

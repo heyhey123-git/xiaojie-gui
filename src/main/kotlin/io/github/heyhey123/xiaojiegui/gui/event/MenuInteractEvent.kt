@@ -15,8 +15,10 @@ import org.bukkit.inventory.ItemStack
  * @property session The menu session of the player who interacted with the menu.
  * @property menu The menu that was interacted with.
  * @property page The page number of the menu that was interacted with.
- * @property slot The slot number that was interacted with.
+ * @property slot The slot number that was interacted with, and the first one for a drag.
  * @property icon The icon that was interacted with, or null if the slot is empty.
+ * @property slots Every slot this interaction touches; more than one only for a drag.
+ * @property cursor What the player was holding, or null when the server did not say (phantom mode).
  */
 class MenuInteractEvent(
     override val session: MenuSession,
@@ -25,7 +27,9 @@ class MenuInteractEvent(
     val page: Int,
     val slot: Int,
     val icon: ItemStack?,
-    val clickType: ClickType
+    val clickType: ClickType,
+    val slots: List<Int> = listOf(slot),
+    val cursor: ItemStack? = null
 ) : MenuEvent(), Cancellable {
 
     companion object {

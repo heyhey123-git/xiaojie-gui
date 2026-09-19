@@ -3,10 +3,12 @@ package io.github.heyhey123.xiaojiegui.gui.receptacle
 import io.github.heyhey123.xiaojiegui.gui.PacketHelper
 import io.github.heyhey123.xiaojiegui.gui.event.ReceptacleInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
+import io.github.heyhey123.xiaojiegui.gui.interact.QuickCraft
 import io.github.heyhey123.xiaojiegui.gui.utils.TaskUtil
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.inventory.ItemStack
 
 class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(title, layout, Mode.PHANTOM) {
@@ -17,6 +19,11 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
     private val contents = arrayOfNulls<ItemStack?>(layout.totalSize)
 
     private var windowId: Int = -1
+
+    /**
+     * The slots the drag in progress has collected, or null when no drag is in progress.
+     */
+    private var draggedSlots: MutableSet<Int>? = null
 
     override fun getElement(slot: Int): ItemStack? {
         setupPlayerInventory()
@@ -59,6 +66,9 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
     override fun interruptItemDrag(event: ReceptacleInteractEvent) {
         if (event.clickType.isItemMoveable()) {
             refresh()
+        } else if (event.isDrag) {
+            // A drag touched several slots, so putting one of them back is not enough.
+            event.slots.forEach { refresh(it) }
         } else {
             refresh(event.slot)
         }
@@ -130,5 +140,54 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
         onClick(event)
 
         event.callEvent()
+    }
+
+    override fun dragged(
+        clickType: ClickType,
+        slots: List<Int>,
+        cursor: ItemStack?,
+        dragEvent: InventoryDragEvent?
+    ) {
+        val event = ReceptacleInteractEvent(viewer!!, this, clickType, slots.first(), slots, cursor)
+        onClick(event)
+
+        // There is no bukkit event to cancel here: the window is the server's own invention, and the
+        // refresh the interaction already did is what puts the client's own drag back.
+        event.callEvent()
+    }
+
+    /**
+     * One `QUICK_CRAFT` packet of a drag in progress.
+     *
+     * The protocol sends a drag as a run of click packets whose *button* carries the phase, and nothing
+     * here can act on a single one of them: the slots are only known once the run ends, and the server
+     * itself ignores a drag that collected fewer than two of them. So they are collected here and
+     * reported as one interaction on the end packet, which is what a script sees.
+     *
+     * @param slot the slot the packet names, which the start packet's phase ignores
+     * @param button the packet's button: its phase and the button the drag was made with
+     */
+    fun dragPacket(slot: Int, button: Int) {
+        when (QuickCraft.header(button)) {
+            QuickCraft.START -> draggedSlots = linkedSetOf()
+
+            QuickCraft.CONTINUE -> draggedSlots?.let {
+                if (slot in layout.containerSlotRange) it.add(slot)
+            }
+
+            QuickCraft.END -> {
+                val slots = draggedSlots ?: return
+                draggedSlots = null
+                val clickType = QuickCraft.clickType(button)
+                when {
+                    // A drag over nothing is what a start followed by an end is: no slots were collected.
+                    slots.isEmpty() -> return
+                    // A drag that collected one slot is what the server rewrites into a plain click, so
+                    // it goes down the same path a click does rather than becoming a drag of one slot.
+                    slots.size == 1 -> clicked(clickType, slots.first(), null)
+                    else -> dragged(clickType, slots.toList(), null, null)
+                }
+            }
+        }
     }
 }

@@ -29,6 +29,13 @@
 // translation layer rather than what a real 26.2 client would see.
 
 import mineflayer from 'mineflayer'
+import { createRequire } from 'node:module'
+
+// prismarine-item is mineflayer's own dependency, and what mineflayer itself uses to turn its item
+// objects into the shape a packet wants. The drag scenario below sends raw packets (mineflayer's window
+// model has no drag and refuses to build one), so it needs that conversion for `cursorItem` too.
+const require = createRequire(import.meta.url)
+const prismarineItem = require('prismarine-item')
 
 const HOST = process.env.XIAOJIE_CLIENT_HOST ?? '127.0.0.1'
 // The port `server-test/server.properties` sets. The task that runs this bot starts a server from that
@@ -322,6 +329,135 @@ async function scenario (bot, windows) {
     'those item types are what `11-client.sk` maps its keys to, read through this client\'s 26.1 ' +
       'registry: ViaBackwards rewrote the 26.2 ids into it before they arrived'
   )
+
+  // 4. The drag half, in a menu of its own, opened by a command rather than on join so that it cannot
+  //    put a second window in front of the first half of the run.
+  await dragScenario(bot, windows)
+}
+
+/**
+ * What a drag does, which is the one thing about a click a client has to be involved in.
+ *
+ * A drag is not a packet: it is a run of click packets whose *button* carries the phase and the button
+ * the drag was made with (low two bits: 0 start, 1 continue, 2 end; high bits: 0 left, 1 right, 2
+ * middle). The game collects the slots from the continue packets and applies the whole thing at the end,
+ * and that is why the same gesture can mean two different things: a cursor holding two items fills two
+ * slots, and a cursor holding one can only fill one, which the game then delivers as an ordinary click.
+ *
+ * mineflayer's high-level `clickWindow` cannot send any of this -- its window model has no drag and
+ * throws `invalid operation` -- so the packets go out raw here, each step followed by the `_syncWindow`
+ * mineflayer exposes for exactly that, so its model of the window matches the server's again.
+ *
+ * The four assertions, in order: a drag onto the two protected slots is refused and both keep their
+ * item; the same drag onto free slots happens and fills both; a drag of a single item fills one; and a
+ * click on a protected slot is refused the same way a drag is.
+ */
+async function dragScenario (bot, windows) {
+  const DRAG_TITLE = 'Drag Test'
+  const PROTECTED = [
+    { slot: 0, type: 'minecraft:diamond', label: 'drag-a' },
+    { slot: 1, type: 'minecraft:emerald', label: 'drag-b' }
+  ]
+
+  const before = windows.length
+  bot.chat('/dragtest')
+  const window = await waitFor('the drag test window', () =>
+    windows.slice(before).find((opened) => titleOf(opened).includes(DRAG_TITLE))
+  )
+  log(`the drag menu arrived with title ${JSON.stringify(titleOf(window))}`)
+  log(`  first row: ${describeFirstRow(window)}`)
+
+  /** Fails unless the first slots of the container hold exactly the types and labels given. */
+  function checkRow (what, expected) {
+    expected.forEach(([type, label], slot) => {
+      checkEqual(`the type of the item in slot ${slot} ${what}`, type, typeOf(window.slots[slot]))
+      if (label !== null) {
+        checkEqual(`the label of the item in slot ${slot} ${what}`, label, labelOf(window.slots[slot]))
+      }
+    })
+  }
+
+  const Item = prismarineItem(bot.registry)
+  function rawClick (slot, button, mode) {
+    bot._client.write('window_click', {
+      windowId: window.id,
+      stateId: window.stateId ?? -1,
+      slot,
+      mouseButton: button,
+      mode,
+      changedSlots: [],
+      cursorItem: Item.toNotch(window.selectedItem)
+    })
+  }
+
+  /** Waits for the server's answer to the last packets, then re-reads the window through mineflayer. */
+  async function settle (what) {
+    await sleep(400)
+    await bot._syncWindow(window)
+    log(`  after ${what}: ${describeFirstRow(window)}`)
+  }
+
+  /** One left-button drag: a start, one continue per slot, then the end. */
+  async function drag (slots) {
+    rawClick(slots[0], 0, 5)
+    await sleep(150)
+    for (const slot of slots) {
+      rawClick(slot, 1, 5)
+      await sleep(150)
+    }
+    rawClick(slots[0], 2, 5)
+  }
+
+  checkRow('at open', [
+    [PROTECTED[0].type, PROTECTED[0].label],
+    [PROTECTED[1].type, PROTECTED[1].label],
+    ['minecraft:stone', 'drag-two'],
+    ['minecraft:apple', 'drag-one']
+  ])
+
+  // 1. The stack of two, dragged onto the two goods: slot 1 holds an emerald, which cannot take stone, so
+  //    the game collects only slot 0 and delivers that one as a click -- and the script refuses it. Only a
+  //    client can send a drag at all, which is why this scenario is here and not in the unit tests.
+  await bot.clickWindow(2, 0, 0)
+  await settle('picking up the stack of two stone')
+  await drag([0, 1])
+  await settle('dragging that stack onto the protected slots 0 and 1')
+  checkRow('after the refused drag on the goods', [
+    [PROTECTED[0].type, PROTECTED[0].label],
+    [PROTECTED[1].type, PROTECTED[1].label]
+  ])
+
+  // 2. The same stack onto slot 5, which is empty and reserved: both slots can take the item, so this one
+  //    really is a drag, and refusing it has to refuse every slot it reached at once.
+  await drag([5, 6])
+  await settle('dragging that stack onto the protected slots 5 and 6')
+  checkEqual('the item in slot 5 after the refused drag', null, window.slots[5])
+  checkEqual('the item in slot 6 after the refused drag', null, window.slots[6])
+
+  // 3. The same drag onto free slots: it happens, and one item of the stack lands in each of them.
+  //    `selectedItem` is mineflayer's view of the cursor, so this also checks that a refused drag left
+  //    the stack where it was.
+  if (window.selectedItem === null) {
+    await bot.clickWindow(2, 0, 0)
+    await settle('picking the stack up again, the refusals having left it in its slot')
+  }
+  await drag([13, 14])
+  await settle('dragging the stack over the free slots 13 and 14')
+  checkEqual('the type in slot 13 after the drag', 'minecraft:stone', typeOf(window.slots[13]))
+  checkEqual('the type in slot 14 after the drag', 'minecraft:stone', typeOf(window.slots[14]))
+  checkEqual('the count in slot 13 after the drag', 1, window.slots[13]?.count)
+  checkEqual('the count in slot 14 after the drag', 1, window.slots[14]?.count)
+
+  // 4. A single item dragged over two slots fills one of them: the game delivers that as a click, and the
+  //    window is the same either way, which is what lets a script written for clicks keep working.
+  await bot.clickWindow(3, 0, 0)
+  await settle('picking up the single apple')
+  await drag([11, 12])
+  await settle('dragging one item over the free slots 11 and 12')
+  checkEqual('the type in slot 11 after the one-item drag', 'minecraft:apple', typeOf(window.slots[11]))
+  checkEqual('the item in slot 12 after the one-item drag', null, window.slots[12])
+
+  log('the drag scenario passed: refused drags leave every slot alone, and accepted ones fill every slot they reached')
 }
 
 /** Clicks one slot and reports it, naming the mode and button the protocol carries for that click. */

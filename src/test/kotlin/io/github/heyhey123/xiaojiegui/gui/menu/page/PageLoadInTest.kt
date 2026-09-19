@@ -124,6 +124,7 @@ class PageLoadInTest {
         every { clickedEvent.player } returns mockk(relaxed = true)
         every { clickedEvent.receptacle } returns receptacle
         every { clickedEvent.slot } returns 0
+        every { clickedEvent.slots } returns listOf(0)
         every { clickedEvent.clickType } returns ClickType.LEFT
 
         // Act: invoke the lambda registered in onClick
