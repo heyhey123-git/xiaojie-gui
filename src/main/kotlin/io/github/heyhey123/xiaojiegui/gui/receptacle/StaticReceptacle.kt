@@ -39,7 +39,10 @@ class StaticReceptacle(
 
     override fun title(title: Component, render: Boolean) {
         this.title = title
-        if (viewer == null) return
+        // `render` decides whether the client is told now. Menu.turnPage loads the page with render
+        // false and then sends one title update itself, so pushing here unconditionally re-sent the
+        // whole window twice on every page turn.
+        if (!render || viewer == null) return
         currentInventoryHolder.setTitle(title)
     }
 
@@ -48,7 +51,7 @@ class StaticReceptacle(
     }
 
     override fun refresh(slot: Int) {
-        //nop
+        // nop
     }
 
     override fun clicked(clickType: ClickType, slot: Int, staticInventoryEvent: InventoryClickEvent?) {

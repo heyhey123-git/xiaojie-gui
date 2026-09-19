@@ -86,7 +86,7 @@ class Page(
         27 -> 9
         5 -> 5
         else -> 3
-    } //??
+    } // ??
 
     /**
      * The container size of the layout.
@@ -187,7 +187,8 @@ class Page(
         receptacle.onClick { event ->
             event.receptacle.interruptItemDrag(event)
 
-            val doCancel = { // cancel if cooldown not passed
+            val doCancel = {
+                // cancel if cooldown not passed
                 event.isCancelled = true
             }
 
@@ -252,4 +253,3 @@ class Page(
     override fun toString() =
         "Page(title=$title, layoutPattern=$layoutPattern)"
 }
-

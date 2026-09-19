@@ -6,12 +6,13 @@ import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
+import ch.njol.skript.expressions.base.PropertyExpression
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.util.SimpleExpression
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Default Layout")
 @Description("The default layout of a menu.")
@@ -19,16 +20,17 @@ import org.bukkit.event.Event
     "set {_layout::*} to the default layout of menu {_menu}",
     "set the default layout of menu {_menu} to \"#########\", \"#.......#\", \"#..###..#\", \"#..###..#\", \"#.......#\", \"#########\""
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprDefaultLayout : SimpleExpression<String>() {
     companion object {
-        init {
-            Skript.registerExpression(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.expression(
+                addon,
                 ExprDefaultLayout::class.java,
                 String::class.java,
-                ExpressionType.PROPERTY,
                 "[the] default layout of [the] [(menu|gui)] %menu%",
                 "%menu%'[s] default layout",
+                priority = PropertyExpression.DEFAULT_PRIORITY
             )
         }
     }
@@ -56,8 +58,11 @@ class ExprDefaultLayout : SimpleExpression<String>() {
     }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
-        if (mode == Changer.ChangeMode.SET) arrayOf(Array<String>::class.java)
-        else emptyArray()
+        if (mode == Changer.ChangeMode.SET) {
+            arrayOf(Array<String>::class.java)
+        } else {
+            emptyArray()
+        }
 
     @Suppress("UNCHECKED_CAST")
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
@@ -83,5 +88,4 @@ class ExprDefaultLayout : SimpleExpression<String>() {
 
     override fun toString(event: Event?, debug: Boolean): String =
         "the default layout of the menu ${menuExpr.toString(event, debug)}"
-
 }

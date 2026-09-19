@@ -7,7 +7,11 @@ import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
-import ch.njol.skript.lang.*
+import ch.njol.skript.lang.Expression
+import ch.njol.skript.lang.Section
+import ch.njol.skript.lang.SkriptParser
+import ch.njol.skript.lang.TriggerItem
+import ch.njol.skript.lang.Variable
 import ch.njol.skript.lang.util.SectionUtils
 import ch.njol.skript.variables.Variables
 import ch.njol.util.Kleenean
@@ -16,10 +20,12 @@ import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryType
+import org.skriptlang.skript.addon.SkriptAddon
 import org.skriptlang.skript.lang.entry.EntryValidator
 import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
 import org.skriptlang.skript.lang.entry.util.LiteralEntryData
@@ -33,7 +39,9 @@ import kotlin.jvm.java
     "The created menu is stored in the specified variable."
 )
 @Examples(
-    "build a menu {_menu}",
+    // `build a menu` is a section, so its first line needs the colon; and `override slot` needs `for`
+    // to name the menu, which the edit section has just put in the variable.
+    "build a menu {_menu}:",
     "    mode: phantom",
     "    inventory type: chest inventory",
     "    title: \"Main Menu\"",
@@ -42,14 +50,15 @@ import kotlin.jvm.java
     "    click delay: 100",
     "    hide player inventory: true",
     "    edit:",
-    "        override slot 4 in page 0 to diamond named \"Special Item\""
+    "        override slot 4 in page 1 to diamond named \"Special Item\" for {_menu}"
 )
 @Since("1.0.3")
 class SecBuildMenu : Section() {
 
     companion object {
-        init {
-            Skript.registerSection(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.section(
+                addon,
                 SecBuildMenu::class.java,
                 "build [a] menu [%-object%]"
             )
@@ -101,7 +110,7 @@ class SecBuildMenu : Section() {
             .addEntryData(ExpressionEntryData("id", null, true, String::class.java))
             .addEntryData(ExpressionEntryData("default page", null, true, Number::class.java))
             .addEntryData(ExpressionEntryData("click delay", null, true, Number::class.java))
-            .addEntryData(LiteralEntryData("hide player inventory", false, true, java.lang.Boolean::class.java as Class<Boolean>))
+            .addEntryData(LiteralEntryData("hide player inventory", false, true, Boolean::class.javaObjectType))
             .addSection("edit", true)
             .build()
 
@@ -113,14 +122,16 @@ class SecBuildMenu : Section() {
 
         // mode
         val modeStr = (container.getOptional("mode", true) as String?)?.lowercase()
-        mode = when (modeStr) {
-            "static" -> Receptacle.Mode.STATIC
-            "phantom" -> Receptacle.Mode.PHANTOM
-            else -> {
-                Skript.error("Invalid menu mode: $modeStr. Must be 'phantom' or 'static'.")
-                return false
-            }
+        val mode = Receptacle.Mode.entries.firstOrNull { it.id == modeStr }
+        if (mode == null) {
+            Skript.error(
+                "Invalid menu mode: $modeStr. Must be one of: ${
+                    Receptacle.Mode.entries.joinToString(", ") { it.id }
+                }."
+            )
+            return false
         }
+        this.mode = mode
 
         // inventory type
         val inventoryTypeData = container.getOptional("inventory type", false) as? Expression<InventoryType>
@@ -227,9 +238,10 @@ class SecBuildMenu : Section() {
 
         val menu = Menu(id, properties, inventoryType)
 
-        if (defaultPage == null) {
-            menu.insertPage(null, layout.toList(), title, null)
-        }
+        // The given layout always becomes page 1; `default page` only decides which page `open menu`
+        // shows. Making this conditional left a menu with no pages at all whenever the user set a default
+        // page, which `open menu` then refused.
+        menu.insertPage(null, layout.toList(), title, null)
 
         menuVar?.change(event, arrayOf(menu), Changer.ChangeMode.SET)
         val menuProvider = ProvideMenuEvent(menu)
@@ -245,7 +257,7 @@ class SecBuildMenu : Section() {
 
     override fun toString(event: Event?, debug: Boolean): String {
         val sb = StringBuilder("create ")
-        sb.append(if (mode == Receptacle.Mode.PHANTOM) "a phantom" else "a static")
+        sb.append("a ${mode.id}")
         sb.append(" menu of type ").append(inventoryTypeExpr.toString(event, debug))
         sb.append(" with title ").append(titleExpr.toString(event, debug))
         sb.append(" and layout ").append(layoutExpr.toString(event, debug))

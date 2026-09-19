@@ -6,7 +6,8 @@ import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
-import java.util.*
+import java.util.HashMap
+import java.util.UUID
 
 abstract class ViewReceptacle(
     title: Component,
@@ -45,15 +46,18 @@ abstract class ViewReceptacle(
     protected abstract fun doOpen(player: Player)
 
     override fun close(render: Boolean) {
-        // if render is true, the receptacle is being closed by the plugin
-        // if render is false, the receptacle is being closed by the player
-        viewer ?: return
-        onClose(viewer!!, this)
-        viewer!!.removeViewingReceptacle()
+        // render is true when the plugin closes the receptacle and false when the player closed it:
+        // only the first case has a packet to send.
+        val player = viewer ?: return
+        onClose(player, this)
+        player.removeViewingReceptacle()
         if (render) {
             doClose()
         }
-        viewer!!.updateInventory()
+        player.updateInventory()
+        // Cleared last because doClose() reads it. A null viewer is also what keeps a delayed title
+        // update from reopening a window the player has already closed.
+        viewer = null
     }
 
     /**
@@ -75,13 +79,13 @@ abstract class ViewReceptacle(
      *
      */
     internal fun closed() {
+        val player = viewer ?: return
         close(false)
-        ReceptacleCloseEvent(viewer!!, this).callEvent()
+        ReceptacleCloseEvent(player, this).callEvent()
 
 //        async(delay = 1L) {
-//            // from trm:
-//            // 防止关闭菜单后, 动态标题频率过快出现的卡假容器
-//            // maybe not necessary here?
+//            // From TrMenu: guards against a ghost container when the title changes too fast after
+//            // the menu is closed. Maybe not necessary here?
 //            val receptacle = viewer!!.viewingReceptacle
 //            if (receptacle == null) {
 //                viewer!!.updateInventory()

@@ -6,7 +6,9 @@ import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.expressions.base.SimplePropertyExpression
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.entity.Player
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Get Player's Menu Session")
 @Description(
@@ -18,12 +20,13 @@ import org.bukkit.entity.Player
     "if {_session} is not set:",
     "\tsend \"You do not have an active menu session!\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprGetPlayerSession : SimplePropertyExpression<Player, MenuSession>() {
 
     companion object {
-        init {
-            register(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.property(
+                addon,
                 ExprGetPlayerSession::class.java,
                 MenuSession::class.java,
                 "menu session",

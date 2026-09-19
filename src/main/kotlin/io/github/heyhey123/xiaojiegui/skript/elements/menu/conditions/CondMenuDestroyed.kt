@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.conditions
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -10,7 +9,9 @@ import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Menu is Destroyed")
 @Description(
@@ -22,12 +23,13 @@ import org.bukkit.event.Event
     "if the menu with id \"main_menu\" is destroyed:",
     "    send \"The main menu has been destroyed and can no longer be used.\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class CondMenuDestroyed : Condition() {
 
     companion object {
-        init {
-            Skript.registerCondition(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.condition(
+                addon,
                 CondMenuDestroyed::class.java,
                 "[the] [menu] %menu% (is|was) destroyed",
                 "[the] [menu] %menu% (isn't|is not|wasn't|was not) destroyed"
@@ -50,10 +52,7 @@ class CondMenuDestroyed : Condition() {
     }
 
     override fun check(event: Event?): Boolean {
-        val menu = exprMenu.getSingle(event)
-        check(menu != null) {
-            "Menu to check if is destroyed cannot be null."
-        } // When null, we shouldn't return true or false, but rather indicate an error.
+        val menu = exprMenu.getSingle(event) ?: return false
         val destroyed = menu.isDestroyed
         return isNegated xor destroyed
     }

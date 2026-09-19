@@ -16,8 +16,9 @@ import ch.njol.skript.variables.Variables
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Set Slot Callback")
 @Description(
@@ -25,20 +26,21 @@ import org.bukkit.event.Event
     "You must provide a section to handle click events on the specified slot."
 )
 @Examples(
-    "when slot 4 in page 0 of menu with id \"main_menu\" is clicked:",
+    "when slot 4 in page 1 of menu with id \"main_menu\" is clicked:",
     "    send \"You clicked slot 4!\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffSecSlotCallback : EffectSection() {
 
     companion object {
-        init {
-            Skript.registerSection(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.section(
+                addon,
                 EffSecSlotCallback::class.java,
                 "(when|on) slot %numbers% " +
-                        "[in page [(number|index)] %-numbers%] " +
-                        "[of [(menu|gui)] %-menu%] " +
-                        "[is] (clicked|interacted|pressed)"
+                    "[in page [(number|index)] %-numbers%] " +
+                    "[of [(menu|gui)] %-menu%] " +
+                    "[is] (clicked|interacted|pressed)"
             )
         }
     }
@@ -143,5 +145,4 @@ class EffSecSlotCallback : EffectSection() {
                 debug
             )
         } of menu ${menuExpr?.toString(event, debug)}"
-
 }

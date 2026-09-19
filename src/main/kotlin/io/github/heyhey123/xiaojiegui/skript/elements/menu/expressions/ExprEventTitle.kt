@@ -2,24 +2,39 @@ package io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions
 
 import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
+import ch.njol.skript.doc.Description
+import ch.njol.skript.doc.Examples
+import ch.njol.skript.doc.Name
+import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
+@Name("Event Title")
+@Description(
+    "The title the page a player is turning to will have, in `on page turn`.",
+    "It can also be set there, which retitles that page for the turn."
+)
+@Examples(
+    "on page turn:",
+    "    set the title to \"Chapter %the future page%\""
+)
+@Since("1.0.0")
 class ExprEventTitle : SimpleExpression<Any>() {
 
     companion object {
-        init {
+        fun register(addon: SkriptAddon) {
             @Suppress("UNCHECKED_CAST")
-            Skript.registerExpression(
+            SkriptSyntax.expression(
+                addon,
                 ExprEventTitle::class.java,
                 ComponentHelper.titleReturnType as Class<Any>,
-                ExpressionType.SIMPLE,
                 "[the] [event-]title"
             )
         }
@@ -38,9 +53,11 @@ class ExprEventTitle : SimpleExpression<Any>() {
     }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
-        if (mode == Changer.ChangeMode.SET)
+        if (mode == Changer.ChangeMode.SET) {
             ComponentHelper.titleReturnTypes
-        else emptyArray()
+        } else {
+            emptyArray()
+        }
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (event !is PageTurnEvent) return
@@ -57,7 +74,6 @@ class ExprEventTitle : SimpleExpression<Any>() {
         }
         event.title = newTitle
     }
-
 
     override fun toString(event: Event?, debug: Boolean) =
         "the event-title"

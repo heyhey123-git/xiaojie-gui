@@ -1,17 +1,17 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Get All Menu IDs")
 @Description(
@@ -23,15 +23,15 @@ import org.bukkit.event.Event
     "set {_menuIds::*} to all menu ids",
     "send \"Available menus: %{_menuIds::*}%\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprAllMenuIds : SimpleExpression<String>() {
 
     companion object {
-        init {
-            Skript.registerExpression(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.expression(
+                addon,
                 ExprAllMenuIds::class.java,
                 String::class.java,
-                ExpressionType.SIMPLE,
                 "all [the] (menu|gui) id[s]"
             )
         }
@@ -52,5 +52,4 @@ class ExprAllMenuIds : SimpleExpression<String>() {
     override fun isSingle() = false
 
     override fun getReturnType() = String::class.java
-
 }

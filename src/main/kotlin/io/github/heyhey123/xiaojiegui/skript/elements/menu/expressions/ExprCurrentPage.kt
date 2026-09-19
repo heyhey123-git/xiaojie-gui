@@ -1,18 +1,18 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Menu Current Page")
 @Description(
@@ -24,14 +24,14 @@ import org.bukkit.event.Event
     "send \"You are currently on page %{_page}% of the menu.\" to player"
 )
 @Since("1.0.4")
-class ExprCurrentPage: SimpleExpression<Number>() {
+class ExprCurrentPage : SimpleExpression<Number>() {
 
     companion object {
-        init {
-            Skript.registerExpression(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.expression(
+                addon,
                 ExprCurrentPage::class.java,
                 Number::class.java,
-                ExpressionType.SIMPLE,
                 "%player%'s current [(menu|gui)] page",
                 "[the] current [(menu|gui)] page of %player%"
             )
@@ -64,5 +64,4 @@ class ExprCurrentPage: SimpleExpression<Number>() {
     override fun isSingle() = true
 
     override fun getReturnType() = Number::class.java
-
 }

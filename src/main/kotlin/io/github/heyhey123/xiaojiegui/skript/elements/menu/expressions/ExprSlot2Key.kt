@@ -7,34 +7,40 @@ import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
+import org.skriptlang.skript.registration.SyntaxInfo
 
-@Name("Slot Key from Menu")
+@Name("Key of Slot")
 @Description(
     "The key of a specific slot in a specific page of a menu.",
     "This expression returns the key associated with the specified slot in the specified page of the given menu.",
     "If the slot does not have an associated key, it returns nothing."
 )
 @Examples(
-    "set {_key} to the key of slot 5 in page 1 of menu",
+    // The menu slot after `of` takes an expression; the bare word `menu` is not one.
+    "set {_key} to the key of slot 5 in page 1 of {_menu}",
     "send \"The key of slot 5 in page 1 is %{_key}%\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprSlot2Key : SimpleExpression<String>() {
     companion object {
-        init {
-            Skript.registerExpression(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.expression(
+                addon,
                 ExprSlot2Key::class.java,
                 String::class.java,
-                ExpressionType.COMBINED,
-                "[the] key of [the] slot %number% in [the] page %number% [of [the] menu %-menu%]"
+                // `(menu|gui)` is optional inside this optional group so that the natural `of {_menu}`
+                // works as well as `of the menu {_menu}` and `of menu with id "x"`.
+                "[the] key of [the] slot %number% in [the] page %number% [of [the] [(menu|gui)] %-menu%]",
+                priority = SyntaxInfo.COMBINED
             )
         }
     }
@@ -57,7 +63,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
         menuExpr = expressions[2] as Expression<Menu>?
 
         return menuExpr != null ||
-                parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)
+            parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)
     }
 
     override fun get(event: Event?): Array<out String?> {
@@ -69,7 +75,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
             else -> {
                 Skript.error(
                     "Cannot determine menu: no menu was provided " +
-                            "and the current event is not a MenuEvent or ProvideMenuEvent."
+                        "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
                 return emptyArray()
             }
@@ -78,8 +84,8 @@ class ExprSlot2Key : SimpleExpression<String>() {
         if (page !in 1..menu.size) {
             Skript.error(
                 "Page index $page is out of bounds " +
-                        "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
-                        "with ${menu.pages.size} pages."
+                    "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
+                    "with ${menu.pages.size} pages."
             )
             return emptyArray()
         }
@@ -89,14 +95,15 @@ class ExprSlot2Key : SimpleExpression<String>() {
         return arrayOf(key)
     }
 
-    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? {
-        return when (mode) {
-            Changer.ChangeMode.DELETE,
-            Changer.ChangeMode.RESET -> arrayOf(null)
+    override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? = when (mode) {
+        // Deleting and resetting carry no value, but Skript still dereferences every entry of this
+        // array, so an entry of null throws inside the change effect. The declared type is what the
+        // expression can hold, whether or not the mode uses a value.
+        Changer.ChangeMode.DELETE,
+        Changer.ChangeMode.RESET,
+        Changer.ChangeMode.SET -> arrayOf(String::class.java)
 
-            Changer.ChangeMode.SET -> arrayOf(String::class.java)
-            else -> emptyArray()
-        }
+        else -> emptyArray()
     }
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
@@ -108,10 +115,15 @@ class ExprSlot2Key : SimpleExpression<String>() {
             else -> {
                 Skript.error(
                     "Cannot determine menu: no menu was provided " +
-                            "and the current event is not a MenuEvent or ProvideMenuEvent."
+                        "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
                 return
             }
+        }
+
+        if (page !in 1..menu.size) {
+            Skript.error("Page index $page is out of bounds for the menu.")
+            return
         }
 
         val keyToSlots = menu.pages[page].keyToSlots
@@ -140,7 +152,9 @@ class ExprSlot2Key : SimpleExpression<String>() {
                     keyToSlots.remove(existingEntry.key)
                 }
 
-                keyToSlots.computeIfAbsent(newKey) { mutableSetOf(slot) }
+                // computeIfAbsent returns the existing set when the key is already mapped, so the slot
+                // has to be added to the result rather than to a set built inside the lambda.
+                keyToSlots.computeIfAbsent(newKey) { mutableSetOf() }.add(slot)
             }
 
             else -> Skript.error("Change mode $mode is not supported for this expression.")

@@ -11,29 +11,38 @@ import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
-import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
-import io.github.heyhey123.xiaojiegui.skript.utils.TitleType
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Update Page Title")
 @Description(
     "Update the title of a specific page in a menu.",
-    "You can optionally refresh the menu for all viewers to see the updated title immediately."
+    "The title is quoted text, or a value that already is a text component.",
+    "You can optionally refresh the menu so that the players looking at that page see the new title",
+    "immediately; players on other pages are left alone."
 )
 @Examples(
-    "update title of page 1 in menu {_menu} to \"New Page Title\" and refresh",
+    // `in` takes the menu expression itself (the pattern has no `menu` keyword), and `menu {_menu}`
+    // would be read as a lookup by id, which finds nothing.
+    "update title of page 1 in {_menu} to \"New Page Title\" and refresh"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffUpdatePageTitle : Effect() {
 
     companion object {
-        init {
-            Skript.registerEffect(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.effect(
+                addon,
                 EffUpdatePageTitle::class.java,
-                "update title [of page %-number%] [in %-menu%] to (string:%-string%|component:%-textcomponent%) [refresh:(and refresh)]"
+                // One pattern per title form instead of a single group with two alternatives: when the
+                // alternatives of a group have different types, Skript hands the literal over unparsed
+                // (see EffSecCreateMenu) and the group's two slots moved every later slot. Both patterns
+                // put the title at index 2, so the page and menu slots stay readable.
+                "update title [of page %-number%] [in %-menu%] to string:%-string% [refresh:(and refresh)]",
+                "update title [of page %-number%] [in %-menu%] to %-object% [refresh:(and refresh)]"
             )
         }
     }
@@ -42,11 +51,7 @@ class EffUpdatePageTitle : Effect() {
 
     private var menuExpr: Expression<Menu>? = null
 
-    private var titleStrExpr: Expression<String>? = null
-
-    private var titleComponentExpr: Expression<Any>? = null
-
-    private lateinit var titleType: TitleType
+    private var titleExpr: Expression<Any>? = null
 
     private var refreshFlag: Boolean = false
 
@@ -57,16 +62,15 @@ class EffUpdatePageTitle : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        pageExpr = expressions?.get(0) as Expression<Number>
-        menuExpr = expressions[1] as Expression<Menu>?
+        pageExpr = expressions?.getOrNull(0) as Expression<Number>?
+        menuExpr = expressions?.getOrNull(1) as Expression<Menu>?
         if (menuExpr == null && !parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)) {
             Skript.error("Menu expression is required if the current event is not a menu-related event.")
             return false
         }
-        titleStrExpr = expressions[2] as Expression<String>?
-        titleComponentExpr = expressions[3] as Expression<Any>?
-        titleType = TitleType.fromParseResult(parseResult!!)
-        refreshFlag = parseResult.hasTag("refresh")
+        titleExpr = expressions?.getOrNull(2) as Expression<Any>?
+        // Only the refresh tag is left in this pattern; the title form is the pattern that matched.
+        refreshFlag = parseResult!!.hasTag("refresh")
 
         return true
     }
@@ -88,12 +92,7 @@ class EffUpdatePageTitle : Effect() {
             return
         }
 
-        val title = ComponentHelper.resolveTitleComponentOrNull(
-            titleStrExpr,
-            titleComponentExpr,
-            event,
-            titleType
-        )
+        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
         if (title == null) {
             Skript.error(
                 "Title cannot be null."
@@ -102,11 +101,10 @@ class EffUpdatePageTitle : Effect() {
         }
         menu.pages[page].title = title
 
-        menu.viewers.forEach { viewer ->
-            val session = MenuSession.querySession(viewer) ?: return@forEach
-            session.title(title, refreshFlag)
-        }
-
+        // Only the viewers looking at that page are retitled. A viewer on another page has a window
+        // showing that other page, and its title did not change; giving them this one would put the
+        // wrong title on their window until they turn the page.
+        menu.sessionsOn(page).forEach { it.title(title, refreshFlag) }
     }
 
     override fun toString(event: Event?, debug: Boolean): String {
@@ -117,12 +115,10 @@ class EffUpdatePageTitle : Effect() {
 
         sb.append(" in ").append(menuExpr?.toString(event, debug) ?: "event menu")
 
-        when {
-            titleStrExpr != null -> sb.append(" to string: ").append(titleStrExpr!!.toString(event, debug))
-            titleComponentExpr != null -> sb.append(" to component: ")
-                .append(titleComponentExpr!!.toString(event, debug))
-
-            else -> sb.append(" to <null title>")
+        if (titleExpr != null) {
+            sb.append(" to ").append(titleExpr!!.toString(event, debug))
+        } else {
+            sb.append(" to <null title>")
         }
 
         if (refreshFlag) sb.append(" and refresh")

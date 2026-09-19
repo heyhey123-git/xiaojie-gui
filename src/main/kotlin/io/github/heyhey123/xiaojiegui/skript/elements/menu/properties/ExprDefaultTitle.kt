@@ -9,25 +9,29 @@ import ch.njol.skript.doc.Since
 import ch.njol.skript.expressions.base.SimplePropertyExpression
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Default Title")
 @Description(
     "The default title of a menu (when add a new page).",
-    "It can be a string or a text component in skbee(if exists).",
+    "It can be a string or a text component in skbee(if exists)."
 )
 @Examples(
-    "set {_title} to the default title of menu {_menu}",
-    "set the default title of menu {_menu} to \"&aMy Menu\""
+    // The property takes the menu expression directly: `of menu {_menu}` parses `menu {_menu}` as a
+    // lookup by id instead; `default title` is its own pattern, so SkBee's `id` cannot shadow it.
+    "set {_title} to the default title of {_menu}",
+    "set the default title of {_menu} to \"&aMy Menu\""
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprDefaultTitle : SimplePropertyExpression<Menu, Any>() {
 
     companion object {
-        init {
-
+        fun register(addon: SkriptAddon) {
             @Suppress("UNCHECKED_CAST")
-            register(
+            SkriptSyntax.property(
+                addon,
                 ExprDefaultTitle::class.java,
                 ComponentHelper.titleReturnType as Class<Any>,
                 "default title",
@@ -45,8 +49,11 @@ class ExprDefaultTitle : SimplePropertyExpression<Menu, Any>() {
     override fun getReturnType() = ComponentHelper.titleReturnType
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
-        if (mode == Changer.ChangeMode.SET) ComponentHelper.titleReturnTypes
-        else emptyArray()
+        if (mode == Changer.ChangeMode.SET) {
+            ComponentHelper.titleReturnTypes
+        } else {
+            emptyArray()
+        }
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return

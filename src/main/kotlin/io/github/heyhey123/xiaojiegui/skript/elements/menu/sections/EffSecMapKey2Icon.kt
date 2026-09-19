@@ -20,8 +20,10 @@ import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.Button
 import io.github.heyhey123.xiaojiegui.skript.utils.MenuCallbackUtils
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Map Key to Icon")
 @Description(
@@ -33,19 +35,20 @@ import org.bukkit.inventory.ItemStack
     "map key \"special_item\" to item diamond named \"Special Item\" for menu {_menu} and refresh and when clicked:",
     "    send \"You clicked the special item!\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffSecMapKey2Icon : EffectSection() {
 
     companion object {
-        init {
-            Skript.registerSection(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.section(
+                addon,
                 EffSecMapKey2Icon::class.java,
                 "map key %string% " +
-                        "to ((icon|item)[s] %-itemstacks%|button %-string%) " +
-                        "[for [(menu|gui)] %-menu%] " +
-                        "[on page[s] %-numbers%]" +
-                        "[refresh:(and (refresh|update))] " +
-                        "[when:(and when clicked)]"
+                    "to ((icon|item)[s] %-itemstacks%|button %-string%) " +
+                    "[for [(menu|gui)] %-menu%] " +
+                    "[on page[s] %-numbers%]" +
+                    "[refresh:(and (refresh|update))] " +
+                    "[when:(and when clicked)]"
             )
         }
     }

@@ -29,6 +29,11 @@ class LocalsScopeRunner(
         try {
             action(user)
         } finally {
+            // Kept even though Kotlin 2.3 warns here (KTLC-14): `removeLocals` returns Skript's own
+            // `VariablesMap`, a type this module cannot name, and the alternative -- `setLocalVariables(user,
+            // null)` -- would leave an entry behind rather than remove the event's locals. The warning becomes
+            // an error only if Kotlin makes the inference an error before Skript gives the method a void
+            // return or a public type.
             Variables.removeLocals(user)
         }
     }

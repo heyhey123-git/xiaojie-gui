@@ -15,8 +15,10 @@ import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.Button
 import io.github.heyhey123.xiaojiegui.skript.utils.LocalsScopeRunner
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
+import org.skriptlang.skript.addon.SkriptAddon
 import org.skriptlang.skript.lang.entry.EntryValidator
 import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
 
@@ -35,8 +37,9 @@ import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
 @Since("1.0.4")
 class SecDefineButton : Section() {
     companion object {
-        init {
-            Skript.registerSection(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.section(
+                addon,
                 SecDefineButton::class.java,
                 "define [a] button %string%"
             )

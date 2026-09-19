@@ -27,6 +27,6 @@ class MenuOpenEvent(
     override fun isCancelled(): Boolean = cancelled
 
     override fun setCancelled(cancel: Boolean) {
-        cancelled = true
+        cancelled = cancel
     }
 }

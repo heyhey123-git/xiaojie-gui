@@ -12,38 +12,43 @@ import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
-import io.github.heyhey123.xiaojiegui.skript.utils.TitleType
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Update Menu Session Title")
 @Description(
     "Update the title of a menu session.",
+    "The title is quoted text, or a value that already is a text component.",
     "If 'and refresh' is included, the inventory view will be refreshed to reflect the new title immediately."
 )
 @Examples(
-    "update title of menu session {_session} to string:\"New Title\" and refresh"
+    "update title of menu session {_session} to \"New Title\" and refresh"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffUpdateSessionTitle : Effect() {
 
     companion object {
-        init {
-            Skript.registerEffect(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.effect(
+                addon,
                 EffUpdateSessionTitle::class.java,
-                "update title of [the] [menu] [session] %menusession% to (string:%-string%|component:%-textcomponent%) [refresh:(and refresh)]"
+                // One pattern per title form instead of a single group with two alternatives: when the
+                // alternatives of a group have different types, Skript hands the literal over unparsed
+                // (see EffSecCreateMenu) and the group's two slots moved every later slot. Both patterns
+                // put the title at index 1, next to the session slot.
+                "update title of [the] [menu] [session] %menusession% " +
+                    "to string:%-string% [refresh:(and refresh)]",
+                "update title of [the] [menu] [session] %menusession% " +
+                    "to %-object% [refresh:(and refresh)]"
             )
         }
     }
 
     private lateinit var sessionExpr: Expression<MenuSession>
 
-    private var titleStrExpr: Expression<String>? = null
-
-    private var titleComponentExpr: Expression<Any>? = null
-
-    private lateinit var titleTypeExpr: TitleType
+    private var titleExpr: Expression<Any>? = null
 
     private var refreshFlag: Boolean = false
 
@@ -54,11 +59,12 @@ class EffUpdateSessionTitle : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        sessionExpr = expressions?.get(0) as Expression<MenuSession>
-        titleStrExpr = expressions[1] as Expression<String>?
-        titleComponentExpr = expressions[2] as Expression<Any>?
-        titleTypeExpr = TitleType.fromParseResult(parseResult!!)
-        refreshFlag = parseResult.hasTag("refresh")
+        // Skript always passes the array; naming it once keeps the reads below plain indexing.
+        val exprs = expressions ?: return false
+        sessionExpr = exprs[0] as Expression<MenuSession>
+        titleExpr = exprs.getOrNull(1) as Expression<Any>?
+        // Only the refresh tag is left in this pattern; the title form is the pattern that matched.
+        refreshFlag = parseResult!!.hasTag("refresh")
 
         return true
     }
@@ -69,12 +75,7 @@ class EffUpdateSessionTitle : Effect() {
             Skript.error("Menu session cannot be null when updating title.")
             return
         }
-        val title = ComponentHelper.resolveTitleComponentOrNull(
-            titleStrExpr,
-            titleComponentExpr,
-            event,
-            titleTypeExpr
-        )
+        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
         if (title == null) {
             Skript.error("Valid title is required.")
             return
@@ -82,8 +83,8 @@ class EffUpdateSessionTitle : Effect() {
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
                 "Menu session title can only be updated from the main server thread, " +
-                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
-                        "current statement: ${this.toString(event, true)}"
+                    "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                    "current statement: ${this.toString(event, true)}"
             )
             return
         }
@@ -93,7 +94,7 @@ class EffUpdateSessionTitle : Effect() {
 
     override fun toString(event: Event?, debug: Boolean) =
         "update title of ${sessionExpr.toString(event, debug)} to ${
-            (titleStrExpr ?: titleComponentExpr)?.toString(
+            titleExpr?.toString(
                 event,
                 debug
             )

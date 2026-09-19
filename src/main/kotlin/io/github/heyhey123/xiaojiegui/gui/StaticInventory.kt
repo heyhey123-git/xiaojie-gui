@@ -15,7 +15,7 @@ import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.InventoryView
-import java.util.*
+import java.util.UUID
 
 object StaticInventory {
 
@@ -89,9 +89,7 @@ object StaticInventory {
         var view: InventoryView? = null
             private set
 
-        override fun getInventory(): Inventory {
-            return inventory
-        }
+        override fun getInventory(): Inventory = inventory
 
         /**
          * Open the inventory for the given player.
@@ -112,9 +110,9 @@ object StaticInventory {
                 ?: throw ClassCastException("InventoryView is not a CraftAbstractInventoryView")
 
             Reflection.CraftContainerViewProxy.setTitle(
-                    craftContainerView,
-                    LegacyComponentSerializer.legacySection().serialize(title)
-                )
+                craftContainerView,
+                LegacyComponentSerializer.legacySection().serialize(title)
+            )
 
             val serverPlayer = (view?.player as CraftPlayer).handle
             val containerMenu = serverPlayer.containerMenu

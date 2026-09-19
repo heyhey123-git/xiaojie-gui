@@ -15,9 +15,8 @@ import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
-import java.util.*
+import java.util.UUID
 import java.util.function.Consumer
-
 
 /**
  * A menu that can be opened by players.
@@ -82,6 +81,20 @@ class Menu(
         mutableMapOf()
 
     /**
+     * The sessions of the players who are looking at a specific page of this menu.
+     *
+     * A menu can be open on different pages for different players at the same time, so anything that
+     * changes one page has to reach the sessions on *that* page. The entries of [viewers] are not
+     * enough for that on their own: they only say who is looking at the menu, not at which page.
+     *
+     * @param page The page number to collect the sessions of.
+     * @return The sessions whose viewer is looking at that page, in no particular order.
+     */
+    fun sessionsOn(page: Int): List<MenuSession> =
+        viewers.mapNotNull { MenuSession.querySession(it) }
+            .filter { it.menu == this && it.page == page }
+
+    /**
      * Open the menu for a player at a specific page.
      *
      * @param viewer The player who is viewing the menu.
@@ -95,12 +108,16 @@ class Menu(
 
         val session = MenuSession.getSession(viewer)
 
-        check(session.menu != this) {
-            "Player ${viewer.name} is already viewing this menu."
-        }
-
         check(page in 1..size) {
             "Page $page does not exist in this menu."
+        }
+
+        // Opening the menu a player is already looking at means "show me this page". Throwing instead
+        // reached scripts as an internal error for a statement that reads fine -- `open menu {_menu} for
+        // player` is the obvious way to refresh, or to jump to a page from a slot callback.
+        if (session.menu == this) {
+            if (session.page != page) turnPage(viewer, page)
+            return
         }
 
         val pageInstance = pages[page]
@@ -111,13 +128,17 @@ class Menu(
         val event = MenuOpenEvent(session, viewer, this, page)
         if (!event.callEvent()) return
 
-        viewers.add(viewer.uniqueId)
-
         if (session.menu != null) {
-            MenuCloseEvent(session, viewer, session.menu!!).callEvent()
+            val previous = session.menu!!
+            MenuCloseEvent(session, viewer, previous).callEvent()
+            // The session is about to point at this menu, so the old one stops counting the player
+            // as a viewer. Nothing else removes the entry, and `viewers of menu` would report a
+            // player who left it for as long as the menu lives.
+            previous.viewers.remove(viewer.uniqueId)
             session.shutTemporarily()
         }
 
+        viewers.add(viewer.uniqueId)
         session.menu = this
 
         val receptacle = ViewReceptacle.create(title, layout, mode)
@@ -359,7 +380,6 @@ class Menu(
         callback: Consumer<MenuInteractEvent>
     ) = overrideSlot(pages, slot, item, refresh) { event -> callback.accept(event) }
 
-
     /**
      * Override the item in a specific slot on a specific page and refresh the viewers' inventories accordingly.
      *
@@ -478,7 +498,6 @@ class Menu(
         refresh: Boolean,
         callback: Consumer<MenuInteractEvent>
     ) = overrideSlots(listOf(page), slots, item, refresh) { event -> callback.accept(event) }
-
 
     /**
      * Insert a new page into the menu at the specified position.

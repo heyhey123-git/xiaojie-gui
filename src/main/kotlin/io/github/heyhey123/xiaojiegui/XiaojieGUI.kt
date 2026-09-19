@@ -7,18 +7,18 @@ import io.github.heyhey123.xiaojiegui.listener.PlayerQuitListener
 import io.github.heyhey123.xiaojiegui.listener.ReceptaclePacketListener
 import io.github.heyhey123.xiaojiegui.listener.StaticInventoryListener
 import io.github.heyhey123.xiaojiegui.logging.LogoPrinter
+import io.github.heyhey123.xiaojiegui.skript.registerElements
 import io.github.heyhey123.xiaojiegui.skript.utils.Button
 import org.bukkit.plugin.java.JavaPlugin
-import org.spigotmc.SpigotConfig.config
 
 class XiaojieGUI : JavaPlugin() {
     companion object {
         lateinit var instance: XiaojieGUI
 
         val enableAsyncCheck: Boolean
-                by lazy { config.getBoolean("enable-async-check", true) }
+            by lazy { instance.config.getBoolean("enable-async-check", true) }
         val forceTrueColor: Boolean
-                by lazy { config.getBoolean("force-truecolor", true) }
+            by lazy { instance.config.getBoolean("force-truecolor", true) }
     }
 
     @Suppress("Unused")
@@ -27,13 +27,15 @@ class XiaojieGUI : JavaPlugin() {
     }
 
     override fun onEnable() {
+        saveDefaultConfig()
+
         ReceptaclePacketListener.register()
         BukkitInventoryListener.register()
         PlayerQuitListener.register()
         StaticInventoryListener.register()
 
-        Skript.registerAddon(this)
-            .loadClasses("io.github.heyhey123.xiaojiegui.skript", "elements")
+        Skript.instance().registerAddon(XiaojieGUI::class.java, pluginMeta.name)
+            .let(::registerElements)
 
         LogoPrinter.print(pluginMeta.version)
         logger.info("XiaojieGUI has been enabled!")

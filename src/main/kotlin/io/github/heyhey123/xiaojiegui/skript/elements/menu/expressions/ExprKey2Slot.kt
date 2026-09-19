@@ -7,34 +7,40 @@ import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
+import org.skriptlang.skript.registration.SyntaxInfo
 
-@Name("Slot Key from Menu")
+@Name("Slots of Key")
 @Description(
     "The slot(s) of a specific key in a specific page of a menu.",
     "This expression returns the slot(s) associated with the specified key in the specified page of the given menu.",
     "If the key does not have any associated slots, it returns nothing."
 )
 @Examples(
-    "set {_slots::*} to the slot of key \"example_key\" in page 0 of menu",
-    "send \"The slots of key 'example_key' in page 0 are %{_slots::*}%\" to player"
+    // The menu slot after `of` takes an expression; the bare word `menu` is not one.
+    "set {_slots::*} to the slot of key \"example_key\" in page 1 of {_menu}",
+    "send \"The slots of key 'example_key' in page 1 are %{_slots::*}%\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprKey2Slot : SimpleExpression<Number>() {
     companion object {
-        init {
-            Skript.registerExpression(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.expression(
+                addon,
                 ExprKey2Slot::class.java,
                 Number::class.java,
-                ExpressionType.COMBINED,
-                "[the] slot[s] of [the] key %string% in [the] page %number% [of [the] menu %-menu%]"
+                // `(menu|gui)` is optional inside this optional group so that the natural `of {_menu}`
+                // works as well as `of the menu {_menu}` and `of menu with id "x"`.
+                "[the] slot[s] of [the] key %string% in [the] page %number% [of [the] [(menu|gui)] %-menu%]",
+                priority = SyntaxInfo.COMBINED
             )
         }
     }
@@ -57,7 +63,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
         menuExpr = expressions[2] as Expression<Menu>?
 
         return menuExpr != null ||
-                parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)
+            parser.isCurrentEvent(MenuEvent::class.java, ProvideMenuEvent::class.java)
     }
 
     override fun get(event: Event?): Array<Number?> {
@@ -69,7 +75,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
             else -> {
                 Skript.error(
                     "Cannot determine menu: no menu was provided " +
-                            "and the current event is not a MenuEvent or ProvideMenuEvent."
+                        "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
                 return emptyArray()
             }
@@ -78,8 +84,8 @@ class ExprKey2Slot : SimpleExpression<Number>() {
         if (page !in 1..menu.size) {
             Skript.error(
                 "Page index $page is out of bounds " +
-                        "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
-                        "with ${menu.pages.size} pages."
+                    "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
+                    "with ${menu.pages.size} pages."
             )
             return emptyArray()
         }
@@ -88,15 +94,13 @@ class ExprKey2Slot : SimpleExpression<Number>() {
         return slots?.toTypedArray() ?: emptyArray()
     }
 
-    override fun acceptChange(mode: Changer.ChangeMode?): Array<Class<Number>> {
-        return when (mode) {
-            Changer.ChangeMode.ADD,
-            Changer.ChangeMode.SET,
-            Changer.ChangeMode.REMOVE,
-            Changer.ChangeMode.RESET -> arrayOf(Number::class.java)
+    override fun acceptChange(mode: Changer.ChangeMode?): Array<Class<Number>> = when (mode) {
+        Changer.ChangeMode.ADD,
+        Changer.ChangeMode.SET,
+        Changer.ChangeMode.REMOVE,
+        Changer.ChangeMode.RESET -> arrayOf(Number::class.java)
 
-            else -> emptyArray()
-        }
+        else -> emptyArray()
     }
 
     override fun change(event: Event?, delta: Array<out Any>?, mode: Changer.ChangeMode?) {
@@ -108,7 +112,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
             else -> {
                 Skript.error(
                     "Cannot determine menu: no menu was provided " +
-                            "and the current event is not a MenuEvent or ProvideMenuEvent."
+                        "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
                 return
             }
@@ -117,8 +121,8 @@ class ExprKey2Slot : SimpleExpression<Number>() {
         if (page !in 1..menu.size) {
             Skript.error(
                 "Page index $page is out of bounds " +
-                        "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
-                        "with ${menu.pages.size} pages."
+                    "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
+                    "with ${menu.pages.size} pages."
             )
             return
         }
@@ -138,8 +142,12 @@ class ExprKey2Slot : SimpleExpression<Number>() {
                 slotSet.addAll(slots)
             }
 
-            Changer.ChangeMode.REMOVE,
+            // RESET arrives without a value, so "reset the slots of key X" means dropping the key.
             Changer.ChangeMode.RESET -> {
+                pageInstance.keyToSlots.remove(key)
+            }
+
+            Changer.ChangeMode.REMOVE -> {
                 val slots = delta?.mapNotNull { it as? Number }?.map { it.toInt() } ?: return
                 val slotSet = pageInstance.keyToSlots[key] ?: return
                 slotSet.removeAll(slots.toSet())

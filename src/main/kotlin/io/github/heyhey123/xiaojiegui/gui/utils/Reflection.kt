@@ -1,40 +1,28 @@
 package io.github.heyhey123.xiaojiegui.gui.utils
 
 import org.bukkit.craftbukkit.inventory.CraftAbstractInventoryView
-import xyz.jpenilla.reflectionremapper.ReflectionRemapper
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 
 /**
  * Reflection utilities for accessing and manipulating private fields and methods in CraftBukkit classes.
- *
  */
 internal object Reflection {
-
-    val reflectionRemapper: ReflectionRemapper = ReflectionRemapper.forReobfMappingsInPaperJar()
-
-//    val reflectionProxyFactory: ReflectionProxyFactory =
-//        ReflectionProxyFactory.create(reflectionRemapper, Reflection::class.java.getClassLoader())
-
 
     object CraftContainerViewProxy {
         private val titleFieldSetter = object : ClassValue<MethodHandle>() {
             override fun computeValue(type: Class<*>): MethodHandle {
                 val clazz = type.asSubclass(CraftAbstractInventoryView::class.java)
                 val lookup = MethodHandles.privateLookupIn(clazz, MethodHandles.lookup())
-                val runtimeName = reflectionRemapper.remapFieldName(clazz, "title")
-                val setter = lookup.findSetter(
-                    clazz,
-                    runtimeName,
-                    String::class.java
-                )
-                return setter
+                // Paper has run on Mojang mappings since 1.20.5, so what CraftBukkit calls `title` in
+                // its own source is still called `title` at runtime and needs no remapping.
+                return lookup.findSetter(clazz, "title", String::class.java)
             }
         }
 
         fun setTitle(
             craftInventoryViewObject: CraftAbstractInventoryView,
-            newValue: String,
+            newValue: String
         ) {
             titleFieldSetter.get(craftInventoryViewObject::class.java).invoke(craftInventoryViewObject, newValue)
         }

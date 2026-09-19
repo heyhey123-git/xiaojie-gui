@@ -9,8 +9,7 @@ import net.minecraft.world.inventory.MenuType
  *
  * @property id The unique identifier for the layout type.
  */
-enum class
-LayoutType(val id: Int) {
+enum class LayoutType(val id: Int) {
 
     // chest
     GENERIC_9X1(0),
@@ -24,7 +23,7 @@ LayoutType(val id: Int) {
     GENERIC_3X3(6),
 
     // crafter
-    CRAFTER_3x3(7),
+    CRAFTER_3X3(7),
 
     ANVIL(8),
     BEACON(9),
@@ -53,7 +52,7 @@ LayoutType(val id: Int) {
             GENERIC_9X5 -> MenuType.GENERIC_9x5
             GENERIC_9X6 -> MenuType.GENERIC_9x6
             GENERIC_3X3 -> MenuType.GENERIC_3x3
-            CRAFTER_3x3 -> MenuType.CRAFTING
+            CRAFTER_3X3 -> MenuType.CRAFTING
             ANVIL -> MenuType.ANVIL
             BEACON -> MenuType.BEACON
             BLAST_FURNACE -> MenuType.BLAST_FURNACE
@@ -72,6 +71,4 @@ LayoutType(val id: Int) {
             CARTOGRAPHY_TABLE -> MenuType.CARTOGRAPHY_TABLE
             STONECUTTER -> MenuType.STONECUTTER
         }
-
-
 }

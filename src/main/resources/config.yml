@@ -1,5 +1,6 @@
 enable-async-check: true
 
-# always enable truecolor support when serializing logo in ANSI serializer if true
-# https://docs.papermc.io/adventure/serializer/ansi/#usage
+# Print the banner in full colour. The colours are written as escape sequences by the plugin itself, so
+# Paper's own idea of what the console supports does not decide it. Set this to false on a console that
+# would print the escapes as text; the banner is then printed without colour.
 force-truecolor: true

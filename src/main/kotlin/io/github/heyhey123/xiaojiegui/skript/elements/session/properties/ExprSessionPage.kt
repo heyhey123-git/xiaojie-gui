@@ -6,6 +6,8 @@ import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.expressions.base.SimplePropertyExpression
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Menu Session Page")
 @Description(
@@ -17,11 +19,12 @@ import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
     "send \"You are currently on page %{_page}% of the menu.\" to player"
 )
 @Since("1.0.4")
-class ExprSessionPage: SimplePropertyExpression<MenuSession, Number>() {
+class ExprSessionPage : SimplePropertyExpression<MenuSession, Number>() {
 
     companion object {
-        init {
-            register(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.property(
+                addon,
                 ExprSessionPage::class.java,
                 Number::class.java,
                 "page",
@@ -35,5 +38,4 @@ class ExprSessionPage: SimplePropertyExpression<MenuSession, Number>() {
     override fun getPropertyName(): String = "page"
 
     override fun getReturnType() = Number::class.java
-
 }

@@ -10,7 +10,9 @@ import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Destroy Menu")
 @Description(
@@ -20,21 +22,29 @@ import org.bukkit.event.Event
     "If the menu has been destroyed already, this effect does nothing."
 )
 @Examples(
-    "destroy the menu menu with id \"main_menu\""
+    "destroy the menu {_menu}",
+    "destroy the menu with id \"main_menu\""
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffDestroyMenu : Effect() {
 
     companion object {
-        init {
-            Skript.registerEffect(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.effect(
+                addon,
                 EffDestroyMenu::class.java,
-                "destroy [the] menu %menu%"
+                "destroy [the] menu %menu%",
+                // A separate form for the id lookup: a pattern that has already consumed the word `menu`
+                // cannot let `%menu%` start at `with id`, so without this a user has to write
+                // `destroy the menu menu with id "x"` —the same word twice.
+                "destroy [the] menu with id %string%"
             )
         }
     }
 
-    private lateinit var exprMenu: Expression<Menu>
+    private var menuExpr: Expression<Menu>? = null
+
+    private var idExpr: Expression<String>? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -43,12 +53,17 @@ class EffDestroyMenu : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        exprMenu = expressions!![0] as Expression<Menu>
+        if (matchedPattern == 0) {
+            menuExpr = expressions!![0] as Expression<Menu>
+        } else {
+            idExpr = expressions!![0] as Expression<String>
+        }
         return true
     }
 
     override fun execute(event: Event?) {
-        val menu = exprMenu.getSingle(event)
+        val menu = menuExpr?.getSingle(event)
+            ?: idExpr?.getSingle(event)?.let { Menu.menusWithId[it] }
         if (menu == null) {
             Skript.error("Menu to destroy cannot be null.")
             return
@@ -58,5 +73,5 @@ class EffDestroyMenu : Effect() {
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "destroy menu ${exprMenu.toString(event, debug)}"
+        "destroy menu ${menuExpr?.toString(event, debug) ?: idExpr?.toString(event, debug)}"
 }

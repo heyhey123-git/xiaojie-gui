@@ -5,15 +5,17 @@ import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
 class MenuSession(
     val viewer: Player,
-    var menu: Menu?,
-    var page: Int = -1,
-    var receptacle: ViewReceptacle?
+    // These three are written on the main thread but read from the Netty thread that receives
+    // click packets, so they have to be volatile for that read to see the current window.
+    @Volatile var menu: Menu?,
+    @Volatile var page: Int = -1,
+    @Volatile var receptacle: ViewReceptacle?
 ) {
 
     operator fun component1() = viewer
@@ -58,7 +60,6 @@ class MenuSession(
             }
             if (refresh) refresh()
         }
-
 
     /**
      * Set the title of the receptacle.

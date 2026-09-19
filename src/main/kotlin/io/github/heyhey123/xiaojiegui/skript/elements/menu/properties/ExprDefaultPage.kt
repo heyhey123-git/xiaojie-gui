@@ -7,20 +7,25 @@ import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.expressions.base.SimplePropertyExpression
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Default Page")
 @Description("The default page to show a menu when opened.")
 @Examples(
-    "set {_page} to the default page of menu {_menu}",
-    "set the default page of menu {_menu} to 2"
+    // The property takes the menu expression directly: `of menu {_menu}` parses `menu {_menu}` as a
+    // lookup by id instead.
+    "set {_page} to the default page of {_menu}",
+    "set the default page of {_menu} to 2"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprDefaultPage : SimplePropertyExpression<Menu, Number>() {
 
     companion object {
-        init {
-            register(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.property(
+                addon,
                 ExprDefaultPage::class.java,
                 Number::class.java,
                 "default page",

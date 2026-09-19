@@ -22,5 +22,5 @@ class MenuProperties(
 ) {
     override fun toString() =
         "MenuProperties(defaultTitle=$defaultTitle, hidePlayerInventory=$hidePlayerInventory, mode=$mode, " +
-                "minClickDelay=$minClickDelay, defaultPage=$defaultPage, defaultLayout=$defaultLayout)"
+            "minClickDelay=$minClickDelay, defaultPage=$defaultPage, defaultLayout=$defaultLayout)"
 }

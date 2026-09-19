@@ -115,22 +115,29 @@ enum class ClickType(
     fun isNumberKeyClick(): Boolean = bukkitClickType == BukkitClickType.NUMBER_KEY
 
     /**
+     * The number key the player pressed, 1 to 9, or `null` when this click was not one.
+     *
+     * The nine `NUMBER_KEY_*` types exist because the protocol carries the key as the button of a swap:
+     * key 1 is button 0, key 9 is button 8. Skript's own click type has a single `number key` value and
+     * drops the digit, which is why the digit is read from here. An offhand swap and a number key that
+     * arrived with a button outside 0..8 (`NUMBER_KEY_INVALID`) are not number keys.
+     */
+    val numberKey: Int?
+        get() = if (mode == ClickMode.SWAP && button in 0..8) button + 1 else null
+
+    /**
      * Determines if the item can be moved based on the click type.
      *
      * @return `true` if the item can be moved, `false` otherwise.
      */
-    fun isItemMoveable(): Boolean {
-        return isKeyboardClick() || isShiftClick() || mustBeCreativeAction() || this == DOUBLE_CLICK
-    }
+    fun isItemMoveable(): Boolean = isKeyboardClick() || isShiftClick() || mustBeCreativeAction() || this == DOUBLE_CLICK
 
     /**
      * Gets whether this ClickType requires creative action.
      *
      * @return `true` if this ClickType requires creative action, `false` otherwise.
      */
-    private fun mustBeCreativeAction(): Boolean {
-        return this == MIDDLE || this == MIDDLE_MOUSE_DRAG_ADD
-    }
+    private fun mustBeCreativeAction(): Boolean = this == MIDDLE || this == MIDDLE_MOUSE_DRAG_ADD
 
     override fun toString(): String =
         name.lowercase().replace('_', ' ')
@@ -142,9 +149,7 @@ enum class ClickType(
      * @param button The button to check against.
      * @return `true` if this ClickType matches the given mode and button, {@code false} otherwise.
      */
-    fun matches(mode: Int, button: Int): Boolean {
-        return this.mode.id == mode && this.button == button
-    }
+    fun matches(mode: Int, button: Int): Boolean = this.mode.id == mode && this.button == button
 
     companion object {
         fun from(mode: Int, button: Int, slot: Int = -1): ClickType? {
@@ -160,13 +165,11 @@ enum class ClickType(
             return entries.find { it.matches(mode, button) }
         }
 
-        fun find(mode: Int, button: Int, bukkitClickType: BukkitClickType): ClickType {
-            return entries.find { it.mode.id == mode && it.button == button && it.bukkitClickType == bukkitClickType }
-                ?: when (bukkitClickType) {
-                    BukkitClickType.NUMBER_KEY -> NUMBER_KEY_INVALID
-                    else -> UNKNOWN
-                }
-        }
+        fun find(mode: Int, button: Int, bukkitClickType: BukkitClickType): ClickType = entries.find { it.mode.id == mode && it.button == button && it.bukkitClickType == bukkitClickType }
+            ?: when (bukkitClickType) {
+                BukkitClickType.NUMBER_KEY -> NUMBER_KEY_INVALID
+                else -> UNKNOWN
+            }
 
         fun fromBukkit(clickType: BukkitClickType, action: InventoryAction, slot: Int): ClickType {
             if (clickType == BukkitClickType.NUMBER_KEY) {

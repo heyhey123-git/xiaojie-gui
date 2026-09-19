@@ -7,14 +7,15 @@ import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
+import org.skriptlang.skript.registration.SyntaxInfo
 
 @Name("Page Title")
 @Description("Get or set the title of a specific page in a menu.")
@@ -22,17 +23,18 @@ import org.bukkit.event.Event
     "set the title of page 2 in menu {_menu} to \"New Title\"",
     "send \"The title of page 1 is %the title of page 1 in menu {_menu}%\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprPageTitle : SimpleExpression<Any?>() {
 
     companion object {
-        init {
+        fun register(addon: SkriptAddon) {
             @Suppress("UNCHECKED_CAST")
-            Skript.registerExpression(
+            SkriptSyntax.expression(
+                addon,
                 ExprPageTitle::class.java,
-                ComponentHelper.titleReturnType as Class<Any>,
-                ExpressionType.COMBINED,
-                "[the] title of page [(number|index)] %number% in [(menu|gui)] %menu%"
+                ComponentHelper.titleReturnType as Class<Any?>,
+                "[the] title of page [(number|index)] %number% in [(menu|gui)] %menu%",
+                priority = SyntaxInfo.COMBINED
             )
         }
     }
@@ -66,8 +68,11 @@ class ExprPageTitle : SimpleExpression<Any?>() {
     }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?>? =
-        if (mode == Changer.ChangeMode.SET) ComponentHelper.titleReturnTypes
-        else emptyArray()
+        if (mode == Changer.ChangeMode.SET) {
+            ComponentHelper.titleReturnTypes
+        } else {
+            emptyArray()
+        }
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return

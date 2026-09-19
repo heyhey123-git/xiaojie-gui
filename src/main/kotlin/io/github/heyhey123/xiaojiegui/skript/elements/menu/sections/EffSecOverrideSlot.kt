@@ -19,8 +19,10 @@ import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.Button
 import io.github.heyhey123.xiaojiegui.skript.utils.MenuCallbackUtils
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Override Slot")
 @Description(
@@ -29,22 +31,27 @@ import org.bukkit.inventory.ItemStack
     "Tips: If you didn't provide a section, the slot will simply be overridden without changing previous click behavior."
 )
 @Examples(
-    "override slot 10 in page 0 of menu with id \"main_menu\" to diamond named \"Clicked Item\" refresh and when clicked:",
+    // The item needs `to` and the menu needs `for`, and the two flags are `and refresh` and
+    // `and when clicked`; anything else leaves the line unmatched.
+    "override slot 10 in page 1 to diamond named \"Clicked Item\" for menu with id \"main_menu\" and refresh and when clicked:",
     "    send \"You clicked the overridden slot!\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffSecOverrideSlot : EffectSection() {
 
     companion object {
-        init {
-            Skript.registerSection(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.section(
+                addon,
                 EffSecOverrideSlot::class.java,
                 "(override|set) slot %numbers% " +
-                        "[in page %-numbers%] " +
-                        "to (%-itemstack%|button %-string%) " +
-                        "for menu %-menu% " +
-                        "[refresh:((and|with) (refresh|update))] " +
-                        "[when:(and when (clicked|interacted|pressed))]"
+                    "[in page %-numbers%] " +
+                    "to (%-itemstack%|button %-string%) " +
+                    // `(menu|gui)` is optional so that `for {_menu}` is accepted alongside
+                    // `for menu {_menu}` and `for menu with id "x"`.
+                    "for [the] [(menu|gui)] %-menu% " +
+                    "[refresh:((and|with) (refresh|update))] " +
+                    "[when:(and when (clicked|interacted|pressed))]"
             )
         }
     }
@@ -173,10 +180,8 @@ class EffSecOverrideSlot : EffectSection() {
             menu.overrideSlots(pages, slots, item, refreshFlag, clickHandler)
         } ?: menu.overrideSlots(pages, slots, item, refreshFlag)
 
-
         return walk(event, false)
     }
-
 
     override fun toString(event: Event?, debug: Boolean): String {
         val sb = StringBuilder("override slot ${slotsExpr.toString(event, debug)} ")

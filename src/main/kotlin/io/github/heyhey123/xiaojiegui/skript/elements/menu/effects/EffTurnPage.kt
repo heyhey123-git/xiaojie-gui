@@ -12,28 +12,36 @@ import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
-import io.github.heyhey123.xiaojiegui.skript.utils.TitleType
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Turn Page")
 @Description(
     "Turn the page of the currently open menu for a player.",
-    "You can optionally specify a new title for the menu."
+    "You can optionally specify a new title for the menu: quoted text, or a value that already is a text component."
 )
 @Examples(
     "turn to page 2 for player with new title \"New Page Title\""
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffTurnPage : Effect() {
 
     companion object {
-        init {
-            Skript.registerEffect(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.effect(
+                addon,
                 EffTurnPage::class.java,
-                "turn to page %number% for %player% [with [new] title (string:%-string%|component:%-textcomponent%)]"
+                // Three patterns, one per title form plus one without a title, instead of a single
+                // optional group with two alternatives: when the alternatives of a group have different
+                // types, Skript hands the literal over unparsed (see EffSecCreateMenu), and the group's
+                // two slots pushed the title away from a fixed index. A pattern of its own gives the
+                // title slot a single type, always at index 2; the titleless pattern leaves it null.
+                "turn to page %number% for %player%",
+                "turn to page %number% for %player% [with [new] title string:%-string%]",
+                "turn to page %number% for %player% [with [new] title %-object%]"
             )
         }
     }
@@ -42,11 +50,7 @@ class EffTurnPage : Effect() {
 
     private lateinit var playerExpr: Expression<Player>
 
-    private var newTitleStrExpr: Expression<String>? = null
-
-    private var newTitleComponentExpr: Expression<Any>? = null
-
-    private var titleType: TitleType? = null
+    private var titleExpr: Expression<Any>? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -55,13 +59,13 @@ class EffTurnPage : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        pageExpr = expressions?.get(0) as Expression<Number>
-        playerExpr = expressions[1] as Expression<Player>
-        if (parseResult!!.tags.isNotEmpty()) {
-            titleType = TitleType.fromParseResult(parseResult)
-            newTitleStrExpr = expressions[2] as Expression<String>?
-            newTitleComponentExpr = expressions[3] as Expression<Any>?
-        }
+        // Skript always passes the array; naming it once makes the three reads below plain indexing
+        // instead of a chain of safe calls that say nothing about whether a later one can be null.
+        val exprs = expressions ?: return false
+        pageExpr = exprs[0] as Expression<Number>
+        playerExpr = exprs[1] as Expression<Player>
+        // Null in the titleless pattern; the other two keep the title at the same index.
+        titleExpr = exprs.getOrNull(2) as Expression<Any>?
 
         return true
     }
@@ -86,20 +90,13 @@ class EffTurnPage : Effect() {
             return
         }
 
-        val title = titleType?.let {
-            ComponentHelper.resolveTitleComponentOrNull(
-                newTitleStrExpr,
-                newTitleComponentExpr,
-                event,
-                it
-            )
-        }
+        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
                 "Menu page can only be turned from the main server thread, " +
-                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
-                        "current statement: ${this.toString(event, true)}"
+                    "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                    "current statement: ${this.toString(event, true)}"
             )
             return
         }
@@ -110,14 +107,8 @@ class EffTurnPage : Effect() {
     override fun toString(event: Event?, debug: Boolean): String {
         val sb = StringBuilder("turn to page ").append(pageExpr.toString(event, debug))
             .append(" for ").append(playerExpr.toString(event, debug))
-        titleType?.let {
-            sb.append(" with new title ")
-            newTitleStrExpr?.let { strExpr ->
-                sb.append("string:").append(strExpr.toString(event, debug))
-            }
-            newTitleComponentExpr?.let { compExpr ->
-                sb.append("component:").append(compExpr.toString(event, debug))
-            }
+        titleExpr?.let {
+            sb.append(" with new title ").append(it.toString(event, debug))
         }
         return sb.toString()
     }

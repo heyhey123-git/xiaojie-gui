@@ -13,10 +13,11 @@ import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Open Menu")
 @Description(
@@ -24,15 +25,19 @@ import org.bukkit.event.Event
     "You can optionally specify a page number to open a specific page of the menu."
 )
 @Examples(
-    "open menu {_menu} for player and go to page 2",
-    "open menu for player # open the menu from the current menu-related event for the player"
+    // Both forms are shown inside a menu event on purpose: outside one the menu expression is required,
+    // so the second line cannot parse in a command trigger.
+    "on menu interact:",
+    "    open menu {_menu} for player and go to page 2",
+    "    open menu for player # the menu of the current event, when it is left out"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffOpenMenu : Effect() {
 
     companion object {
-        init {
-            Skript.registerEffect(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.effect(
+                addon,
                 EffOpenMenu::class.java,
                 "(open|show) [the] (menu|gui) [%-menu%] (for|to) %player% [and (turn to|go to|on) page %-number%]"
             )
@@ -86,8 +91,8 @@ class EffOpenMenu : Effect() {
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
                 "Menu can only be opened from the main server thread, " +
-                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
-                        "current statement: ${this.toString(event, true)}"
+                    "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                    "current statement: ${this.toString(event, true)}"
             )
             return
         }

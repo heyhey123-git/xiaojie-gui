@@ -26,9 +26,13 @@ object MenuCallbackUtils {
         if (button == null && trigger == null) return null
 
         val executor: LocalsScopeRunner? =
-            if (button == null) LocalsScopeRunner(sourceEvent) { menuEvent ->
-                runTrigger(trigger, menuEvent)
-            } else null
+            if (button == null) {
+                LocalsScopeRunner(sourceEvent) { menuEvent ->
+                    runTrigger(trigger, menuEvent)
+                }
+            } else {
+                null
+            }
 
         return { menuEvent ->
             try {

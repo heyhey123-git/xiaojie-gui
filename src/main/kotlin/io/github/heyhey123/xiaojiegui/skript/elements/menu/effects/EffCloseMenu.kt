@@ -11,9 +11,11 @@ import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Close Menu")
 @Description(
@@ -22,12 +24,13 @@ import org.bukkit.event.Event
 @Examples(
     "close the menu for player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffCloseMenu : Effect() {
 
     companion object {
-        init {
-            Skript.registerEffect(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.effect(
+                addon,
                 EffCloseMenu::class.java,
                 "(close|close down|shut) [the] (menu|gui) (for|to) %player%"
             )
@@ -53,8 +56,8 @@ class EffCloseMenu : Effect() {
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
                 "Menu can only be closed from the main server thread, " +
-                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
-                        "current statement: ${this.toString(event, true)}"
+                    "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                    "current statement: ${this.toString(event, true)}"
             )
             return
         }
@@ -66,5 +69,4 @@ class EffCloseMenu : Effect() {
 
     override fun toString(event: Event?, debug: Boolean): String =
         "close the menu for ${playerExpr.toString(event, debug)}"
-
 }

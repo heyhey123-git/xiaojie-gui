@@ -43,7 +43,9 @@ object StaticInventoryListener : Listener, BaseListener {
         if (
             player.staticInventory!!.holder != holder &&
             event.reason == InventoryCloseEvent.Reason.OPEN_NEW
-        ) return // Ignore if the player is switching between static inventory menus
+        ) {
+            return // Ignore if the player is switching between static inventory menus
+        }
 
         receptacle.closed()
     }

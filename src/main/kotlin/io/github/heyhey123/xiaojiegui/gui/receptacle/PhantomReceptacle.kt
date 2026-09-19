@@ -46,6 +46,10 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
     override fun title(title: Component, render: Boolean) {
         this.title = title
         if (!render) return
+        // Delayed, because the client ignores a title change in the same tick it opened the window.
+        // The viewer is re-checked when the task runs: ViewReceptacle.close clears it, and without
+        // that check the open-screen packet below would put a window back on screen that the server
+        // no longer has a container for.
         TaskUtil.sync(delay = 3L) {
             viewer ?: return@sync
             initializationPackets()
@@ -95,7 +99,7 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
             viewer!!,
             windowId,
             (layout as ViewLayout).type,
-            title,
+            title
         )
         refresh()
     }
@@ -127,5 +131,4 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
 
         event.callEvent()
     }
-
 }

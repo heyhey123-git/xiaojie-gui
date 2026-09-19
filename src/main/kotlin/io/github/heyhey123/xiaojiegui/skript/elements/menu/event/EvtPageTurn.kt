@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.event
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -8,13 +7,13 @@ import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Literal
 import ch.njol.skript.lang.SkriptEvent
 import ch.njol.skript.lang.SkriptParser
-import ch.njol.skript.registrations.EventValues
 import io.github.heyhey123.xiaojiegui.gui.event.PageTurnEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Page Turn")
 @Description(
@@ -23,36 +22,24 @@ import org.bukkit.event.Event
 )
 @Examples(
     "on page turn:",
-    "send \"You turned from page %past number% to page %future number% in menu %session's menu id%\" to player"
+    "    send \"You turned from page %the page% to page %the future page%.\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EvtPageTurn : SkriptEvent() {
 
     companion object {
-        init {
-            Skript.registerEvent(
-                "Page Turn",
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.event(
+                addon,
                 EvtPageTurn::class.java,
+                "Page Turn",
                 PageTurnEvent::class.java,
                 "page turn"
             )
 
-            EventValues.registerEventValue(
-                PageTurnEvent::class.java,
-                MenuSession::class.java,
-                PageTurnEvent::session
-            )
-
-            EventValues.registerEventValue(
-                PageTurnEvent::class.java,
-                Player::class.java,
-                PageTurnEvent::viewer
-            )
-            EventValues.registerEventValue(
-                PageTurnEvent::class.java,
-                Menu::class.java,
-                PageTurnEvent::menu
-            )
+            SkriptSyntax.eventValue(addon, PageTurnEvent::class.java, MenuSession::class.java, PageTurnEvent::session)
+            SkriptSyntax.eventValue(addon, PageTurnEvent::class.java, Player::class.java, PageTurnEvent::viewer)
+            SkriptSyntax.eventValue(addon, PageTurnEvent::class.java, Menu::class.java, PageTurnEvent::menu)
         }
     }
 
@@ -65,5 +52,4 @@ class EvtPageTurn : SkriptEvent() {
     override fun check(event: Event?) = true
 
     override fun toString(event: Event?, debug: Boolean) = "page turn event"
-
 }

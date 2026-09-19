@@ -30,7 +30,6 @@ class PageTurnEvent(
 
         @JvmStatic
         fun getHandlerList(): HandlerList = HANDLERS
-
     }
 
     private var cancelled = false
@@ -40,6 +39,6 @@ class PageTurnEvent(
     override fun isCancelled(): Boolean = cancelled
 
     override fun setCancelled(cancel: Boolean) {
-        cancelled = false
+        cancelled = cancel
     }
 }

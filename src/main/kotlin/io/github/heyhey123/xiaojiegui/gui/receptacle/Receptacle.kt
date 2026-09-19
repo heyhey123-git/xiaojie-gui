@@ -17,7 +17,20 @@ abstract class Receptacle(title: Component, val layout: Layout, val mode: Mode) 
      * PHANTOM: Elements are fixed and cannot be moved, but can still be interacted.
      */
     enum class Mode {
-        STATIC, PHANTOM
+        STATIC,
+        PHANTOM;
+
+        /**
+         * The word scripts read and write for this mode, `static` or `phantom`.
+         *
+         * Skript gets the literal for an enum constant from its language files, which an addon has to
+         * ship as a versioned `default.lang`; without one the only literal that parses is the generated
+         * `<constant> <type name>` (`static receptacle mode`), and the bare `phantom` is taken by
+         * Minecraft's phantom entity. So the words stay plain text on the script side, and this is the
+         * one place they are written down -- the `mode:` entry of `build a menu` accepts them too.
+         */
+        val id: String
+            get() = name.lowercase()
     }
 
     var title: Component = title
@@ -142,5 +155,4 @@ abstract class Receptacle(title: Component, val layout: Layout, val mode: Mode) 
      */
     fun setOnClick(handler: Consumer<ReceptacleInteractEvent>) =
         onClick { event -> handler.accept(event) }
-
 }

@@ -1,6 +1,7 @@
 package io.github.heyhey123.xiaojiegui.gui.utils
 
-import java.util.*
+import java.util.Collections
+import java.util.WeakHashMap
 
 /**
  * A [MutableSet] implementation backed by a [WeakHashMap].

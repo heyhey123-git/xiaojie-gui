@@ -1,17 +1,17 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.button.expressions
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.skript.utils.Button
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Get All Buttons")
 @Description(
@@ -24,14 +24,14 @@ import org.bukkit.event.Event
     "    send \"Button ID: %loop-value%\" to player"
 )
 @Since("1.0.4")
-class ExprAllButtons: SimpleExpression<String>() {
+class ExprAllButtons : SimpleExpression<String>() {
 
     companion object {
-        init {
-            Skript.registerExpression(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.expression(
+                addon,
                 ExprAllButtons::class.java,
                 String::class.java,
-                ExpressionType.SIMPLE,
                 "all buttons"
             )
         }
@@ -52,5 +52,4 @@ class ExprAllButtons: SimpleExpression<String>() {
     override fun isSingle() = false
 
     override fun getReturnType() = String::class.java
-
 }

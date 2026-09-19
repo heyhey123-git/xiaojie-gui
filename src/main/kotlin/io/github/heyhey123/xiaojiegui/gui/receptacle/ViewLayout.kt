@@ -1,3 +1,9 @@
+// The object names below deliberately mirror the inventory constants they stand for
+// (GENERIC_9X3, BLAST_FURNACE, ...): reading a `when` block against Bukkit's InventoryType and the
+// client's MenuType is the whole point of these layouts. ktlint's class-naming rule asks for camel
+// case, which would break that correspondence, so it is suppressed for this file only.
+@file:Suppress("ktlint:standard:class-naming")
+
 package io.github.heyhey123.xiaojiegui.gui.receptacle
 
 import io.github.heyhey123.xiaojiegui.gui.layout.Layout
@@ -35,13 +41,16 @@ sealed class ViewLayout(
     sealed class FixedContainer(type: LayoutType, inventoryType: InventoryType, slotRange: IntRange) :
         ViewLayout(type, inventoryType, slotRange) {
         object GENERIC_3X3 : FixedContainer(LayoutType.GENERIC_3X3, InventoryType.DROPPER, 0..8)
-        object CRAFTER_3x3 : FixedContainer(LayoutType.CRAFTER_3x3, InventoryType.WORKBENCH, 0..8)
+        object CRAFTER_3X3 : FixedContainer(LayoutType.CRAFTER_3X3, InventoryType.WORKBENCH, 0..8)
         object ANVIL : FixedContainer(LayoutType.ANVIL, InventoryType.ANVIL, 0..2)
+        object BARREL : FixedContainer(LayoutType.GENERIC_9X3, InventoryType.BARREL, 0..26)
         object BEACON : FixedContainer(LayoutType.BEACON, InventoryType.BEACON, 0..2)
         object BLAST_FURNACE : FixedContainer(LayoutType.BLAST_FURNACE, InventoryType.BLAST_FURNACE, 0..2)
         object BREWING_STAND : FixedContainer(LayoutType.BREWING_STAND, InventoryType.BREWING, 0..4)
         object CRAFTING : FixedContainer(LayoutType.CRAFTING, InventoryType.CRAFTING, 0..4)
+        object DISPENSER : FixedContainer(LayoutType.GENERIC_3X3, InventoryType.DISPENSER, 0..8)
         object ENCHANTMENT : FixedContainer(LayoutType.ENCHANTMENT, InventoryType.ENCHANTING, 0..2)
+        object ENDER_CHEST : FixedContainer(LayoutType.GENERIC_9X3, InventoryType.ENDER_CHEST, 0..26)
         object FURNACE : FixedContainer(LayoutType.FURNACE, InventoryType.FURNACE, 0..2)
         object GRINDSTONE : FixedContainer(LayoutType.GRINDSTONE, InventoryType.GRINDSTONE, 0..2)
         object HOPPER : FixedContainer(LayoutType.HOPPER, InventoryType.HOPPER, 0..4)
@@ -56,31 +65,31 @@ sealed class ViewLayout(
     }
 
     companion object {
-        fun fromInventoryType(type: InventoryType): ViewLayout {
-            return when (type) {
-                InventoryType.CHEST -> Chest.GENERIC_9X3
-                InventoryType.DROPPER -> FixedContainer.GENERIC_3X3
-                InventoryType.WORKBENCH -> FixedContainer.CRAFTER_3x3
-                InventoryType.ANVIL -> FixedContainer.ANVIL
-                InventoryType.BEACON -> FixedContainer.BEACON
-                InventoryType.BLAST_FURNACE -> FixedContainer.BLAST_FURNACE
-                InventoryType.BREWING -> FixedContainer.BREWING_STAND
-                InventoryType.CRAFTING -> FixedContainer.CRAFTING
-                InventoryType.ENCHANTING -> FixedContainer.ENCHANTMENT
-                InventoryType.FURNACE -> FixedContainer.FURNACE
-                InventoryType.GRINDSTONE -> FixedContainer.GRINDSTONE
-                InventoryType.HOPPER -> FixedContainer.HOPPER
-                InventoryType.LECTERN -> FixedContainer.LECTERN
-                InventoryType.LOOM -> FixedContainer.LOOM
-                InventoryType.MERCHANT -> FixedContainer.MERCHANT
-                InventoryType.SHULKER_BOX -> FixedContainer.SHULKER_BOX
-                InventoryType.SMITHING -> FixedContainer.SMITHING
-                InventoryType.SMOKER -> FixedContainer.SMOKER
-                InventoryType.CARTOGRAPHY -> FixedContainer.CARTOGRAPHY_TABLE
-                InventoryType.STONECUTTER -> FixedContainer.STONECUTTER
-                else -> throw IllegalArgumentException("Unsupported inventory type: $type")
-            }
+        fun fromInventoryType(type: InventoryType): ViewLayout = when (type) {
+            InventoryType.CHEST -> Chest.GENERIC_9X3
+            InventoryType.DROPPER -> FixedContainer.GENERIC_3X3
+            InventoryType.WORKBENCH -> FixedContainer.CRAFTER_3X3
+            InventoryType.ANVIL -> FixedContainer.ANVIL
+            InventoryType.BARREL -> FixedContainer.BARREL
+            InventoryType.BEACON -> FixedContainer.BEACON
+            InventoryType.BLAST_FURNACE -> FixedContainer.BLAST_FURNACE
+            InventoryType.BREWING -> FixedContainer.BREWING_STAND
+            InventoryType.CRAFTING -> FixedContainer.CRAFTING
+            InventoryType.DISPENSER -> FixedContainer.DISPENSER
+            InventoryType.ENCHANTING -> FixedContainer.ENCHANTMENT
+            InventoryType.ENDER_CHEST -> FixedContainer.ENDER_CHEST
+            InventoryType.FURNACE -> FixedContainer.FURNACE
+            InventoryType.GRINDSTONE -> FixedContainer.GRINDSTONE
+            InventoryType.HOPPER -> FixedContainer.HOPPER
+            InventoryType.LECTERN -> FixedContainer.LECTERN
+            InventoryType.LOOM -> FixedContainer.LOOM
+            InventoryType.MERCHANT -> FixedContainer.MERCHANT
+            InventoryType.SHULKER_BOX -> FixedContainer.SHULKER_BOX
+            InventoryType.SMITHING -> FixedContainer.SMITHING
+            InventoryType.SMOKER -> FixedContainer.SMOKER
+            InventoryType.CARTOGRAPHY -> FixedContainer.CARTOGRAPHY_TABLE
+            InventoryType.STONECUTTER -> FixedContainer.STONECUTTER
+            else -> throw IllegalArgumentException("Unsupported inventory type: $type")
         }
     }
 }
-

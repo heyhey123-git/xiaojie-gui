@@ -6,20 +6,25 @@ import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.expressions.base.SimplePropertyExpression
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.inventory.InventoryType
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Menu Inventory Type")
 @Description("The inventory type of a menu.")
 @Examples(
-    "set {_type} to the inventory type of menu {_menu}",
+    // The property takes the menu expression directly: `of menu {_menu}` parses `menu {_menu}` as a
+    // lookup by id instead.
+    "set {_type} to the inventory type of {_menu}",
     "send \"The inventory type is %{_type}%\" to player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprInventoryType : SimplePropertyExpression<Menu, InventoryType>() {
 
     companion object {
-        init {
-            register(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.property(
+                addon,
                 ExprInventoryType::class.java,
                 InventoryType::class.java,
                 "inventory type",
@@ -33,5 +38,4 @@ class ExprInventoryType : SimplePropertyExpression<Menu, InventoryType>() {
     override fun getPropertyName() = "inventory type"
 
     override fun getReturnType() = InventoryType::class.java
-
 }

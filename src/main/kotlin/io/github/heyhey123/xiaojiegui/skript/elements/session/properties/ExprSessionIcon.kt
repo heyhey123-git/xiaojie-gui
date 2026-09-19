@@ -7,16 +7,17 @@ import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
 import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
-
+import org.skriptlang.skript.addon.SkriptAddon
+import org.skriptlang.skript.registration.SyntaxInfo
 
 @Name("Menu Session Icon")
 @Description(
@@ -26,21 +27,24 @@ import org.bukkit.inventory.ItemStack
     "When deleting icons, all existing icons in the specified slots will be removed."
 )
 @Examples(
-    "set {_icon} to icon of menu session {_session} in slot 10",
-    "set icon in slot 5 of menu session {_session} to dirt",
-    "delete icon in slot 3 of menu session {_session}"
+    // Reading icons goes into a list variable: the expression can describe several slots at once, and a
+    // single variable refuses more than one possible type. The two writing forms use the other pattern.
+    "set {_icon::*} to icon in slot 10 of {_session}",
+    "set icon in slot 5 of {_session} to dirt",
+    "delete icon in slot 3 of {_session}"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprSessionIcon : SimpleExpression<ItemStack>() {
 
     companion object {
-        init {
-            Skript.registerExpression(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.expression(
+                addon,
                 ExprSessionIcon::class.java,
                 ItemStack::class.java,
-                ExpressionType.COMBINED,
                 "icon of %menusession% in slot %numbers%",
-                "icon in slot %numbers% of %menusession%"
+                "icon in slot %numbers% of %menusession%",
+                priority = SyntaxInfo.COMBINED
             )
         }
     }
@@ -91,14 +95,21 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
                 "Menu session icons can only be modified from the main server thread, " +
-                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
-                        "current statement: ${this.toString(event, true)}"
+                    "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                    "current statement: ${this.toString(event, true)}"
             )
+            return
         }
 
         when (mode) {
             Changer.ChangeMode.SET -> {
-                val item = delta?.firstOrNull() as? ItemStack?
+                // A SET always carries what to set. Reading a missing or wrong-typed value as null
+                // would clear the slot instead of reporting the mistake.
+                val item = delta?.firstOrNull() as? ItemStack
+                if (item == null) {
+                    Skript.error("Icon to set must be an item stack: ${this.toString(event, true)}")
+                    return
+                }
                 session.setIcons(slots.associateWith { item }, true)
             }
 

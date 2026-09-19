@@ -2,7 +2,7 @@ package io.github.heyhey123.xiaojiegui.gui.menu.component
 
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
 import org.bukkit.entity.Player
-import java.util.*
+import java.util.UUID
 
 /**
  * A utility class to manage cooldowns for players.

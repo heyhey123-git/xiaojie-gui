@@ -15,7 +15,9 @@ import ch.njol.skript.variables.Variables
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Edit Menu")
 @Description(
@@ -24,14 +26,17 @@ import org.bukkit.event.Event
 )
 @Examples(
     "edit menu with id \"main_menu\":",
-    "    set slot 0 in page 0 of menu with id \"main_menu\" to diamond named \"New Item\""
+    // Filling a slot is `override slot ... for menu ...`; `set slot 0 in page 1 of menu with id ...`
+    // is not this addon's syntax and parses as neither an effect nor a condition.
+    "    override slot 0 in page 1 to diamond named \"New Item\" for menu with id \"main_menu\""
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffSecEditMenu : EffectSection() {
 
     companion object {
-        init {
-            Skript.registerSection(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.section(
+                addon,
                 EffSecEditMenu::class.java,
                 "(edit|change) [the] [(menu|gui)] %menu%"
             )
@@ -91,5 +96,4 @@ class EffSecEditMenu : EffectSection() {
 
     override fun toString(event: Event?, debug: Boolean) =
         "edit menu ${menuExpr.toString(event, debug)}"
-
 }

@@ -10,7 +10,9 @@ import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Hide Player Inventory")
 @Description("Hide or show the player inventory section in a menu.")
@@ -18,12 +20,13 @@ import org.bukkit.event.Event
     "hide player inventory of {_menu}",
     "show player inventory of {_menu}"
 )
-@Since("1.0-SNAPSHOT")
-class EffHidePlayerInv: Effect() {
+@Since("1.0.0")
+class EffHidePlayerInv : Effect() {
 
     companion object {
-        init {
-            Skript.registerEffect(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.effect(
+                addon,
                 EffHidePlayerInv::class.java,
                 "hide player inventory of %menu%",
                 "show player inventory of %menu%"
@@ -59,5 +62,5 @@ class EffHidePlayerInv: Effect() {
 
     override fun toString(event: Event?, debug: Boolean) =
         (if (!isNegated) "hide" else "show") +
-                " player inventory of ${menuExpr.toString(event, debug)}"
+            " player inventory of ${menuExpr.toString(event, debug)}"
 }

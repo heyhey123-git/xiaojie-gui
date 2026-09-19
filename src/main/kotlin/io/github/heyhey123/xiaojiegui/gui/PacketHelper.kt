@@ -5,7 +5,11 @@ import io.papermc.paper.adventure.PaperAdventure
 import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.common.ClientCommonPacketListener
-import net.minecraft.network.protocol.game.*
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
+import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
+import net.minecraft.network.protocol.game.ClientboundSetCursorItemPacket
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
@@ -42,10 +46,10 @@ abstract class PacketHelper {
      */
     abstract fun generateNextContainerId(player: Player): Int
 
-    //resource: container_close
+    // resource: container_close
     abstract fun sendContainerClose(player: Player)
 
-    //resource: open_screen
+    // resource: open_screen
     abstract fun sendOpenScreen(player: Player, windowId: Int, windowType: LayoutType, title: Component)
 
     // resource: container_set_content
@@ -80,7 +84,7 @@ private class PacketHelperImpl : PacketHelper() {
 
     override fun sendContainerClose(player: Player) {
         val packet = ClientboundContainerClosePacket(0)
-        //by wiki: The vanilla client disregards the provided window ID and closes any active window.
+        // by wiki: The vanilla client disregards the provided window ID and closes any active window.
         player.sendPacket(packet)
     }
 

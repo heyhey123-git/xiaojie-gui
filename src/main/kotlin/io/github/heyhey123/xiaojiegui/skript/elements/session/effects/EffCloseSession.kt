@@ -11,9 +11,10 @@ import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Close Menu Session")
 @Description(
@@ -22,12 +23,13 @@ import org.bukkit.event.Event
 @Examples(
     "close the menu session of player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffCloseSession : Effect() {
 
     companion object {
-        init {
-            Skript.registerEffect(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.effect(
+                addon,
                 EffCloseSession::class.java,
                 "close [the] [menu] [session] %menusession%"
             )
@@ -59,8 +61,8 @@ class EffCloseSession : Effect() {
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             Skript.error(
                 "Menu session can only be closed from the main server thread, " +
-                        "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
-                        "current statement: ${this.toString(event, true)}"
+                    "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
+                    "current statement: ${this.toString(event, true)}"
             )
             return
         }

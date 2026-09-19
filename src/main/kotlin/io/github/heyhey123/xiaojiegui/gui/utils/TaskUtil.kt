@@ -32,23 +32,32 @@ object TaskUtil {
     ): BukkitTask {
         val scheduler = Bukkit.getScheduler()
         if (period <= 0L) {
-            return scheduler.runTaskLater(XiaojieGUI.instance, Runnable {
+            return scheduler.runTaskLater(
+                XiaojieGUI.instance,
+                Runnable {
+                    val task = object : Cancellable() {
+                        override fun run() {
+                            block()
+                        }
+                    }
+                    task.run()
+                },
+                delay
+            )
+        }
+        return scheduler.runTaskTimer(
+            XiaojieGUI.instance,
+            Runnable {
                 val task = object : Cancellable() {
                     override fun run() {
                         block()
                     }
                 }
                 task.run()
-            }, delay)
-        }
-        return scheduler.runTaskTimer(XiaojieGUI.instance, Runnable {
-            val task = object : Cancellable() {
-                override fun run() {
-                    block()
-                }
-            }
-            task.run()
-        }, if (now) 0L else delay, period)
+            },
+            if (now) 0L else delay,
+            period
+        )
     }
 
     /**
@@ -68,23 +77,32 @@ object TaskUtil {
     ): BukkitTask {
         val scheduler = Bukkit.getScheduler()
         if (period <= 0L) {
-            return scheduler.runTaskLaterAsynchronously(XiaojieGUI.instance, Runnable {
+            return scheduler.runTaskLaterAsynchronously(
+                XiaojieGUI.instance,
+                Runnable {
+                    val task = object : Cancellable() {
+                        override fun run() {
+                            block()
+                        }
+                    }
+                    task.run()
+                },
+                delay
+            )
+        }
+        return scheduler.runTaskTimerAsynchronously(
+            XiaojieGUI.instance,
+            Runnable {
                 val task = object : Cancellable() {
                     override fun run() {
                         block()
                     }
                 }
                 task.run()
-            }, delay)
-        }
-        return scheduler.runTaskTimerAsynchronously(XiaojieGUI.instance, Runnable {
-            val task = object : Cancellable() {
-                override fun run() {
-                    block()
-                }
-            }
-            task.run()
-        }, if (now) 0L else delay, period)
+            },
+            if (now) 0L else delay,
+            period
+        )
     }
 
     /**

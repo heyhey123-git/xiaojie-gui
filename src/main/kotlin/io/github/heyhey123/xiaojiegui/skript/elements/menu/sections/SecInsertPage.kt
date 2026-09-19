@@ -15,12 +15,13 @@ import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 import org.skriptlang.skript.lang.entry.EntryValidator
 import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
-
 
 @Name("Build and Insert Page")
 @Description(
@@ -29,17 +30,20 @@ import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
     "If the page index is not provided, the new page will be added at the end of the menu."
 )
 @Examples(
-    "insert page 1 into menu:",
-    "    layout: \"xxxxxxxxx, xooooooxx, xxxxxxxox\"",
-    "    player inventory layout: \"ooooooooo, oooooooox, xxxxxxxxx\"",
+    // `insert page` has to name its menu outside a menu event: the pattern's menu slot is optional,
+    // but the effect refuses to parse without one and without a menu event to take it from.
+    "insert page 1 into menu {_menu}:",
+    "    layout: \"xxxxxxxxx\", \"xooooooxx\", \"xxxxxxxox\"",
+    "    player inventory layout: \"ooooooooo\", \"oooooooox\", \"xxxxxxxxx\"",
     "    title: \"New Page\""
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class SecInsertPage : Section() {
 
     companion object {
-        init {
-            Skript.registerSection(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.section(
+                addon,
                 SecInsertPage::class.java,
                 "insert page [%-number%] into menu [%-menu%]"
             )
@@ -148,7 +152,7 @@ class SecInsertPage : Section() {
             pageIndex,
             layoutPattern = layout,
             title = title,
-            playerInventoryPattern = playerInvLayout,
+            playerInventoryPattern = playerInvLayout
         )
 
         return walk(event, false)

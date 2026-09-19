@@ -9,8 +9,9 @@ import ch.njol.skript.doc.Since
 import ch.njol.skript.expressions.base.SimplePropertyExpression
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
-
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Menu Session Title")
 @Description(
@@ -21,15 +22,16 @@ import org.bukkit.event.Event
     "set {_title} to the title of {_session}",
     "set the title of {_session} to \"&aNew Title\""
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
 
     @Suppress("UNCHECKED_CAST")
     companion object {
-        init {
-            register(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.property(
+                addon,
                 ExprSessionTitle::class.java,
-                ComponentHelper.titleReturnType as Class<Any>,
+                ComponentHelper.titleReturnType as Class<Any?>,
                 "title",
                 "menusession"
             )
@@ -42,8 +44,11 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
         }
 
     override fun acceptChange(mode: Changer.ChangeMode?): Array<out Class<*>?> =
-        if (mode == Changer.ChangeMode.SET) ComponentHelper.titleReturnTypes
-        else emptyArray()
+        if (mode == Changer.ChangeMode.SET) {
+            ComponentHelper.titleReturnTypes
+        } else {
+            emptyArray()
+        }
 
     override fun change(event: Event?, delta: Array<out Any?>?, mode: Changer.ChangeMode?) {
         if (mode != Changer.ChangeMode.SET) return
@@ -71,5 +76,4 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
     override fun getPropertyName() = "title"
 
     override fun getReturnType() = ComponentHelper.titleReturnType
-
 }

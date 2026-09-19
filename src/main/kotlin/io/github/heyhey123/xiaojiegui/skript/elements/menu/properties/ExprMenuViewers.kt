@@ -1,19 +1,20 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.properties
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
 import ch.njol.skript.doc.Since
+import ch.njol.skript.expressions.base.PropertyExpression
 import ch.njol.skript.lang.Expression
-import ch.njol.skript.lang.ExpressionType
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.skript.lang.util.SimpleExpression
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Menu Viewers")
 @Description("All players currently viewing a menu.")
@@ -22,18 +23,19 @@ import org.bukkit.event.Event
     "loop viewers of menu {_menu}:",
     "    send \"You are not alone! There are other players viewing this menu.\" to loop-player"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class ExprMenuViewers : SimpleExpression<Player>() {
 
     companion object {
-        init {
-            Skript.registerExpression(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.expression(
+                addon,
                 ExprMenuViewers::class.java,
                 Player::class.java,
-                ExpressionType.PROPERTY,
                 "[the] viewers of [the] [(menu|gui)] %menu%",
                 "%menu%'[s] viewers",
-                "[all] [(players|viewers)] viewing [the] [(menu|gui)] %menu%"
+                "[all] [(players|viewers)] viewing [the] [(menu|gui)] %menu%",
+                priority = PropertyExpression.DEFAULT_PRIORITY
             )
         }
     }
@@ -62,5 +64,4 @@ class ExprMenuViewers : SimpleExpression<Player>() {
     override fun isSingle() = false
 
     override fun getReturnType() = Player::class.java
-
 }

@@ -10,7 +10,9 @@ import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
+import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Clear Session")
 @Description(
@@ -21,12 +23,13 @@ import org.bukkit.event.Event
 @Examples(
     "clear the menu session player's menu session and refresh"
 )
-@Since("1.0-SNAPSHOT")
+@Since("1.0.0")
 class EffClearSession : Effect() {
 
     companion object {
-        init {
-            Skript.registerEffect(
+        fun register(addon: SkriptAddon) {
+            SkriptSyntax.effect(
+                addon,
                 EffClearSession::class.java,
                 "clear [the] [menu] [session] %menusession% [refresh:and refresh]"
             )
