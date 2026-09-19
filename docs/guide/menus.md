@@ -1,0 +1,154 @@
+# Creating Menus
+
+[中文](menus.zh-CN.md) | English
+
+## Two ways to write it
+
+**The section form** (`create menu`) puts every property on one first line, and the contents in the
+section:
+
+```skript
+create a static menu with chest inventory titled "Main Menu" with id "main_menu" with layout "AAA", "ABA", "AAA" with 100 ms click delay with hide player inventory:
+    override slot 4 in page 1 to diamond named "Special Item" for menu with id "main_menu"
+```
+
+**The entry form** (`build a menu`) writes the properties as `key: value` and puts the contents in an
+`edit:` section:
+
+```skript
+build a menu {_menu}:
+    mode: phantom
+    inventory type: chest inventory
+    title: "Main Menu"
+    layout: "AAA", "ABA", "AAA"
+    id: "main_menu"
+    click delay: 100
+    hide player inventory: true
+    edit:
+        override slot 4 in page 1 to diamond named "Special Item" for {_menu}
+```
+
+`build a menu {_menu}:` **stores the menu it builds in that variable**, which is also why the
+`for {_menu}` below it works. `build a menu` is a section, so its first line needs the colon at the end.
+
+## The parts of `create menu`
+
+```
+create [a] [phantom|static] menu
+    with %inventorytype%
+    titled <title>
+    with layout %strings%
+    [with id %string%]
+    [with page %number%]
+    [with %number% ms click delay]
+    [with|without hide player inventory]
+```
+
+The order is fixed: `with id` comes **after** `with layout`, and `with page` comes after `with id`. If
+you do not write `phantom` / `static`, it is `phantom`.
+
+| Part | Required | Notes |
+|---|---|---|
+| `with %inventorytype%` | yes | the container type, see the next section |
+| `titled …` | yes | the title, see [Titles](titles.md) |
+| `with layout %strings%` | yes | the layout, see the next section |
+| `with id %string%` | no | names the menu; **a menu with an id that already exists destroys the old one** |
+| `with page %number%` | no | only decides which page `open menu` shows first, see [Pages](pages.md) |
+| `with %number% ms click delay` | no | the minimum interval between two clicks, 50 milliseconds by default |
+| `with hide player inventory` | no | hides the player inventory area below the menu |
+
+`without hide player inventory` is the default; writing it out is for readability.
+
+## Inventory types
+
+`%inventorytype%` uses Skript's own inventory type, so the names are the names in Skript:
+
+| Written as | Slots | Notes |
+|---|---|---|
+| `chest inventory` | rows × 9, see below | the only type whose size **comes from the layout** |
+| `dropper inventory` | 9 | 3×3 |
+| `dispenser inventory` | 9 | 3×3, and not the same window as dropper |
+| `crafter inventory` | 9 | the crafter block. Like `workbench` it is 3×3, but the client draws a different window, so both exist |
+| `workbench inventory` | 10 | the workbench: 1 result slot + the 3×3 grid |
+| `anvil inventory` | 3 | |
+| `beacon inventory` | 1 | only the slot the payment goes in |
+| `blast furnace inventory` | 3 | |
+| `furnace inventory` | 3 | |
+| `smoker inventory` | 3 | |
+| `grindstone inventory` | 3 | |
+| `smithing inventory` | 4 | template, gear, addition, result |
+| `loom inventory` | 4 | |
+| `cartography table inventory` | 3 | **not** `cartography inventory` |
+| `brewing stand inventory` | 5 | |
+| `hopper inventory` | 5 | |
+| `lectern inventory` | 1 | |
+| `stonecutter inventory` | 2 | |
+| `enchanting table inventory` | 2 | **not** `enchanting inventory` |
+| `merchant inventory` | 3 | `villager inventory` also works. **Phantom menus only**, see below |
+| `barrel inventory` | 27 | |
+| `ender chest inventory` | 27 | |
+| `shulker box inventory` | 27 | |
+
+With `chest inventory` the number of rows is **the number of layout strings you give** (at most 6), so
+`"AAA", "ABA", "AAA"` is a 3-row, 27-slot chest. Every other type has a fixed size, and the layout
+strings only decide which slots are used.
+
+A slot count is **the number of slots the client really draws for that window**, with the player's 27
+inventory slots and 9 hotbar slots right after it. Getting it wrong does not raise an error — it moves
+everything in the player's inventory and every click by a few slots — so this table is pinned to the same
+table in a unit test, and a mistake there fails the build.
+
+`merchant inventory` works in `phantom` mode, where the server draws the window itself. It does not work
+as `static`: Bukkit will not create a merchant inventory (the trades come from the merchant API), and
+`create a static menu with merchant inventory ...` says so and stops.
+
+A type other than those above reports `Unsupported inventory type`. `crafting table inventory` (the
+player's own 2×2 crafting grid) is deliberately one of them: no client menu draws that window, so opening
+it would draw a crafting table instead; use `workbench inventory` for a crafting-table window.
+
+## What a layout string is
+
+A layout is **one string per row**, and each character is one slot, starting at the top left, going left
+to right and top to bottom.
+
+```skript
+with layout "#########", "#  A  B #", "#########"
+```
+
+- One string = one row, no longer than 9 characters (for anything other than a chest, the container's
+  width decides).
+- Every character occupies one slot, and **a space is a slot too**; it just is not mapped to any key, so
+  it stays empty. In the example above the second row is nine characters: `#`, space, space, `A`, space,
+  space, `B`, space, `#`.
+- A character is only a name and has no built-in meaning: `#` does not turn into glass by itself, and
+  `A` does not turn into a diamond. What decides the appearance is `map key` (see
+  [Filling Menus](filling-menus.md)).
+- The same character may appear more than once in a layout, and those slots are mapped together and
+  changed together.
+
+**How slot numbers are counted**: row 1 is 0–8, row 2 is 9–17, row 3 is 18–26, and so on. So the `A` in
+`"#########", "#  A  B #"` is slot 12.
+
+**To use a long name as a key**, wrap the name in backticks; the whole `` `name` `` occupies one slot:
+
+```skript
+with layout "`previous`AAA`next`"
+map key "previous" to icon paper named "&ePrevious" for {_menu}
+```
+
+One character is one key, so the character in the layout and the string in `map key` have to be
+**exactly the same** (case-sensitive). Using a character in `map key` that the layout does not contain
+does not report an error, but the item never appears in any slot — that is the most common reason for
+"I mapped it and there is nothing there".
+
+## Changing an existing menu with `edit menu`
+
+```skript
+edit menu with id "main_menu":
+    override slot 0 in page 1 to diamond named "New Item" for menu with id "main_menu"
+```
+
+`(edit|change) [the] [(menu|gui)] %menu%` does not change any property by itself; it only provides a
+"current menu" context, so that `insert page …` and the like inside the section work without naming the
+menu. To change a property, use the matching expression, for example
+`set the default title of {_menu} to "…"`.

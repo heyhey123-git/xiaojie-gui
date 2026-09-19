@@ -1,6 +1,6 @@
 # 两种模式：`phantom` 和 `static`
 
-[English](../../README.md) | 简体中文
+[English](modes.md) | 简体中文
 
 每个菜单都有模式，只有两个值：`phantom` 和 `static`。
 

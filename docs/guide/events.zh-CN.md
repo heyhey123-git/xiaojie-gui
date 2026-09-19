@@ -1,6 +1,6 @@
 # 事件与事件值
 
-[English](../../README.md) | 简体中文
+[English](events.md) | 简体中文
 
 ## 四个事件
 

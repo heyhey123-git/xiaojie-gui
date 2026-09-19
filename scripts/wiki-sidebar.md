@@ -23,6 +23,33 @@
 - [配置](Configuration)
 - [尚未支持](Not-Supported-Yet)
 
+**xiaojie-gui (English)**
+
+- [Home](Home-English)
+- [Getting Started](Getting-Started-English)
+
+**Writing Menus**
+
+- [Creating Menus](Menus-English)
+- [Pages](Pages-English)
+- [Referring to Menus in Syntax](Naming-Menus-English)
+- [Filling Menus](Filling-Menus-English)
+- [Titles](Titles-English)
+
+**Interaction**
+
+- [Events and Event Values](Events-English)
+- [Sessions](Sessions-English)
+- [Conditions](Conditions-English)
+
+**Reference**
+
+- [The Two Modes](Modes-English)
+- [Configuration](Configuration-English)
+- [Not Supported Yet](Not-Supported-Yet-English)
+
 ---
 
 内容以[仓库](https://github.com/heyhey123-git/xiaojie-gui)里的 `docs/` 为准，请不要在这里直接改。
+
+The content is governed by `docs/` in the [repository](https://github.com/heyhey123-git/xiaojie-gui); please do not edit it here.

@@ -1,6 +1,6 @@
 # 标题
 
-[English](../../README.md) | 简体中文
+[English](titles.md) | 简体中文
 
 凡是能写标题的地方 —— `create menu … titled …`、`insert page … with title …`、
 `update title of page N in {_menu} to …`、`update title of the menu session … to …`、

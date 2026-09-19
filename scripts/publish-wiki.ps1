@@ -1,19 +1,19 @@
 #!/usr/bin/env pwsh
 #
-# Renders the Chinese documentation as GitHub wiki pages.
+# Renders the documentation as GitHub wiki pages, in the two languages the repository carries.
 #
 # The wiki is a git repository of its own, its pages are plain files named after the page, and a link
-# between two pages names the page rather than a path. The Chinese pages therefore cannot be copied
-# across unchanged: the language switch belongs to a repository that carries both languages, every link
-# to another page has to become that page's name, and a link to anything the wiki does not carry has to
-# point back at the repository instead.
+# between two pages names the page rather than a path. The pages therefore cannot be copied across
+# unchanged: each one carries the switch to its other language, every link to another page has to become
+# that page's name, and a link to anything the wiki does not carry has to point back at the repository
+# instead. Both halves of a pair are rendered here, so the switch works from either side.
 #
 # This addon publishes its syntax list nowhere else: it registers through Skript's addon API, which
 # skUnity's automatic jar import cannot read (see CONTRIBUTION.md), so the wiki is what a user reads and
 # the pages under `docs/guide/` are the source they are rendered from.
 #
-# This file is deliberately plain ASCII, and everything a reader sees as Chinese lives in the two data
-# files beside it:
+# This file is deliberately plain ASCII, and everything a reader sees that is not ASCII lives in the two
+# data files beside it:
 #
 #   wiki-pages.tsv    which repository file becomes which page, in sidebar order
 #   wiki-sidebar.md   the sidebar, which is the table of contents on every page
@@ -91,6 +91,29 @@ foreach ($file in $pages.Keys) {
     $knownPages[$pages[$file]] = $true
 }
 
+# Whether a line links to a page of this wiki, by the same rule the rewrite below uses: the file the link
+# names has to be one of the files mapped above. Walking the path is deliberately not done here -- a
+# switch that walks out of the repository would be refused by that walk, and this test only decides
+# whether there is a page to switch to, not whether the link is well formed.
+function Test-WikiPageLink {
+    param([string]$Line)
+
+    foreach ($match in [regex]::Matches($Line, '\]\(([^)]+)\)')) {
+        $target = $match.Groups[1].Value
+        if ($target -match '^[a-zA-Z][a-zA-Z0-9+.-]*:' -or $target.StartsWith('#')) {
+            continue
+        }
+        $path = ($target -split '#')[0]
+        if ($path -eq '') {
+            continue
+        }
+        if ($pageByFileName.ContainsKey([System.IO.Path]::GetFileName($path))) {
+            return $true
+        }
+    }
+    return $false
+}
+
 # The sidebar and the mapping are two files, and a page missing from either is the mistake that is easy
 # to make, so both directions are checked before anything is written.
 $problems = @()
@@ -125,9 +148,13 @@ function Convert-Page {
 
     $normalised = $Text -replace "`r`n", "`n"
     $kept = foreach ($line in $normalised -split "`n") {
-        # The switch between the two languages sits at the top and says `... | [English](...)`. It is
-        # for the repository, which carries both languages, and has no meaning on a wiki with one.
-        if ($line -match '\[English\]\(' -and $line -match '\|') {
+        # The switch between the two languages sits at the top and says `... | [English](...)`. It means
+        # something on this wiki now that both languages are rendered here: when the file it names is one
+        # of our pages, the rewrite below turns it into that page's name and the reader can change
+        # language from this side. It is dropped only when the file it names is not a page -- the README's
+        # own switch, which points at the repository's English README instead of at an English page -- for
+        # then there is no page here to switch to, and a link back into the repository is not a switch.
+        if ($line -match '\[English\]\(' -and $line -match '\|' -and -not (Test-WikiPageLink -Line $line)) {
             continue
         }
         $line

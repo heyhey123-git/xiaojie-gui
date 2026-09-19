@@ -1,6 +1,6 @@
 # 快速上手
 
-[English](../../README.md) | 简体中文
+[English](getting-started.md) | 简体中文
 
 这一页让你在五分钟内看到一个能用的菜单。其它页面把每一部分拆开讲。
 

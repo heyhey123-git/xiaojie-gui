@@ -1,6 +1,6 @@
 # 页面
 
-[English](../../README.md) | 简体中文
+[English](pages.md) | 简体中文
 
 ## 菜单默认只有一页
 

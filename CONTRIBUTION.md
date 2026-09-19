@@ -102,6 +102,11 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
   inserting the first one. Do not add a third way to describe a page.
 - A single-page menu is the normal case. Nothing in the API should force a user to think about pages
   before they want more than one.
+- A layout's `slotRange` is the set of slots the **client** draws for the window that layout opens, so it
+  has to equal the size of the layout's `InventoryType`, with the player's 27 main slots and 9 hotbar
+  slots right after it. A range that is off by one does not raise anything: it moves everything in the
+  player's inventory and every click in the window by a slot. `ViewLayoutTest` holds each layout to
+  Bukkit's own size for its type, and a container type Minecraft has no menu for cannot become a layout.
 - Runtime diagnostics use `Skript.warning`/quiet no-ops, not the parse-time `Skript.error`.
 - **Do not name a property what Skript already names one.** Skript 2.16 registers properties of its own
   (`viewer[s]`, `id`, `name`, …) over *any* object, and registers them before this addon, so a pattern like
@@ -162,6 +167,9 @@ Two halves, for two readers:
   `docs/guide/*.zh-CN.md`, mapped to page names by `scripts/wiki-pages.tsv`, listed by
   `scripts/wiki-sidebar.md`, and published by `scripts/publish-wiki.ps1`, which
   `.github/workflows/wiki.yml` runs on every push to `master`.
+  Every page is a bilingual pair: `docs/guide/<name>.zh-CN.md` is the Chinese half and keeps the plain
+  page name, `docs/guide/<name>.md` is the English half and takes the `-English` suffix, and each half's
+  first line switches to the other, so a syntax change has to be made in both files.
 
 A page may only describe syntax that exists: read the element's own patterns and prefer its `@Examples`
 verbatim, since those are the ones the example gate parses. A claim about a trap belongs in the page only

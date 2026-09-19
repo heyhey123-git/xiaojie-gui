@@ -1,9 +1,13 @@
-# The Chinese documentation as wiki pages: the file in the repository, a tab, and the page it becomes.
+# The documentation as wiki pages: the file in the repository, a tab, and the page it becomes.
 #
 # The page name is what a reader sees in the address bar and what a link between pages has to name, so
 # this is the one place to look when a page is added, removed or renamed. A page name may not contain a
 # space. Order here is the order the sidebar lists the pages in; the sidebar itself is wiki-sidebar.md,
 # and both files have to agree, which the publishing script checks before it writes anything.
+#
+# Both languages: a guide page is a pair, `<name>.zh-CN.md` and `<name>.md`, and each half carries the
+# switch to the other on its first line. Chinese came first and keeps the plain page names; the English
+# half takes the `-English` suffix, because the wiki is a single namespace.
 #
 # `docs/guide/…` is the syntax reference itself: the addon registers through Skript's addon API, which
 # skUnity's automatic jar import cannot read (see CONTRIBUTION.md), so these pages are what a user reads
@@ -21,3 +25,16 @@ docs/guide/conditions.zh-CN.md	Conditions
 docs/guide/modes.zh-CN.md	Modes
 docs/guide/configuration.zh-CN.md	Configuration
 docs/guide/not-supported-yet.zh-CN.md	Not-Supported-Yet
+docs/guide/getting-started.md	Getting-Started-English
+docs/guide/menus.md	Menus-English
+docs/guide/pages.md	Pages-English
+docs/guide/naming-menus.md	Naming-Menus-English
+docs/guide/filling-menus.md	Filling-Menus-English
+docs/guide/titles.md	Titles-English
+docs/guide/events.md	Events-English
+docs/guide/sessions.md	Sessions-English
+docs/guide/conditions.md	Conditions-English
+docs/guide/modes.md	Modes-English
+docs/guide/configuration.md	Configuration-English
+docs/guide/not-supported-yet.md	Not-Supported-Yet-English
+README.md	Home-English
