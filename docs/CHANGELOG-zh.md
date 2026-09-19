@@ -162,9 +162,10 @@ on menu interact:
 
 ### 已知问题
 
-- 点击、槽位对齐、标题现在由**真实客户端**覆盖（`./gradlew clientTest`）：一个 Minecraft 客户端连进测试
-  服务端，读取服务端为它打开的窗口并在里面点击。它验不了的两件事：物品**类型**（客户端说的是 26.1 的包、
-  用错的注册表去读 26.2 的物品 id，所以测试断言的是物品的名字），以及拖拽。
+- 点击、槽位对齐、标题、物品**类型**现在都由**真实客户端**覆盖（`./gradlew clientTest`）：一个 Minecraft
+  客户端连进测试服务端，读取服务端为它打开的窗口、在里面点击，并检查每个槽位里物品的**类型**。客户端是
+  26.1 客户端，测试服务端为它装了 ViaVersion + ViaBackwards，所以它证明的是"本插件发出的包能穿过真实翻译层
+  到达真实客户端"，而不是"26.2 客户端看到的就是这些字节"。客户端侧的幽灵物品与拖拽仍未覆盖。
 - `composter`、`chiseled bookshelf`、`decorated pot`、`shelf`、`jukebox` 暂不支持：客户端为它们画的菜单
   长什么样还没验证过，所以 `create menu` 会明确报 `Unsupported inventory type`，而不是猜一个形状。
 - 页面只能通过 `insert page` / 创建时的 `with page` 产生，没有声明式的 page 段落 —— 一页 = 一个布局

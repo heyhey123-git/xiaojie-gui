@@ -17,13 +17,13 @@
 #   C -> emerald  number key 3
 #   N -> clock    the button that turns to page 2
 #
-# Every icon is *named*, and the name is what the bot asserts. An item on the wire is a registry id and
-# the item registry is part of the game, not something a server sends: minecraft-data has no data for
-# 26.2 (its newest is 26.1, and 26.2 inserted items into the registry, so 26.2's diamond id is not 26.1's
-# diamond id), which means a 26.1 client -- the newest the bot can be, see `server-test/client/bot.mjs` --
-# decodes 26.2's ids with the wrong table and names the wrong item. The item's `custom_name` component is
-# a string that both versions read the same way, so it carries the identity of what the menu put in the
-# slot, and the item's type stays something only a real 26.2 client (or its own registry) can name.
+# Every icon is *named*, and the bot asserts the name **and** the item's type. The name is a `custom_name`
+# component, which both versions read by value; the type is what the registry id the server actually sent
+# decodes to on the client, and that is the assertion that can be wrong about *which* item arrived. The
+# bot is a 26.1 client, because `minecraft-data` has no 26.2 data, and `clientTest` puts ViaVersion +
+# ViaBackwards in front of this server for it: that is what turns the 26.2 ids this addon sends into the
+# 26.1 ids the client can name. Without the translation layer a 26.2 diamond (id 926) arrives as 26.1's
+# `stone_hoe`, which is why the bot's type assertions are the strong half of this file.
 
 on join:
     # The click delay defaults to 50 ms and exists to stop a player spamming clicks. Every click of this

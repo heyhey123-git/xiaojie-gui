@@ -183,10 +183,12 @@ which is created on first start. No keys were renamed.
 
 ### Known issues
 
-- Clicks, slot alignment and titles are covered by a real client now (`./gradlew clientTest`): a Minecraft
-  client joins the test server, reads the window the server opens for it and clicks in it. Two things it
-  cannot check: item *types* (the client speaks 26.1 and reads 26.2's item ids with the wrong table, so the
-  test asserts the items' names instead), and dragging.
+- Clicks, slot alignment, titles and item types are covered by a real client now (`./gradlew clientTest`):
+  a Minecraft client joins the test server, reads the window the server opens for it, clicks in it, and the
+  item in each slot is checked by *type*. The client is a 26.1 client and the test server runs
+  ViaVersion + ViaBackwards for it, so what that proves is that the packets this addon emits survive a real
+  translation layer to a real client — not that a 26.2 client sees the same bytes. Client-side ghost items
+  and dragging stay uncovered.
 - `composter`, `chiseled bookshelf`, `decorated pot`, `shelf` and `jukebox` are not supported: what the
   client draws for a menu in one of them is not verified, so `create menu` reports `Unsupported inventory
   type` rather than guessing a menu shape.

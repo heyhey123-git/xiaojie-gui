@@ -2,36 +2,31 @@
 // `clientTest` starts, sees the menu `server-test/skript/11-client.sk` opens for it, clicks that menu,
 // and asserts what it was shown. It is run by the `clientTest` Gradle task and is not part of the plugin.
 //
-// What only this side can see: the window the client was given (its title, its type, the items in known
-// slots) and the title it is shown after a page turn. What it cannot see is what the server did with a
-// click; that half is logged by `11-client.sk` and asserted by the Gradle task.
+// What only this side can see: the window the client was given (its title, its type, which item is in
+// each known slot and what that item is called) and the title it is shown after a page turn. What it
+// cannot see is what the server did with a click; that half is logged by `11-client.sk` and asserted by
+// the Gradle task.
 //
 // --- the protocol, and what it costs -----------------------------------------------------------------
 //
 // The server is Paper 26.2, protocol 776, and its status ping is off (`enable-status=false` in
 // `server-test/server.properties`), so mineflayer cannot ask it what it speaks and has to be told.
 // minecraft-data -- the data mineflayer gets its protocol, item and window definitions from -- has no
-// 26.2 data: the newest data directory it ships is 26.1, protocol 775, and 26.2 appears only in its list
-// of known versions. So this client speaks 26.1's packets and states 776 in the handshake, which is the
-// number Paper checks, and every part of the scenario that 26.2 did not reshape works exactly as it does
-// for a 26.2 client: login, the configuration phase, the window the plugin opens, clicks in it, and a
-// second window title. Two play packets that 26.2 did reshape (login success and join game) are then
-// parsed partially, which minecraft-protocol reports as "Chunk size is N but only M was read" and
-// recovers from; the rest of the session is unaffected.
+// 26.2 data: the newest data directory it ships is 26.1, protocol 775, which is also the newest version
+// mineflayer itself lists as tested. So this client is a 26.1 client and says so honestly: it sends
+// protocol 775 in the handshake and nothing rewrites it, and the server translates.
 //
-// The one thing this cannot fix is *which item* a slot holds. An item on the wire is a registry id, the
-// item registry is part of the game rather than something a server sends, and 26.2 inserted items into
-// it (26.1's diamond is id 899, 26.2's is 926), so a 26.1 client decodes 26.2's ids with the wrong table
-// and names the wrong item -- `stone_hoe` where the server put a diamond. That is not a bug in this bot
-// and not something a test can paper over: no released client data names 26.2's items. Translating on
-// the server side instead is not an option either: ViaVersion 5.12.0 resets the socket of every client
-// it has to translate against Paper 26.2, which was tried and observed.
+// Translating is `clientTest`'s job, not this file's: that task copies ViaVersion and ViaBackwards into
+// the server's `plugins/` for its run, so Paper 26.2 talks 26.2 to Via and Via talks 26.1 to this
+// client. Nothing here lies about its version, which is what lets the login succeed as a normal 26.1
+// login, and it is also what makes the item types below assertable: ViaBackwards rewrites the item
+// registry 26.2 -> 26.1, so the ids that arrive are 26.1 ids and `prismarine-item`'s 26.1 table names
+// the item the server actually put in the slot. Without the layer, a 26.1 client decodes 26.2's ids with
+// the wrong table -- 26.2 inserted items, so 26.2's diamond id (926) reads as `stone_hoe` here.
 //
-// Item identity therefore travels as the item's `custom_name` component -- a string, read by value and
-// identical for a 26.1 and a 26.2 client -- and `11-client.sk` names every icon it maps. The client
-// asserts the label it was shown in each known slot, which is the item the menu decided to put there,
-// and says plainly in the run's output that the item's type is what the label claims rather than
-// something this client can look up.
+// What that still does not prove is in `build.gradle.kts` next to the `clientTest` task: this is a 26.1
+// client seeing Via's translation of the addon's packets, so it shows the packets survive a real
+// translation layer rather than what a real 26.2 client would see.
 
 import mineflayer from 'mineflayer'
 
@@ -40,29 +35,39 @@ const HOST = process.env.XIAOJIE_CLIENT_HOST ?? '127.0.0.1'
 // file, so the two agree; the variable is there for driving the bot against another copy of the server.
 const PORT = Number(process.env.XIAOJIE_CLIENT_PORT ?? 25598)
 const USERNAME = 'SelftestBot'
-// The version whose protocol data the client uses, and the protocol number the server is told.
+// The version this client speaks. It is what mineflayer picks its data from, what it states in its
+// handshake, and -- because the run puts Via in front of the server -- what the server ends up
+// translating for.
 const DATA_VERSION = '26.1'
-const PROTOCOL_VERSION = 776
 const CLICK_PAUSE_MS = 150
 const STEP_TIMEOUT_MS = 30_000
 const RUN_TIMEOUT_MS = 90_000
 
-// The client slots of page 1 of the scenario's menu, the label each item carries, and the click that
-// follows it. The layout is "ABCN     ", so these are the first four cells of a chest's first row.
+// The client slots of page 1 of the scenario's menu, the item each holds, the label it carries, and the
+// click that follows it. The layout is "ABCN     ", so these are the first four cells of a chest's first
+// row.
+//
+// `type` is the item id the server sent, read through this client's own 26.1 registry, and it is the
+// assertion the translation layer makes possible: it names the item the menu mapped to that key, which
+// is a fact about the addon rather than about the label the addon also wrote on it. `label` is the item's
+// `custom_name` component, which is a string and so survives any translation; it is kept because it says
+// the *right* item arrived with a name the client can read, and because it is the half of "which item"
+// that does not depend on either version's registry at all.
 //
 // The two click numbers are the protocol's: `mode` is the inventory operation (0 a normal click, 1 a
 // shift click, 2 a number key) and `button` is which button -- the mouse button for a normal click, and
 // the hotbar index 0..8 for a number key, so button 2 is number key 3. `bot.clickWindow` takes them in
 // the same order as the packet: slot, button, mode.
 const PAGE_ONE = [
-  { slot: 0, label: 'slot-a-stone', click: 'a plain left click', button: 0, mode: 0 },
-  { slot: 1, label: 'slot-b-diamond', click: 'a shift click', button: 0, mode: 1 },
-  { slot: 2, label: 'slot-c-emerald', click: 'number key 3', button: 2, mode: 2 },
-  { slot: 3, label: 'slot-n-clock', click: 'the page 2 button', button: 0, mode: 0 }
+  { slot: 0, type: 'minecraft:stone', label: 'slot-a-stone', click: 'a plain left click', button: 0, mode: 0 },
+  { slot: 1, type: 'minecraft:diamond', label: 'slot-b-diamond', click: 'a shift click', button: 0, mode: 1 },
+  { slot: 2, type: 'minecraft:emerald', label: 'slot-c-emerald', click: 'number key 3', button: 2, mode: 2 },
+  { slot: 3, type: 'minecraft:clock', label: 'slot-n-clock', click: 'the page 2 button', button: 0, mode: 0 }
 ]
 const PAGE_ONE_TITLE = 'Client Page One'
 const PAGE_TWO_TITLE = 'Client Page Two'
 const PAGE_TWO_SLOT = 0
+const PAGE_TWO_TYPE = 'minecraft:apple'
 const PAGE_TWO_LABEL = 'slot-z-apple'
 
 class CheckFailed extends Error {}
@@ -134,8 +139,8 @@ function titleOf (window) {
 
 /**
  * The label the item in a slot carries, from its `custom_name` component, or null when the slot is empty
- * or its item has no name. This is the only part of an item this client can read that does not depend on
- * the item registry, which it has no 26.2 data for (see the header).
+ * or its item has no name. Read by value, so it survives translation between versions; kept alongside
+ * [typeOf] because it says what the addon *called* the icon, not only which item it used.
  */
 function labelOf (item) {
   if (item === null || item === undefined) return null
@@ -146,9 +151,16 @@ function labelOf (item) {
   return null
 }
 
-/** The item id the slot carries, or null when it is empty. */
-function itemIdOf (window, slot) {
-  return window?.slots?.[slot]?.type ?? null
+/**
+ * The item type in a slot as this client's own registry names it -- `minecraft:diamond` -- or null when
+ * the slot is empty. `prismarine-item` answers this from the id the server sent, so it only means
+ * anything because ViaBackwards rewrote that id into 26.1's registry (see the header).
+ */
+function typeOf (item) {
+  if (item === null || item === undefined) return null
+  const name = item.name
+  if (typeof name !== 'string' || name.length === 0 || name === 'unknown') return null
+  return name.includes(':') ? name : `minecraft:${name}`
 }
 
 /** A readable one-line description of a window, for the run's own output. */
@@ -160,18 +172,18 @@ function describeWindow (window) {
   )
 }
 
-/** The first row of the container region as item labels, so the report shows what the client saw. */
+/** The first row of the container region as item types and labels, so the report shows what arrived. */
 function describeFirstRow (window) {
   const row = []
   for (let slot = 0; slot < 9; slot++) {
     const item = window?.slots?.[slot]
-    row.push(item ? `${labelOf(item) ?? `<id ${item.type}>`} (id ${item.type})` : '-')
+    row.push(item ? `${typeOf(item)} "${labelOf(item) ?? ''}" (id ${item.type})` : '-')
   }
   return row.join(', ')
 }
 
 async function main () {
-  log(`connecting to ${HOST}:${PORT} as ${USERNAME} (data ${DATA_VERSION}, handshake protocol ${PROTOCOL_VERSION})`)
+  log(`connecting to ${HOST}:${PORT} as ${USERNAME} (a ${DATA_VERSION} client, no handshake patch)`)
 
   const bot = mineflayer.createBot({
     host: HOST,
@@ -183,16 +195,6 @@ async function main () {
     // what this layer exists to find.
     hideErrors: false
   })
-
-  // minecraft-protocol fills `options.protocolVersion` from the data version (775) and writes the
-  // handshake when the socket connects, which happens on a later tick: replacing the client's `write`
-  // here, synchronously after `createBot` returns, catches the handshake before it leaves. Without this,
-  // Paper answers "Outdated client!" and the bot never gets in.
-  const clientWrite = bot._client.write.bind(bot._client)
-  bot._client.write = (name, params) => {
-    if (name === 'set_protocol') return clientWrite(name, { ...params, protocolVersion: PROTOCOL_VERSION })
-    return clientWrite(name, params)
-  }
 
   // What ended the run, and whether it has ended: the client's own events can end it from outside the
   // steps below, and only the first failure is reported. `aborted` is what lets one of those events stop a
@@ -272,15 +274,19 @@ async function scenario (bot, windows) {
   )
   log(`the menu arrived with title ${JSON.stringify(titleOf(menu))}`)
 
-  for (const { slot, label } of PAGE_ONE) {
+  for (const { slot, type, label } of PAGE_ONE) {
+    // The type first: it is the item the addon mapped to the key, named by this client's own registry,
+    // and the only one of the two checks that can be wrong about *which item* arrived rather than about
+    // what it was called.
+    checkEqual(`the type of the item in slot ${slot}`, type, typeOf(menu.slots[slot]))
     checkEqual(`the label of the item in slot ${slot}`, label, labelOf(menu.slots[slot]))
     checkEqual(`the stack size of the item in slot ${slot}`, 1, menu.slots[slot]?.count)
   }
-  // Four different items, not the same one written four times: this is the part of "which item" a client
-  // without 26.2 item data can still check, because the registry ids come from the server.
-  const ids = PAGE_ONE.map(({ slot }) => itemIdOf(menu, slot))
-  checkEqual('the number of distinct item ids in slots 0 to 3', PAGE_ONE.length, new Set(ids).size)
-  log(`slots 0 to 3 hold four distinct items with ids ${ids.join(', ')}`)
+  // Four different items, not the same one written four times: a translation layer that collapsed the
+  // registry would still pass the per-slot checks above only by coincidence, and this catches it.
+  const types = PAGE_ONE.map(({ slot }) => typeOf(menu.slots[slot]))
+  checkEqual('the number of distinct item types in slots 0 to 3', PAGE_ONE.length, new Set(types).size)
+  log(`slots 0 to 3 hold four distinct items: ${types.join(', ')}`)
 
   // The rest of the first row is empty: an item that lost its slot, or one that appeared from nowhere,
   // changes this. Together with the four above it pins the whole row.
@@ -304,13 +310,18 @@ async function scenario (bot, windows) {
   const turned = await waitFor('the window of page 2', () =>
     windows.slice(windowsBefore).find((window) => titleOf(window).includes(PAGE_TWO_TITLE))
   )
-  checkEqual('the item in slot 0 after the page turn', PAGE_TWO_LABEL, labelOf(turned.slots[PAGE_TWO_SLOT]))
+  checkEqual('the type of the item in slot 0 after the page turn', PAGE_TWO_TYPE, typeOf(turned.slots[PAGE_TWO_SLOT]))
+  checkEqual('the label of the item in slot 0 after the page turn', PAGE_TWO_LABEL, labelOf(turned.slots[PAGE_TWO_SLOT]))
   checkEqual('the item in slot 1 after the page turn', null, turned.slots[1])
   log(
     `the page turn reached the client: title ${JSON.stringify(titleOf(turned))}, ` +
-      `slot ${PAGE_TWO_SLOT} carries ${JSON.stringify(labelOf(turned.slots[PAGE_TWO_SLOT]))}`
+      `slot ${PAGE_TWO_SLOT} carries ${typeOf(turned.slots[PAGE_TWO_SLOT])} ` +
+      `named ${JSON.stringify(labelOf(turned.slots[PAGE_TWO_SLOT]))}`
   )
-  log('the item names above are the labels `11-client.sk` gives its icons: this client has no 26.2 item data')
+  log(
+    'those item types are what `11-client.sk` maps its keys to, read through this client\'s 26.1 ' +
+      'registry: ViaBackwards rewrote the 26.2 ids into it before they arrived'
+  )
 }
 
 /** Clicks one slot and reports it, naming the mode and button the protocol carries for that click. */

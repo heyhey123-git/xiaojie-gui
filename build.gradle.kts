@@ -588,14 +588,79 @@ fun documentedExamples(source: String): List<String> {
 // scenario without a player needs -- the run ends when the script stops the server. A client needs the
 // opposite arrangement, because the bot only has something to talk to while the server is up: the server
 // has to be a background process of this task, and this task, not a script, has to stop it afterwards.
+//
+// What the Via layer in this run proves, and what it does not
+// ---------------------------------------------------------
+// The bot is a **26.1** client (`minecraft-data` ships no 26.2 data) and says so in its handshake; the
+// server is the same Paper **26.2** the other layer boots. ViaVersion + ViaBackwards sit between them
+// and translate 26.2 down to 26.1 on the way out, which is why this is a real test of the addon's own
+// packets rather than of a lie:
+//
+//   * the client's handshake states 26.1 (protocol 775) and Via answers it as such, so nothing is
+//     pretended at login and both play packets 26.2 reshaped (login success, join game) are read in the
+//     26.1 shape the client can actually parse;
+//   * every window, click and title this scenario asserts still went through the addon first -- Via only
+//     rewrites what it is handed, so a packet the addon never sent cannot be seen here;
+//   * and because ViaBackwards rewrites the *item registry* 26.2 -> 26.1, the item ids that arrive are
+//     26.1 ids and the client can name the item in a slot. That is what makes `11-client.sk`'s icons
+//     assertable as types at all, and it is the one thing the handshake lie could never do.
+//
+// What it does **not** prove is that a real 26.2 client sees these packets: what the client parses is
+// Via's translation of the addon's output, not the addon's output itself. Two consequences worth saying
+// out loud, because they are the boundary of this layer:
+//
+//   * a 26.2-only shape the addon sends and Via rewrites correctly would still be seen as a 26.1 shape
+//     here, so this layer cannot see the difference between "the addon sent the right 26.2 bytes" and
+//     "the addon sent bytes Via could translate";
+//   * a 26.2-only shape the addon sends wrongly enough that Via cannot translate it is a translation
+//     error in this log, not necessarily a client error -- and, in the other direction, Via's own
+//     translation bugs would look like the addon's here.
+//
+// A real 26.2 client would settle both. Until the suite has one, this is the closest a run can get: the
+// addon's packets survive a real translation layer, which is what a real client on that version would
+// find on the other side of one.
 
 val clientTestWork = layout.buildDirectory.dir("client-test")
 val clientBotDirectory = layout.projectDirectory.dir("server-test/client")
+
+// The two plugins that let the client test's bot be an honest 26.1 client of a 26.2 server.
+//
+// `serverTest` deliberately does not get these: it never has a client, so there is nothing to translate
+// and the layer it tests is the plugin's own. `clientTest` copies them into `plugins/` for its run and
+// takes them out again, the same way it does with the jar under test, so a `serverTest` that follows in
+// the same build still boots a server with no translation layer in it.
+//
+// ViaBackwards is the direction this test needs and ViaVersion is not: ViaVersion lets a *newer* client
+// join an older server, ViaBackwards lets an *older* client join a newer one, and ViaBackwards declares
+// ViaVersion as a required dependency. Both are pinned to 5.12.0 because that is one release of the pair
+// whose changelogs name 26.2/26.3, and ViaBackwards ships the 26.2-to-26.1 protocol and its item-id
+// mapping (`assets/viabackwards/data/mappings-26.2to26.1.nbt`) -- the mapping that makes an item type
+// assertable on the client at all. The versions have to match: a ViaVersion that does not know 26.2
+// would leave ViaBackwards unable to load its protocol.
+//
+// The Modrinth CDN URL is used for the same reason as SkBee's in `serverTestPlugins` above: it names the
+// exact file of the exact release. Downloaded by this build into `clientTestPluginDirectory` rather than
+// by the server on first boot, so the assets stay visible next to that reason.
+val clientTestPlugins = mapOf(
+    "ViaVersion-5.12.0.jar" to
+        "https://cdn.modrinth.com/data/P1OZGk5p/versions/FaishMnD/ViaVersion-5.12.0.jar",
+    "ViaBackwards-5.12.0.jar" to
+        "https://cdn.modrinth.com/data/NpvuJQoq/versions/SxGhdsPK/ViaBackwards-5.12.0.jar"
+)
+
+// Where those two jars are cached. Under `build/`, like the rest of what a run downloads, so the cache
+// is disposable and a machine that has run this task once does not download six megabytes again.
+val clientTestPluginDirectory = layout.buildDirectory.dir("client-test-plugins")
 
 // One entry per `XIAOJIE_SELFTEST detail:` name `11-client.sk` reports, mapped to a substring its message
 // has to contain. The same shape as `serverTestExpectedDetails` above and for the same reason: a line
 // that exists but reports another slot or another click type fails here, so the values are the ones the
 // run this file was written against reported.
+//
+// The item assertions are the other half and they live in the bot, not here: which item type and which
+// `custom_name` each slot holds is something only the client can read, so `server-test/client/bot.mjs`
+// checks it and its own failure is what fails this task. The bot's output is printed to the console when
+// it runs, which is where those checks are visible.
 val clientTestExpectedDetails = mapOf(
     // The addon's slots, from the addon's side: key A is slot 0, which is the slot the client has to hold
     // it in and the slot the bot clicks. The addon and the protocol number a menu's slots the same way,
@@ -638,6 +703,8 @@ val clientTest by tasks.registering(ClientTest::class) {
     minecraftVersion.set(paperMinecraftVersion)
     pluginJar.set(tasks.named<ShadowJar>("shadowJar").flatMap { it.archiveFile })
     botDirectory.set(clientBotDirectory)
+    viaPlugins.set(clientTestPlugins)
+    viaPluginCache.set(clientTestPluginDirectory)
     javaExecutable.set(
         javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
             .map { it.executablePath.asFile.absolutePath }
@@ -673,6 +740,14 @@ abstract class ClientTest : DefaultTask() {
     /** The Node project the bot lives in; its `node_modules` is installed here when it is missing. */
     @get:Internal
     abstract val botDirectory: DirectoryProperty
+
+    /** The translation layer's plugins, as file name to download URL; see `clientTestPlugins`. */
+    @get:Input
+    abstract val viaPlugins: MapProperty<String, String>
+
+    /** Where [viaPlugins] are cached between runs. */
+    @get:Internal
+    abstract val viaPluginCache: DirectoryProperty
 
     /** The Java the server runs on, which Paper 26.2 requires to be 25. */
     @get:Input
@@ -715,6 +790,8 @@ abstract class ClientTest : DefaultTask() {
         // ready and the bot connecting: `99-finish.sk` stops a server nobody is playing on ten seconds
         // after it is up, so an install long enough to matter (a cold one downloads ninety packages) has
         // to happen while there is no server to lose.
+        // The translation layer is cached under `build/` and copied into the run directory's `plugins/`,
+        // which does not have it: `serverTest` has to keep booting a server that translates nothing.
         installBotDependencies()
         val log = serverLog.get().asFile
         // A log of this run alone: the file is created empty, so a line can only come from the process
@@ -755,7 +832,9 @@ abstract class ClientTest : DefaultTask() {
         /** The generated examples script that was left out, with the bytes it held. */
         val hiddenExamples: Pair<File, ByteArray>?,
         /** The plugin jar this task copied into `plugins/`. */
-        val copiedPluginJar: File
+        val copiedPluginJar: File,
+        /** The translation layer jars this task copied into `plugins/`, so they can be taken out again. */
+        val copiedViaJars: List<File>
     )
 
     /**
@@ -764,7 +843,8 @@ abstract class ClientTest : DefaultTask() {
      * run-paper hands the shaded jar to the server as a plugin path of its own; this task starts the
      * server the way Paperclip re-launches it, from the run directory, where Paper finds plugins in
      * `plugins/`. A jar left there by an earlier run would make Paper report one plugin name for two
-     * files and skip the plugin, so the directory is left holding exactly the jar under test.
+     * files and skip the plugin, so the directory is left holding exactly the jar under test, plus the
+     * two translation-layer jars this scenario needs.
      */
     private fun prepareRunDirectory(dir: File, paperJar: File): RunDirectoryChanges {
         val plugins = dir.resolve("plugins")
@@ -782,19 +862,44 @@ abstract class ClientTest : DefaultTask() {
         val examples = dir.resolve("plugins/Skript/scripts/07-examples.sk")
         val hidden = if (examples.isFile) examples to examples.readBytes() else null
         examples.delete()
-        return RunDirectoryChanges(hidden, copied)
+        // The translation layer is copied in here, next to the jar under test, because it is part of the
+        // same "this run's plugins" set and has to come out again for the same reason.
+        return RunDirectoryChanges(hidden, copied, copyViaPluginsInto(dir))
+    }
+
+    /**
+     * Downloads the translation layer's jars into the cache under `build/` if they are not there, and
+     * copies them into the run directory's `plugins/`, returning what it copied.
+     *
+     * The cache is keyed by file name, which carries the version, so changing the pin in
+     * `clientTestPlugins` downloads the new release instead of reusing the old bytes.
+     */
+    private fun copyViaPluginsInto(dir: File): List<File> {
+        val cache = viaPluginCache.get().asFile
+        cache.mkdirs()
+        val plugins = dir.resolve("plugins")
+        return viaPlugins.get().map { (name, url) ->
+            val cached = cache.resolve(name)
+            if (!cached.isFile) {
+                logger.lifecycle("Downloading $name")
+                URI(url).toURL().openStream().use { input -> cached.outputStream().use { input.copyTo(it) } }
+            }
+            cached.copyTo(plugins.resolve(name), overwrite = true)
+        }
     }
 
     /**
      * Puts the run directory back the way `prepareServerTest` leaves it.
      *
-     * The copied plugin jar goes, because run-paper supplies the same jar itself and two files claiming
+     * The copied plugin jars go, because run-paper supplies the same jar itself and two files claiming
      * one plugin name is the `Ambiguous plugin name` error the next `serverTest` would otherwise boot
-     * with. The generated examples script comes back, because Gradle is free to run this task before
-     * `serverTest` in the same build and that run is where the examples are parsed.
+     * with. That includes the translation layer: leaving it behind would silently change what the other
+     * layer tests. The generated examples script comes back, because Gradle is free to run this task
+     * before `serverTest` in the same build and that run is where the examples are parsed.
      */
     private fun cleanUpRunDirectory(changes: RunDirectoryChanges) {
         changes.copiedPluginJar.delete()
+        changes.copiedViaJars.forEach { it.delete() }
         changes.hiddenExamples?.let { (file, content) -> file.writeBytes(content) }
     }
 
