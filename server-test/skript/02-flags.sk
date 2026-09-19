@@ -1,0 +1,23 @@
+# Kept apart from 01-menu.sk on purpose: a pattern this element does not accept takes the whole file
+# down with it, and the rest of the menu checks should still be reported when that happens.
+
+on load:
+    create a static menu with hopper inventory titled "StaticSelftest" with layout "AAAAA" with id "static_selftest" with 250 ms click delay without hide player inventory:
+        set {_pages} to the page number of the menu with id "static_selftest"
+        set {_mode} to the mode of the menu with id "static_selftest"
+        log "XIAOJIE_SELFTEST detail: create static hopper menu -> %{_pages}% page(s), mode %{_mode}%"
+    set {_menu} to the menu with id "static_selftest"
+    destroy the menu {_menu}
+
+on load:
+    create a phantom menu with chest inventory titled "HideSelftest" with layout "A" with id "hide_selftest" with hide player inventory:
+        # The line reports what the menu kept, not that the body ran: `created` would be true of a body
+        # that ran for a menu the id could not find.
+        set {_menu} to the menu with id "hide_selftest"
+        log "XIAOJIE_SELFTEST detail: create menu hiding the player inventory -> default title %the default title of {_menu}%, type %the inventory type of {_menu}%"
+    set {_menu} to the menu with id "hide_selftest"
+    if player inventory of {_menu} is hidden:
+        log "XIAOJIE_SELFTEST detail: hide flag took effect -> hidden"
+    else:
+        log "XIAOJIE_SELFTEST detail: hide flag FAILED to take effect -> not hidden"
+    destroy the menu {_menu}

@@ -1,0 +1,9 @@
+# Ends the run.
+#
+# Nothing in this file uses addon syntax, so it also runs when the addon is the thing that broke, and
+# the verify task reads the marker as the point after which the log is complete. Ten seconds is enough
+# for every `on load` trigger above to have run and logged its detail line.
+
+every 10 seconds:
+    log "XIAOJIE_SELFTEST=STOPPED"
+    stop the server

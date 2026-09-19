@@ -5,7 +5,6 @@ package io.github.heyhey123.xiaojiegui.gui.layout
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-
 private class TestLayout(range: IntRange) : Layout(range)
 
 class LayoutTest {
@@ -52,6 +51,7 @@ class LayoutTest {
         )
     }
 
+    @Test
     fun `3x3 crafter like layout ranges and sizes`() {
         // actually the slot 45 is also used in crafting table, but we ignore it here for simplicity
         val layoutRange = 0..8
@@ -93,6 +93,4 @@ class LayoutTest {
             "Total size should be correct"
         )
     }
-
 }
-

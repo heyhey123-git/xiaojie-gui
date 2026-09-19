@@ -1,0 +1,66 @@
+# The script side of the server test.
+#
+# Every script logs one detail line per thing that has to hold, in the form
+# `XIAOJIE_SELFTEST detail: <name> -> <message>`. The assertions live in the `serverTest` task, next to
+# the log they read.
+#
+# The *name* carries the outcome, not the message: a branch that found the wrong thing logs a name the
+# task does not expect, so a test cannot pass on a line that merely exists.
+#
+# No player is involved anywhere here, so this covers registration, parsing and the menu model. The
+# packet layer and actual clicks are a separate layer on top of it.
+
+on load:
+    create a phantom menu with chest inventory titled "Selftest" with layout "AAAAAAAAA", "A       A", "AAAAAAAAA" with id "selftest":
+        set {_pages} to the page number of the menu with id "selftest"
+        log "XIAOJIE_SELFTEST detail: create phantom chest menu -> %{_pages}% page(s)"
+
+on load:
+    set {_menu} to the menu with id "selftest"
+    if {_menu} is not set:
+        log "XIAOJIE_SELFTEST detail: lookup menu by id FAILED -> no menu with that id"
+        stop
+    if {_menu} is destroyed:
+        log "XIAOJIE_SELFTEST detail: destroyed condition FAILED -> a fresh menu reports destroyed"
+        stop
+    # The id is read from a menu-typed expression on purpose: with SkBee installed, `the id of {_menu}`
+    # is answered by SkBee's `[bound] id of %bounds%` instead, because an untyped variable fits that
+    # pattern too. A `%menu%` expression can only be a menu, so it reaches this addon's element.
+    set {_id} to the id of the menu with id "selftest"
+    set {_mode} to the mode of {_menu}
+    set {_type} to the inventory type of {_menu}
+    log "XIAOJIE_SELFTEST detail: lookup menu by id -> id %{_id}%, mode %{_mode}%, type %{_type}%"
+    # The mode is text, compared with the same two words `build a menu` takes in `mode:`. It used to be
+    # an enum value, and no script could name one: Skript parses an addon's enum literals from its
+    # language files, which this addon does not ship, so `is phantom` was taken by Minecraft's phantom
+    # entity and the generated fallback literal was `phantom receptacle mode`.
+    if the mode of {_menu} is "phantom":
+        log "XIAOJIE_SELFTEST detail: menu mode is text -> %{_mode}%"
+
+on load:
+    set {_menu} to the menu with id "selftest"
+    set {_default} to the default page of {_menu}
+    set the default page of {_menu} to 1
+    set {_delay} to the minimum click delay of {_menu}
+    set {_viewers::*} to the viewers of {_menu}
+    log "XIAOJIE_SELFTEST detail: menu defaults -> page %{_default}%, delay %{_delay}%, %size of {_viewers::*}% viewer(s)"
+
+on load:
+    set {_ids::*} to all menu ids
+    set {_menus::*} to all menus
+    log "XIAOJIE_SELFTEST detail: enumerate menus -> %size of {_ids::*}% id(s), %size of {_menus::*}% menu(s)"
+
+on load:
+    set {_menu} to the menu with id "selftest"
+    if player inventory of {_menu} is hidden:
+        log "XIAOJIE_SELFTEST detail: player inventory condition FAILED -> a menu that does not hide it reports hidden"
+        stop
+    log "XIAOJIE_SELFTEST detail: player inventory condition -> shown"
+
+on load:
+    set {_menu} to the menu with id "selftest"
+    destroy the menu {_menu}
+    # A failed destroy logs nothing, which the expected message `destroyed` in `build.gradle.kts` turns
+    # into a missing line: the `... FAILED ...` branch that used to sit here only repeated that check.
+    if {_menu} is destroyed:
+        log "XIAOJIE_SELFTEST detail: destroy menu -> destroyed"

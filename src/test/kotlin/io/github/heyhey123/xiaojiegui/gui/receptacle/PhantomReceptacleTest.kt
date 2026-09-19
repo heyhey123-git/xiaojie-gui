@@ -2,14 +2,20 @@ package io.github.heyhey123.xiaojiegui.gui.receptacle
 
 import io.github.heyhey123.xiaojiegui.gui.PacketHelper
 import io.github.heyhey123.xiaojiegui.gui.utils.TaskUtil
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import io.mockk.verify
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.PlayerInventory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import java.util.*
+import java.util.UUID
 import kotlin.test.Test
 
 class PhantomReceptacleTest {
@@ -39,7 +45,10 @@ class PhantomReceptacleTest {
 
         every {
             mockedPacketHelper.sendOpenScreen(
-                player, 114, layout.type, title
+                player,
+                114,
+                layout.type,
+                title
             )
         } just Runs
         every { mockedPacketHelper.sendContainerSetContent(player, 114, any()) } just Runs
@@ -52,7 +61,10 @@ class PhantomReceptacleTest {
         verify(exactly = 1) { mockedPacketHelper.generateNextContainerId(player) }
         verify(exactly = 1) {
             mockedPacketHelper.sendOpenScreen(
-                player, 114, layout.type, title
+                player,
+                114,
+                layout.type,
+                title
             )
         }
         verify(exactly = 1) { mockedPacketHelper.sendContainerSetContent(player, 114, any()) }
@@ -105,7 +117,10 @@ class PhantomReceptacleTest {
 
         every {
             mockedPacketHelper.sendOpenScreen(
-                player, 114, layout.type, any()
+                player,
+                114,
+                layout.type,
+                any()
             )
         } just Runs
         every { mockedPacketHelper.sendContainerSetContent(player, 114, any()) } just Runs
@@ -127,7 +142,10 @@ class PhantomReceptacleTest {
         // Verify that the retitle packet was sent
         verify(exactly = 1) {
             mockedPacketHelper.sendOpenScreen(
-                player, 114, layout.type, newTitle
+                player,
+                114,
+                layout.type,
+                newTitle
             )
         }
 
@@ -157,5 +175,4 @@ class PhantomReceptacleTest {
         // Verify that the close packet was sent
         verify(exactly = 1) { mockedPacketHelper.sendContainerClose(player) }
     }
-
 }

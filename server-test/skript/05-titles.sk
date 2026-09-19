@@ -1,0 +1,64 @@
+# The title-taking statements, covered in the forms Skript actually accepts.
+#
+# `insert page ... with title` lives inside the create section because that is the only place a page
+# belongs to a menu without naming it, and the title of the inserted page is read back: a title that
+# lands in the wrong expression slot shows up here as the wrong string.
+#
+# Each case gets its own `on load` trigger, because Skript aborts only the trigger of a line it cannot
+# parse: one broken title form then costs its own detail line instead of hiding the others.
+#
+# `string:` is a parse tag inside the registered pattern, not text a script writes: Skript's
+# ParseTagPatternElement records the tag and matches on, so `to "X"` is what reaches the
+# `string:%-string%` pattern. Writing `to string:"X"` leaves `string:"X"` over for the `%-object%`
+# pattern, which cannot turn it into a title; the last case below pins that behaviour.
+#
+# A wrong result logs nothing: the message of the single branch is asserted in `build.gradle.kts`, so a
+# branch that logged the same name with another value would fail there. That is what used to be a
+# second `... FAILED ...` branch, which only restated the same check.
+
+on load:
+    create a phantom menu with chest inventory titled "Title Menu" with layout "AAAAAAAAA" with id "titles":
+        # The line reports what the menu kept, not that the body ran: `created` would be true of a body
+        # that ran for a menu the id could not find.
+        set {_menu} to the menu with id "titles"
+        log "XIAOJIE_SELFTEST detail: create titles menu -> default title %the default title of {_menu}%, type %the inventory type of {_menu}%"
+        insert page with layout "BBBBBBBBB" with title "Second"
+        set {_count} to the page number of {_menu}
+        set {_title} to the title of page 2 in {_menu}
+        # Skript 2.16 combines conditions in a multi-line `if all:` block: the single-line
+        # `{_count} is 2 and {_title} is "Second"` is rejected with "Can't understand this condition".
+        if all:
+            {_count} is 2
+            {_title} is "Second"
+        then:
+            log "XIAOJIE_SELFTEST detail: insert page with title -> %{_count}% page(s), page 2 titled %{_title}%"
+
+on load:
+    set {_menu} to the menu with id "titles"
+    update title of page 1 in {_menu} to "Renamed"
+    set {_title} to the title of page 1 in {_menu}
+    if {_title} is "Renamed":
+        log "XIAOJIE_SELFTEST detail: update page title -> %{_title}%"
+
+on load:
+    set {_menu} to the menu with id "titles"
+    update title of page 1 in {_menu} to string:"Tagged"
+    set {_title} to the title of page 1 in {_menu}
+    if {_title} is "Renamed":
+        log "XIAOJIE_SELFTEST detail: tagged title form changes nothing -> %{_title}%"
+
+on load:
+    # Needs a player, which this layer has none of: this statement is here to be parsed, and the unset
+    # variable makes it log an error and return, which is the expected outcome.
+    turn to page 1 for {_nobody} with title "Ignored"
+    log "XIAOJIE_SELFTEST detail: turn page title parses -> parsed"
+
+on load:
+    # Needs a menu session, which this layer has none of: this statement is here to be parsed.
+    update title of menu session {_nobody} to "Ignored"
+    log "XIAOJIE_SELFTEST detail: session title parses -> parsed"
+
+on load:
+    set {_menu} to the menu with id "titles"
+    destroy the menu {_menu}
+    log "XIAOJIE_SELFTEST detail: destroy titles menu -> done"

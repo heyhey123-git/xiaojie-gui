@@ -8,15 +8,24 @@ import io.github.heyhey123.xiaojiegui.gui.menu.component.IconProducer
 import io.github.heyhey123.xiaojiegui.gui.menu.component.Page
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
+import io.mockk.verify
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import java.util.*
+import java.util.UUID
 import kotlin.test.Test
 
 class MenuTest {
@@ -175,10 +184,10 @@ class MenuTest {
             this.page = 1
             this.receptacle = r2
         }
-        // 注册观众以便被 updateIconForKey 遍历
+        // register the viewers so updateIconForKey iterates over them
         menu.viewers.addAll(listOf(id1, id2))
 
-        // 提供回调
+        // provide the callback
         val cb: (MenuInteractEvent) -> Unit = {}
 
         menu.updateIconForKey(
@@ -188,16 +197,16 @@ class MenuTest {
             callback = cb
         )
 
-        // 一行 9 个 'a'，槽位 0..8 均应更新
+        // nine 'a' in one row, slots 0..8 should all be updated
         for (slot in 0..8) {
             verify(atLeast = 1) { r1.setElement(eq(slot), eq(icon)) }
             verify(atLeast = 1) { r2.setElement(eq(slot), eq(icon)) }
         }
-        // 多槽位 -> refresh(-1)
+        // multiple slots -> refresh(-1)
         verify(atLeast = 1) { r1.refresh(-1) }
         verify(atLeast = 1) { r2.refresh(-1) }
 
-        // 所有槽位均配置了回调
+        // every slot has a callback configured
         assertTrue((0..8).all { it in page.clickCallbacks.keys })
     }
 
@@ -215,7 +224,9 @@ class MenuTest {
         every { receptacle.refresh(any()) } just Runs
 
         MenuSession.getSession(viewer).apply {
-            this.menu = menu; this.page = 1; this.receptacle = receptacle
+            this.menu = menu
+            this.page = 1
+            this.receptacle = receptacle
         }
         menu.viewers.add(id)
 
@@ -229,6 +240,66 @@ class MenuTest {
         verify(exactly = 1) { receptacle.refresh(slot) }
         assertSame(item, page.slotOverrides[slot])
         assertTrue(page.clickCallbacks.containsKey(slot))
+    }
+
+    @Test
+    fun `open function - opening the menu again goes to that page instead of failing`() {
+        val menu = Menu(null, properties, InventoryType.CHEST)
+        menu.pages.addAll(listOf(chestPage(properties, "Page 1"), chestPage(properties, "Page 2")))
+
+        val receptacle = mockk<ViewReceptacle>(relaxed = true)
+        mockkObject(ViewReceptacle)
+        every { ViewReceptacle.create(any(), any(), any()) } returns receptacle
+        every { receptacle.open(any()) } just Runs
+        every { receptacle.title(any(), any()) } just Runs
+
+        mockkConstructor(MenuOpenEvent::class)
+        every { anyConstructed<MenuOpenEvent>().callEvent() } returns true
+        mockkConstructor(PageTurnEvent::class)
+        every { anyConstructed<PageTurnEvent>().callEvent() } returns true
+
+        val viewer = mockk<Player>(relaxed = true)
+        every { viewer.uniqueId } returns UUID.randomUUID()
+
+        menu.open(viewer, 1)
+        // Act: the same menu again, at another page. This used to throw "already viewing this menu".
+        menu.open(viewer, 2)
+
+        assertEquals(2, MenuSession.getSession(viewer).page)
+        // The window is not opened a second time: the player is already in it.
+        verify(exactly = 1) { receptacle.open(viewer) }
+    }
+
+    @Test
+    fun `sessionsOn - only the sessions looking at that page`() {
+        val menu = Menu(null, properties, InventoryType.CHEST)
+        val otherMenu = Menu(null, properties, InventoryType.CHEST)
+
+        val onPageOne = mockk<Player>(relaxed = true)
+        val onPageTwo = mockk<Player>(relaxed = true)
+        val onAnotherMenu = mockk<Player>(relaxed = true)
+        val id1 = UUID.randomUUID()
+        val id2 = UUID.randomUUID()
+        val id3 = UUID.randomUUID()
+        every { onPageOne.uniqueId } returns id1
+        every { onPageTwo.uniqueId } returns id2
+        every { onAnotherMenu.uniqueId } returns id3
+
+        val expected = MenuSession.getSession(onPageOne).apply {
+            this.menu = menu
+            this.page = 1
+        }
+        MenuSession.getSession(onPageTwo).apply {
+            this.menu = menu
+            this.page = 2
+        }
+        MenuSession.getSession(onAnotherMenu).apply {
+            this.menu = otherMenu
+            this.page = 1
+        }
+        menu.viewers.addAll(listOf(id1, id2, id3))
+
+        assertEquals(listOf(expected), menu.sessionsOn(1))
     }
 
     @Test

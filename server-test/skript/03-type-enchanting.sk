@@ -1,0 +1,9 @@
+# Skript's name for this container is `enchanting table inventory`, not `enchanting inventory`; the
+# line is here to keep that name pinned, because it is what a script has to write.
+
+on load:
+    create a phantom menu with enchanting table inventory titled "Enchanting" with layout "AAA" with id "type_enchanting":
+        set {_pages} to the page number of the menu with id "type_enchanting"
+        log "XIAOJIE_SELFTEST detail: inventory type enchanting -> %{_pages}% page(s)"
+    set {_menu} to the menu with id "type_enchanting"
+    destroy the menu {_menu}

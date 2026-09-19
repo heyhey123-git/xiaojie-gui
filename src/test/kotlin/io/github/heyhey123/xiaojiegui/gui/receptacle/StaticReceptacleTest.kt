@@ -2,42 +2,15 @@ package io.github.heyhey123.xiaojiegui.gui.receptacle
 
 import io.github.heyhey123.xiaojiegui.gui.StaticInventory.staticInventory
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.Material
-import org.bukkit.event.inventory.InventoryType
-import org.bukkit.inventory.InventoryHolder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.mockbukkit.mockbukkit.MockBukkit
 import org.mockbukkit.mockbukkit.ServerMock
 import org.mockbukkit.mockbukkit.entity.PlayerMock
-import org.mockbukkit.mockbukkit.inventory.InventoryMock
 import org.mockbukkit.mockbukkit.inventory.ItemStackMock
 import kotlin.test.Test
 import kotlin.test.assertEquals
-
-@Suppress("DEPRECATION")
-private class MockServerExtension : ServerMock() {
-    override fun createInventory(
-        owner: InventoryHolder?,
-        type: InventoryType,
-        title: Component
-    ): InventoryMock = this.createInventory(
-        owner,
-        type,
-        LegacyComponentSerializer.legacySection().serialize(title)
-    )
-
-    override fun createInventory(
-        owner: InventoryHolder?,
-        size: Int,
-        title: Component
-    ): InventoryMock = this.createInventory(
-        owner,
-        size,
-        LegacyComponentSerializer.legacySection().serialize(title)
-    )
-}
 
 class StaticReceptacleTest {
 
@@ -46,7 +19,7 @@ class StaticReceptacleTest {
 
     @BeforeEach
     fun setUp() {
-        server = MockBukkit.mock(MockServerExtension())
+        server = MockBukkit.mock()
         player = server.addPlayer()
     }
 

@@ -1,0 +1,10 @@
+# One file per inventory type. A type whose layout cannot be built takes its own file down and leaves
+# the other files' detail lines in the log, which is what makes the failure readable without a
+# bisect: the names in the log are the types that worked.
+
+on load:
+    create a phantom menu with ender chest inventory titled "Ender Chest" with layout "AAAAAAAAA", "A       A", "AAAAAAAAA" with id "type_ender_chest":
+        set {_pages} to the page number of the menu with id "type_ender_chest"
+        log "XIAOJIE_SELFTEST detail: inventory type ender chest -> %{_pages}% page(s)"
+    set {_menu} to the menu with id "type_ender_chest"
+    destroy the menu {_menu}

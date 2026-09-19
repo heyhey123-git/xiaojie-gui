@@ -1,0 +1,6 @@
+on load:
+    create a phantom menu with smithing inventory titled "Smithing" with layout "AAA" with id "type_smithing":
+        set {_pages} to the page number of the menu with id "type_smithing"
+        log "XIAOJIE_SELFTEST detail: inventory type smithing -> %{_pages}% page(s)"
+    set {_menu} to the menu with id "type_smithing"
+    destroy the menu {_menu}

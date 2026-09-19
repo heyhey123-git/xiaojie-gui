@@ -12,7 +12,14 @@ import io.github.heyhey123.xiaojiegui.gui.menu.component.Page
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
 import io.github.heyhey123.xiaojiegui.gui.utils.OneBasedList
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.slot
+import io.mockk.unmockkAll
+import io.mockk.verify
 import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
@@ -80,7 +87,7 @@ class PageLoadInTest {
         every { menu.cooldownManager } returns cooldown
         every { cooldown.tryConsumeCooldown(any()) } returns true
 
-        // Click callback for index 0 — 直接写入真实 map
+        // Click callback for index 0 - written straight into the real map
         var callbackWasCalled = false
         page.clickCallbacks[0] = { callbackWasCalled = true }
 
@@ -103,12 +110,12 @@ class PageLoadInTest {
 
         // Assert: all 9 indices initially filled (0..8)
         for (i in 0..8) verify(atLeast = 1) { receptacle.setElement(eq(i), any()) }
-        // Assert: indices 1..8 用 icon（克隆后同一引用）填充
+        // Assert: indices 1..8 are filled with the icon (the same reference after cloning)
         for (i in 1..8) verify(atLeast = 1) { receptacle.setElement(eq(i), eq(icon)) }
-        // Assert: index 0 最终被覆盖为 overrideItem
+        // Assert: index 0 ends up overridden with overrideItem
         verify(atLeast = 1) { receptacle.setElement(0, overrideItem) }
 
-        // 额外断言：行数和布局宽度符合预期
+        // Extra assertion: row count and layout width are as expected
         assertEquals(1, page.rows)
         assertEquals(9, page.width)
 
@@ -119,12 +126,12 @@ class PageLoadInTest {
         every { clickedEvent.slot } returns 0
         every { clickedEvent.clickType } returns ClickType.LEFT
 
-        // Act: 触发 onClick 中注册的 lambda
+        // Act: invoke the lambda registered in onClick
         onClickSlot.captured.invoke(clickedEvent)
 
-        // 验证 Page.clickCallbacks[0] 被调用
+        // Verify that Page.clickCallbacks[0] was invoked
         assertTrue(callbackWasCalled)
-        // 验证 MenuInteractEvent 被创建并调用
+        // Verify that MenuInteractEvent was constructed and dispatched
         verify { anyConstructed<MenuInteractEvent>().callEvent() }
     }
 }

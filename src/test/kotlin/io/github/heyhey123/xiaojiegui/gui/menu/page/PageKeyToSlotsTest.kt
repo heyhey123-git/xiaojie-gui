@@ -6,7 +6,11 @@ import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.InventoryType
 import org.junit.jupiter.api.Test
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class PageKeyToSlotsTest {
 
@@ -37,20 +41,20 @@ class PageKeyToSlotsTest {
         )
     }
 
-    // 综合测试：多行、多键、玩家背包、偏移、聚合
+    // combined test: multiple rows, multiple keys, player inventory, offsets, aggregation
     @Test
     fun `keyToSlots parse the keys of a series strings with backquote`() {
         val layoutPattern = listOf(
             "xxxxoxxxx",
             "x       x",
-            "xx `pre` `close` `next` x",
+            "xx `pre` `close` `next` x"
         )
 
         val playerInventoryPattern = listOf(
             "`corner a`aaaaaaaa",
             "bbbbbbbbb",
             "ccccccccc",
-            "dddddddd`corner d`",
+            "dddddddd`corner d`"
         )
 
         val inventoryType = InventoryType.CHEST
@@ -78,10 +82,9 @@ class PageKeyToSlotsTest {
             assertTrue(actualSlots != null, "Key '$key' not found in actual keyToSlots")
             assertEquals(expectedSlots, actualSlots, "Slots for key '$key' do not match")
         }
-
     }
 
-    // 1) 反引号块计 1 列，同键聚合
+    // 1) a backquote block counts as 1 column, the same key aggregates
     @Test
     fun `aggregates same key multiple times in line`() {
         val p = page(layout = listOf("a`x`a`y`a`z`a"))
@@ -90,7 +93,8 @@ class PageKeyToSlotsTest {
         assertEquals(setOf(0, 2, 4, 6), actual, "Slots for key 'a' should be [0,2,4,6]")
     }
 
-    // 2) 宽度截断(越界忽略)：超过 9 列（CHEST）后的内容不应计入；反引号块开始于第 10 列被截断
+    // 2) width truncation (out of bounds ignored): content past 9 columns (CHEST) is not counted,
+    // and a backquote block starting at column 10 is truncated
     @Test
     fun `respects width limit and truncates overflow`() {
         val p = page(layout = listOf("1234567890`k`"))
@@ -98,7 +102,7 @@ class PageKeyToSlotsTest {
         assertFalse(map.containsKey("k"), "key 'k' should be truncated beyond width")
     }
 
-    // 3) 不成对反引号 -> 记作 '`'
+    // 3) an unpaired backquote is recorded literally as '`'
     @Test
     fun `unpaired backquote is literal key`() {
         val p = page(layout = listOf("ab`cd"))
@@ -107,7 +111,7 @@ class PageKeyToSlotsTest {
         assertEquals(setOf(2), slots, "Unpaired backquote should map at index 2")
     }
 
-    // 4) 玩家背包在被隐藏时不参与映射
+    // 4) the player inventory is not mapped when hidden
     @Test
     fun `player inventory ignored when hidden`() {
         val p = page(
@@ -119,21 +123,21 @@ class PageKeyToSlotsTest {
         assertFalse(p.keyToSlots.containsKey("pi"), "Player inventory should be ignored when hidden")
     }
 
-    // 5) 玩家背包在 PHANTOM 模式显示时，偏移从 size 开始（偏移正确）
+    // 5) when the player inventory is visible in PHANTOM mode, the offset starts at size
     @Test
     fun `player inventory mapped with correct offset when visible`() {
         val p = page(
-            layout = listOf("         "), // 1 行 CHEST => container size = 9
+            layout = listOf("         "), // 1 row CHEST => container size = 9
             player = listOf("`pi`      "),
             mode = Receptacle.Mode.PHANTOM,
             hidePI = false
         )
         val slots = p.keyToSlots["pi"]
         assertNotNull(slots, "Expected key 'pi' to be mapped in player inventory")
-        assertEquals(setOf(9), slots, "Key 'pi' should start at base index = size (9)") // 基址 size=9，行=0，列=0
+        assertEquals(setOf(9), slots, "Key 'pi' should start at base index = size (9)") // base is size=9, row=0, column=0
     }
 
-    // 6) 边界内的反引号块仍映射
+    // 6) a backquote block inside the bounds is still mapped
     @Test
     fun `backquote block at last visual column is mapped`() {
         val p = page(layout = listOf("12345678`K`X"))
@@ -141,12 +145,12 @@ class PageKeyToSlotsTest {
 
         assertNotNull(slotsOfk, "Expected key 'K' to be mapped at last visual column")
         assertEquals(setOf(8), slotsOfk, "'K' should be mapped at index 8")
-        // 'X' 超过宽度被截断，不再映射
+        // 'X' is past the width, is truncated and no longer mapped
         val slotsOfX = p.keyToSlots["X"]
         assertNull(slotsOfX, "'X' should be truncated and not mapped")
     }
 
-    // 7) 非 CHEST：HOPPER 宽度为 5，反引号块占 1 列
+    // 7) non CHEST: HOPPER width is 5, a backquote block takes 1 column
     @Test
     fun `hopper width is 5 and backquote counts as one`() {
         val p = page(
@@ -161,12 +165,12 @@ class PageKeyToSlotsTest {
         assertEquals(setOf(1), slots, "Key 'pi' should be mapped at index 1 on HOPPER")
     }
 
-    // 8) 跨区合并同键
+    // 8) the same key merges across regions
     @Test
     fun `merges same key across layout and player inventory`() {
         val p = page(
-            layout = listOf("`k`       "), // 槽位 0
-            player = listOf("`k`       "), // 槽位 size(=9) + 0 => 9
+            layout = listOf("`k`       "), // slot 0
+            player = listOf("`k`       "), // slot size(=9) + 0 => 9
             mode = Receptacle.Mode.PHANTOM,
             hidePI = false
         )

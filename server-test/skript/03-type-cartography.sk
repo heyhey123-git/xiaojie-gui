@@ -1,0 +1,8 @@
+# Skript's name for this container is `cartography table inventory`.
+
+on load:
+    create a phantom menu with cartography table inventory titled "Cartography" with layout "AAAA" with id "type_cartography":
+        set {_pages} to the page number of the menu with id "type_cartography"
+        log "XIAOJIE_SELFTEST detail: inventory type cartography -> %{_pages}% page(s)"
+    set {_menu} to the menu with id "type_cartography"
+    destroy the menu {_menu}

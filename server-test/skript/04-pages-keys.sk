@@ -1,0 +1,48 @@
+# A page index is optional (the page is appended) and explicit when given, and keys, overrides and
+# page titles read back what was just set.
+#
+# The page inserts live inside the create section on purpose: that is the only place where a page
+# belongs to a menu without naming it.
+
+on load:
+    create a phantom menu with chest inventory titled "Pages" with layout "AAAAAAAAA" with id "pages":
+        # The line reports what the menu kept, not that the body ran: `created` would be true of a body
+        # that ran for a menu the id could not find.
+        set {_menu} to the menu with id "pages"
+        log "XIAOJIE_SELFTEST detail: create pages menu -> default title %the default title of {_menu}%, type %the inventory type of {_menu}%"
+        insert page with layout "BBBBBBBBB"
+        insert page 1 with layout "CCCCCCCCC"
+        set {_count} to the page number of the menu with id "pages"
+        log "XIAOJIE_SELFTEST detail: insert pages -> %{_count}% page(s)"
+
+on load:
+    create a phantom menu with chest inventory titled "Keys" with layout "AAAAAAAAA" with id "keys":
+        set {_menu} to the menu with id "keys"
+        log "XIAOJIE_SELFTEST detail: create keys menu -> default title %the default title of {_menu}%, type %the inventory type of {_menu}%"
+    set {_menu} to the menu with id "keys"
+    map key "A" to icon stone for {_menu}
+    override slot 1 in page 1 to diamond for menu {_menu}
+    set {_slots::*} to the slots of key "A" in page 1 of the menu {_menu}
+    set {_key} to the key of slot 1 in page 1 of the menu {_menu}
+    log "XIAOJIE_SELFTEST detail: keys and overrides -> %size of {_slots::*}% slot(s), key %{_key}%"
+
+on load:
+    set {_menu} to the menu with id "keys"
+    set the title of page 1 in {_menu} to "Page One"
+    set {_title} to the title of page 1 in {_menu}
+    log "XIAOJIE_SELFTEST detail: page title -> %{_title}%"
+
+on load:
+    set {_menu} to the menu with id "keys"
+    # The body can only run when a player clicks, and this layer has no player: it is here so that the
+    # section registers and parses, which the unit tests cannot check either.
+    when slot 1 in page 1 of the menu {_menu} is clicked:
+        set {_unused} to 1
+    log "XIAOJIE_SELFTEST detail: slot callback section -> registered"
+
+on load:
+    set {_pagesMenu} to the menu with id "pages"
+    destroy the menu {_pagesMenu}
+    set {_keysMenu} to the menu with id "keys"
+    destroy the menu {_keysMenu}
+    log "XIAOJIE_SELFTEST detail: destroy both menus -> done"

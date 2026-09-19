@@ -12,7 +12,9 @@ import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import kotlin.test.Test
 
 class PageComputeSlotsTest {
@@ -47,7 +49,7 @@ class PageComputeSlotsTest {
         assertEquals(page.layout.containerSize, slots.size, "Slots array size should match container size")
         val nonNullSlots = slots.filterNotNull()
         assertEquals(page.layout.containerSize, nonNullSlots.size, "All container slots should be filled")
-        // 每个槽位应为独立 clone 实例
+        // every slot should hold its own clone
         assertEquals(
             nonNullSlots.size,
             nonNullSlots.toSet().size,
@@ -61,7 +63,7 @@ class PageComputeSlotsTest {
         val properties = mockk<MenuProperties>(relaxed = true).apply {
             every { mode } returns Receptacle.Mode.STATIC
         }
-        // 可视位：0:`gold` 1:`gold` 2:a 其余为空格
+        // visual slots: 0:`gold` 1:`gold` 2:a, the rest are spaces
         val page = Page(
             InventoryType.CHEST,
             Component.text("Title"),
@@ -111,7 +113,7 @@ class PageComputeSlotsTest {
         val slots = page.computeSlots()
 
         assertEquals(page.layout.totalSize, slots.size)
-        // 容器区非空，玩家背包区为空
+        // container area is filled, player inventory area is empty
         val containerSize = page.layout.containerSize
         for (i in 0..<containerSize) assertNotNull(slots[i])
         for (i in containerSize..<slots.size) assertNull(slots[i])
@@ -140,7 +142,7 @@ class PageComputeSlotsTest {
 
         val slots = page.computeSlots()
 
-        // 仍返回 totalSize，但不会对玩家背包键进行解析
+        // still returns totalSize, but does not resolve player inventory keys
         assertEquals(page.layout.totalSize, slots.size)
         val containerSize = page.layout.containerSize
         for (i in 0..<containerSize) assertNotNull(slots[i])

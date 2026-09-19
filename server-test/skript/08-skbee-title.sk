@@ -1,0 +1,19 @@
+# The component-title path, which only a server with SkBee can reach.
+#
+# `%-object%` title slots accept SkBee's text component, so a script can hand the addon a real
+# component instead of a string. Reading the title back matters as much as setting it: with SkBee
+# present the addon wraps a returned title in SkBee's ComponentWrapper (`ComponentHelper.hasSkBee`),
+# which changes what `the title of page 1 in` hands a script. `%{_read}%` on that wrapper prints its
+# legacy text, so this line pins the text that survived the round trip.
+#
+# Without SkBee the create line would not parse at all: `a new text component from` is SkBee syntax, so
+# this file depends on the plugin list in `build.gradle.kts` and says so here rather than silently
+# testing nothing.
+
+on load:
+    set {_title} to a new text component from "Selftest Component Title"
+    create a phantom menu with chest inventory titled {_title} with layout "A" with id "skbee_title":
+        set {_menu} to the menu with id "skbee_title"
+        set {_read} to the title of page 1 in {_menu}
+        log "XIAOJIE_SELFTEST detail: skbee component title -> %{_read}%"
+    destroy the menu with id "skbee_title"

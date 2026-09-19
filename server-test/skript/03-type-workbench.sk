@@ -1,0 +1,6 @@
+on load:
+    create a phantom menu with workbench inventory titled "Workbench" with layout "AAAAAAAAA", "AAAAAAAAA", "AAAAAAAAA" with id "type_workbench":
+        set {_pages} to the page number of the menu with id "type_workbench"
+        log "XIAOJIE_SELFTEST detail: inventory type workbench -> %{_pages}% page(s)"
+    set {_menu} to the menu with id "type_workbench"
+    destroy the menu {_menu}

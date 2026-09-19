@@ -1,0 +1,6 @@
+on load:
+    create a phantom menu with lectern inventory titled "Lectern" with layout "A" with id "type_lectern":
+        set {_pages} to the page number of the menu with id "type_lectern"
+        log "XIAOJIE_SELFTEST detail: inventory type lectern -> %{_pages}% page(s)"
+    set {_menu} to the menu with id "type_lectern"
+    destroy the menu {_menu}

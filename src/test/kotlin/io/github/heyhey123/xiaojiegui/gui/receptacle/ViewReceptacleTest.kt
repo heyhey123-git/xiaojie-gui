@@ -4,18 +4,26 @@ import io.github.heyhey123.xiaojiegui.gui.StaticInventory
 import io.github.heyhey123.xiaojiegui.gui.event.ReceptacleCloseEvent
 import io.github.heyhey123.xiaojiegui.gui.event.ReceptacleInteractEvent
 import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
-import io.mockk.*
+import io.mockk.every
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
+import io.mockk.verify
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.util.*
+import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
 class ViewReceptacleTest {
@@ -102,11 +110,11 @@ class ViewReceptacleTest {
 
         r.closed()
 
-        // 先通过 close(false) 的副作用验证
+        // first verify through the side effect of close(false)
         assertEquals(0, r.doCloseCount)
         assertNull(ViewReceptacle.viewingReceptacleMap[player.uniqueId])
 
-        // 再验证事件发布
+        // then verify the event publication
         verify(exactly = 1) { anyConstructed<ReceptacleCloseEvent>().callEvent() }
     }
 
@@ -125,7 +133,7 @@ class ViewReceptacleTest {
 }
 
 /**
- * 测试用子类：记录 doOpen、doClose 调用情况
+ * Test-only subclass: records doOpen and doClose calls
  */
 private class TestViewReceptacle(
     title: Component,
@@ -150,7 +158,7 @@ private class TestViewReceptacle(
     }
 
     override fun clicked(clickType: ClickType, slot: Int, staticInventoryEvent: InventoryClickEvent?) {
-        // 不在此处断言点击逻辑
+        // click logic is not asserted here
     }
 
     override fun getElement(slot: Int): ItemStack {

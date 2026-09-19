@@ -1,0 +1,10 @@
+# One file per inventory type. A type whose layout cannot be built takes its own file down and leaves
+# the other files' detail lines in the log, which is what makes the failure readable without a
+# bisect: the names in the log are the types that worked.
+
+on load:
+    create a phantom menu with barrel inventory titled "Barrel" with layout "AAAAAAAAA", "A       A", "AAAAAAAAA" with id "type_barrel":
+        set {_pages} to the page number of the menu with id "type_barrel"
+        log "XIAOJIE_SELFTEST detail: inventory type barrel -> %{_pages}% page(s)"
+    set {_menu} to the menu with id "type_barrel"
+    destroy the menu {_menu}

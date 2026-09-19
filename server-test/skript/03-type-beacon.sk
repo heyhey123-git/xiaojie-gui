@@ -1,0 +1,10 @@
+# One file per inventory type. A type whose layout cannot be built takes its own file down and leaves
+# the other files' detail lines in the log, which is what makes the failure readable without a
+# bisect: the names in the log are the types that worked.
+
+on load:
+    create a phantom menu with beacon inventory titled "Beacon" with layout "A" with id "type_beacon":
+        set {_pages} to the page number of the menu with id "type_beacon"
+        log "XIAOJIE_SELFTEST detail: inventory type beacon -> %{_pages}% page(s)"
+    set {_menu} to the menu with id "type_beacon"
+    destroy the menu {_menu}

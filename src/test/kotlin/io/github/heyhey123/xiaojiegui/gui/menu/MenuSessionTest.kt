@@ -1,17 +1,27 @@
 package io.github.heyhey123.xiaojiegui.gui.menu
 
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.every
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.unmockkAll
+import io.mockk.verify
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.util.*
+import java.util.UUID
 
 @ExtendWith(MockKExtension::class)
 class MenuSessionTest {
@@ -64,7 +74,7 @@ class MenuSessionTest {
         val session = MenuSession(player, null, -1, receptacle)
         assertEquals(item, session.getIcon(5))
 
-        // 无容器时返回 null
+        // returns null when there is no receptacle
         val sessionNoRec = MenuSession(player, null, -1, null)
         assertNull(sessionNoRec.getIcon(1))
     }
@@ -138,36 +148,35 @@ class MenuSessionTest {
 
     @Test
     fun `shut clears fields removes from menu viewers and registry`() {
-        // 先注册会话
+        // register the session first
         val session = MenuSession.getSession(player)
 
-        // 模拟 menu 与其 viewers
+        // mock the menu and its viewers
         val menu = mockk<Menu>()
         val viewers = mutableSetOf<UUID>()
         every { menu.viewers } returns viewers
 
         viewers.add(player.uniqueId)
 
-        // 准备状态
+        // set up the state
         session.menu = menu
         session.page = 3
         session.receptacle = mockk(relaxed = true)
 
-        // 断言准备正确
+        // assert the state was prepared correctly
         assertSame(session, MenuSession.querySession(player))
         assertTrue(player.uniqueId in viewers)
 
-        // 调用
+        // act
         session.shut()
 
-        // 字段被清空
+        // fields are cleared
         assertNull(session.menu)
         assertEquals(-1, session.page)
         assertNull(session.receptacle)
 
-        // 从全局注册表与 menu.viewers 移除
+        // removed from the global registry and menu.viewers
         assertNull(MenuSession.querySession(player))
         assertFalse(player.uniqueId in viewers)
     }
 }
-
