@@ -13,6 +13,12 @@ import org.bukkit.event.inventory.InventoryType
 /**
  * ViewLayout defines the slot arrangement for a view GUI.
  *
+ * `slotRange` is not a free choice: it is the set of slots the client draws for the window this layout
+ * opens, so it has to match the size of [inventoryType]. The player's 27 main slots and 9 hotbar slots
+ * follow immediately after it (see [Layout]), which is how vanilla numbers a window; a range that is one
+ * slot too short does not fail, it moves every player slot in the window by one and clicks land on the
+ * wrong item. `ViewLayoutTest` pins each range to Bukkit's own size for the type.
+ *
  * @param type the layout type
  * @param inventoryType the Bukkit inventory type
  * @param slotRange the range of valid slot indices for this layout
@@ -41,27 +47,26 @@ sealed class ViewLayout(
     sealed class FixedContainer(type: LayoutType, inventoryType: InventoryType, slotRange: IntRange) :
         ViewLayout(type, inventoryType, slotRange) {
         object GENERIC_3X3 : FixedContainer(LayoutType.GENERIC_3X3, InventoryType.DROPPER, 0..8)
-        object WORKBENCH : FixedContainer(LayoutType.WORKBENCH, InventoryType.WORKBENCH, 0..8)
+        object WORKBENCH : FixedContainer(LayoutType.WORKBENCH, InventoryType.WORKBENCH, 0..9)
         object ANVIL : FixedContainer(LayoutType.ANVIL, InventoryType.ANVIL, 0..2)
         object BARREL : FixedContainer(LayoutType.GENERIC_9X3, InventoryType.BARREL, 0..26)
-        object BEACON : FixedContainer(LayoutType.BEACON, InventoryType.BEACON, 0..2)
+        object BEACON : FixedContainer(LayoutType.BEACON, InventoryType.BEACON, 0..0)
         object BLAST_FURNACE : FixedContainer(LayoutType.BLAST_FURNACE, InventoryType.BLAST_FURNACE, 0..2)
         object BREWING_STAND : FixedContainer(LayoutType.BREWING_STAND, InventoryType.BREWING, 0..4)
-        object CRAFTING : FixedContainer(LayoutType.CRAFTING, InventoryType.CRAFTING, 0..4)
         object CRAFTER : FixedContainer(LayoutType.CRAFTER, InventoryType.CRAFTER, 0..8)
         object DISPENSER : FixedContainer(LayoutType.GENERIC_3X3, InventoryType.DISPENSER, 0..8)
-        object ENCHANTMENT : FixedContainer(LayoutType.ENCHANTMENT, InventoryType.ENCHANTING, 0..2)
+        object ENCHANTMENT : FixedContainer(LayoutType.ENCHANTMENT, InventoryType.ENCHANTING, 0..1)
         object ENDER_CHEST : FixedContainer(LayoutType.GENERIC_9X3, InventoryType.ENDER_CHEST, 0..26)
         object FURNACE : FixedContainer(LayoutType.FURNACE, InventoryType.FURNACE, 0..2)
         object GRINDSTONE : FixedContainer(LayoutType.GRINDSTONE, InventoryType.GRINDSTONE, 0..2)
         object HOPPER : FixedContainer(LayoutType.HOPPER, InventoryType.HOPPER, 0..4)
-        object LECTERN : FixedContainer(LayoutType.LECTERN, InventoryType.LECTERN, 0..1)
+        object LECTERN : FixedContainer(LayoutType.LECTERN, InventoryType.LECTERN, 0..0)
         object LOOM : FixedContainer(LayoutType.LOOM, InventoryType.LOOM, 0..3)
         object MERCHANT : FixedContainer(LayoutType.MERCHANT, InventoryType.MERCHANT, 0..2)
         object SHULKER_BOX : FixedContainer(LayoutType.SHULKER_BOX, InventoryType.SHULKER_BOX, 0..26)
-        object SMITHING : FixedContainer(LayoutType.SMITHING, InventoryType.SMITHING, 0..2)
+        object SMITHING : FixedContainer(LayoutType.SMITHING, InventoryType.SMITHING, 0..3)
         object SMOKER : FixedContainer(LayoutType.SMOKER, InventoryType.SMOKER, 0..2)
-        object CARTOGRAPHY_TABLE : FixedContainer(LayoutType.CARTOGRAPHY_TABLE, InventoryType.CARTOGRAPHY, 0..3)
+        object CARTOGRAPHY_TABLE : FixedContainer(LayoutType.CARTOGRAPHY_TABLE, InventoryType.CARTOGRAPHY, 0..2)
         object STONECUTTER : FixedContainer(LayoutType.STONECUTTER, InventoryType.STONECUTTER, 0..1)
     }
 
@@ -76,7 +81,6 @@ sealed class ViewLayout(
             InventoryType.BEACON -> FixedContainer.BEACON
             InventoryType.BLAST_FURNACE -> FixedContainer.BLAST_FURNACE
             InventoryType.BREWING -> FixedContainer.BREWING_STAND
-            InventoryType.CRAFTING -> FixedContainer.CRAFTING
             InventoryType.DISPENSER -> FixedContainer.DISPENSER
             InventoryType.ENCHANTING -> FixedContainer.ENCHANTMENT
             InventoryType.ENDER_CHEST -> FixedContainer.ENDER_CHEST

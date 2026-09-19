@@ -1,6 +1,6 @@
 # 尚未支持
 
-[English](../../README.md) | 简体中文
+[English](not-supported-yet.md) | 简体中文
 
 这一页列的是**有意不在 2.0.0 里**的东西，以及已知的边界。碰到"为什么这行不解析"时先看这里。
 
@@ -54,6 +54,15 @@ map key "A" to icon stone for {_menu}
 
 旧的 `create gui` 页码从 0 开始，只要传进去的库存里有物品就会崩；它写死的那个模式（`removable items`
 即 `static`）现在有了正式写法。
+
+## 有些容器类型没有窗口
+
+`composter`、`chiseled bookshelf`、`decorated pot`、`shelf`、`jukebox` 不是"还没做"，而是**做不了**：
+Minecraft 没有为它们提供菜单，客户端也就没有这个窗口可画（Bukkit 里这些库存类型没有对应菜单、也不能被
+创建），所以 `create menu` 只能明确报 `Unsupported inventory type`。
+
+玩家自己的 2×2 合成格（`crafting table inventory`）也是同理：客户端画这个窗口时画出来的是工作台，格数
+对不上，所以不支持，要合成台界面用 `workbench inventory`。
 
 ## 没有命令，也没有权限
 

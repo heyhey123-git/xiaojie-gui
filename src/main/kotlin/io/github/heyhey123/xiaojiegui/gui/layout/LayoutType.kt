@@ -31,10 +31,8 @@ enum class LayoutType {
     BLAST_FURNACE,
     BREWING_STAND,
 
-    // the player's own crafting grid, not a block
-    CRAFTING,
-
-    // the crafter block, which is a 3x3 menu of its own
+    // the crafter block, a 3x3 menu of its own. The player's own 2x2 crafting grid is *not* a layout:
+    // no client menu draws it, so a window pretending to be one shows the crafting table instead.
     CRAFTER,
 
     ENCHANTMENT,
@@ -64,7 +62,6 @@ enum class LayoutType {
             BEACON -> MenuType.BEACON
             BLAST_FURNACE -> MenuType.BLAST_FURNACE
             BREWING_STAND -> MenuType.BREWING_STAND
-            CRAFTING -> MenuType.CRAFTING
             CRAFTER -> MenuType.CRAFTER_3x3
             ENCHANTMENT -> MenuType.ENCHANTMENT
             FURNACE -> MenuType.FURNACE

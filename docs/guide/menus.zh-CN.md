@@ -1,6 +1,6 @@
 # 创建菜单
 
-[English](../../README.md) | 简体中文
+[English](menus.md) | 简体中文
 
 ## 两种写法
 
@@ -66,24 +66,23 @@ create [a] [phantom|static] menu
 | `chest inventory` | 行数 × 9，见下 | 唯一一个**由布局决定大小**的类型 |
 | `dropper inventory` | 9 | 3×3 |
 | `dispenser inventory` | 9 | 3×3，和 dropper 不是同一个界面 |
-| `workbench inventory` | 9 | 工作台 |
-| `crafting table inventory` | 5 | 玩家自己的 2×2 合成格 |
 | `crafter inventory` | 9 | 合成器方块。和 `workbench` 一样是 3×3，但客户端画的是另一个界面，所以两个都存在 |
+| `workbench inventory` | 10 | 工作台：1 个结果格 + 3×3 合成格 |
 | `anvil inventory` | 3 | |
-| `beacon inventory` | 3 | |
+| `beacon inventory` | 1 | 只有放宝石的那一格 |
 | `blast furnace inventory` | 3 | |
 | `furnace inventory` | 3 | |
 | `smoker inventory` | 3 | |
 | `grindstone inventory` | 3 | |
-| `smithing inventory` | 3 | |
+| `smithing inventory` | 4 | 模板、装备、材料、结果 |
 | `loom inventory` | 4 | |
-| `cartography table inventory` | 4 | **不是** `cartography inventory` |
+| `cartography table inventory` | 3 | **不是** `cartography inventory` |
 | `brewing stand inventory` | 5 | |
 | `hopper inventory` | 5 | |
-| `lectern inventory` | 2 | |
+| `lectern inventory` | 1 | |
 | `stonecutter inventory` | 2 | |
-| `enchanting table inventory` | 3 | **不是** `enchanting inventory` |
-| `merchant inventory` | 3 | 也可以写 `villager inventory` |
+| `enchanting table inventory` | 2 | **不是** `enchanting inventory` |
+| `merchant inventory` | 3 | 也可以写 `villager inventory`。**只支持 `phantom` 菜单**，见下 |
 | `barrel inventory` | 27 | |
 | `ender chest inventory` | 27 | |
 | `shulker box inventory` | 27 | |
@@ -91,7 +90,15 @@ create [a] [phantom|static] menu
 `chest inventory` 的行数就是**你给的布局字符串条数**（最多 6 条），所以 `"AAA", "ABA", "AAA"` 是
 一个 3 行、27 格的箱子。其它类型的大小是固定的，布局字符串只决定哪些格子被用到。
 
-除上面这些以外的类型会报 `Unsupported inventory type`。
+格子数就是**客户端这个界面真正有的格子数**：玩家背包的 27 格和快捷栏的 9 格紧跟在后面。数错了不会报错，
+但玩家背包里的东西和点击会整体错位，所以这张表和单元测试里的同一张表是钉在一起的，改错了测试会立刻失败。
+
+`merchant inventory` 的窗口由服务端自己画（`phantom`），所以能用；`static` 不行，因为 Bukkit 不给商人
+建库存（交易内容来自商人 API），写 `create a static menu with merchant inventory ...` 会直接报错。
+
+除上面这些以外的类型会报 `Unsupported inventory type`。其中 `crafting table inventory`（玩家自己的 2×2
+合成格）是**故意**不支持的：客户端没有画这个窗口的界面，硬开只会画出工作台；要合成台界面请用
+`workbench inventory`。
 
 ## 布局字符串是什么
 

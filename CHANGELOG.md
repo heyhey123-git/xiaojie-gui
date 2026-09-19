@@ -177,6 +177,16 @@ which is created on first start. No keys were renamed.
   they used to report `Unsupported inventory type`, because no layout existed for them. Skript's names for
   two of them are `enchanting table inventory` and `cartography table inventory`, not `enchanting
   inventory` and `cartography inventory`.
+- The fixed-size layouts now count the slots the client really draws for that window: `workbench` has 10
+  (not 9), `beacon` 1 (not 3), `enchanting table` 2 (not 3), `lectern` 1 (not 2), `smithing` 4 (not 3) and
+  `cartography table` 3 (not 4). A count that is off does not report anything — it moves the player's
+  inventory and every click in the window by a few slots. A unit test now holds every layout to Bukkit's
+  own size for its inventory type, so this cannot drift again.
+- `crafting table inventory` (the player's own 2×2 grid) is no longer a layout. No client menu draws that
+  window, so it came out as a crafting table whose 10 slots were mapped onto our 5, and Bukkit refuses to
+  create that inventory at all. `workbench inventory` is the crafting-table window.
+- `create a static menu with merchant inventory ...` now stops with a sentence naming the type instead of
+  Bukkit's own exception. Merchant windows come from the merchant API and only work in `phantom` mode.
 - `/skript reload` closes every menu before the new scripts load. A menu holds the callbacks of the scripts
   that built it, so a menu that survived a reload answered the next click with code that was no longer in
   any script. The reloaded scripts build their menus again, as they do on start.
@@ -189,9 +199,10 @@ which is created on first start. No keys were renamed.
   ViaVersion + ViaBackwards for it, so what that proves is that the packets this addon emits survive a real
   translation layer to a real client — not that a 26.2 client sees the same bytes. Client-side ghost items
   and dragging stay uncovered.
-- `composter`, `chiseled bookshelf`, `decorated pot`, `shelf` and `jukebox` are not supported: what the
-  client draws for a menu in one of them is not verified, so `create menu` reports `Unsupported inventory
-  type` rather than guessing a menu shape.
+- `composter`, `chiseled bookshelf`, `decorated pot`, `shelf` and `jukebox` are not supported, and cannot
+  be: Minecraft has no menu for them (Bukkit's inventory types for them have no menu type and cannot be
+  created), so there is no window to draw. `create menu` reports `Unsupported inventory type` rather than
+  guessing a menu shape.
 - `insert page` and `with page` are the only ways to create a page; there is no declarative page block.
   A page is a layout plus a title, and that is deliberate.
 

@@ -80,7 +80,15 @@ object StaticInventory {
 
         private val inventory: Inventory = when (val type = layout.inventoryType) {
             InventoryType.CHEST -> Bukkit.createInventory(this, layout.slotRange.last + 1, title)
-            else -> Bukkit.createInventory(this, type, title)
+            else -> {
+                // The merchant is the one layout Bukkit will not build: its trades come from the merchant
+                // API, so there is no inventory behind it. Phantom mode can still draw the window, which
+                // is why the layout exists at all; say so instead of letting Bukkit's own error surface.
+                require(type.isCreatable) {
+                    "A ${layout.type} layout cannot be opened as a static menu: Bukkit cannot create a $type inventory."
+                }
+                Bukkit.createInventory(this, type, title)
+            }
         }
 
         /**

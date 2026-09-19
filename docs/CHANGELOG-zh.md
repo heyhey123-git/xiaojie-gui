@@ -157,6 +157,14 @@ on menu interact:
   它们会报 `Unsupported inventory type`，因为没有对应的布局。其中两个在 Skript 里要写
   `enchanting table inventory` / `cartography table inventory`，不是 `enchanting inventory` /
   `cartography inventory`。
+- 固定大小的布局现在用的就是**客户端真画出来的格子数**：`workbench` 10 格（不是 9）、`beacon` 1 格（不是 3）、
+  `enchanting table` 2 格（不是 3）、`lectern` 1 格（不是 2）、`smithing` 4 格（不是 3）、
+  `cartography table` 3 格（不是 4）。数错了不会报任何错——玩家背包里的东西和窗口里的每一次点击都会整体错位。
+  现在有一个单元测试把每个布局钉在 Bukkit 自己的库存大小上，以后不会再漂。
+- `crafting table inventory`（玩家自己的 2×2 合成格）不再是布局：客户端没有画这个窗口的界面，实际画出来的是
+  10 格的工作台，而布局声明的是 5 格，Bukkit 也根本不为这种库存建对象。想要合成台界面请用 `workbench inventory`。
+- `create a static menu with merchant inventory ...` 现在会直接说清楚是哪个类型不支持，而不是抛 Bukkit 自己的
+  异常。商人窗口来自商人 API，只在 `phantom` 模式可用。
 - `/skript reload` 会先关掉所有菜单再加载新脚本。菜单里存着"创建它的那批脚本"的回调，所以挺过一次重载的
   菜单，下一次点击执行的是已经不在任何脚本里的代码。重载后的脚本会像启动时一样重新建自己的菜单。
 
@@ -166,8 +174,9 @@ on menu interact:
   客户端连进测试服务端，读取服务端为它打开的窗口、在里面点击，并检查每个槽位里物品的**类型**。客户端是
   26.1 客户端，测试服务端为它装了 ViaVersion + ViaBackwards，所以它证明的是"本插件发出的包能穿过真实翻译层
   到达真实客户端"，而不是"26.2 客户端看到的就是这些字节"。客户端侧的幽灵物品与拖拽仍未覆盖。
-- `composter`、`chiseled bookshelf`、`decorated pot`、`shelf`、`jukebox` 暂不支持：客户端为它们画的菜单
-  长什么样还没验证过，所以 `create menu` 会明确报 `Unsupported inventory type`，而不是猜一个形状。
+- `composter`、`chiseled bookshelf`、`decorated pot`、`shelf`、`jukebox` 不支持，而且**支持不了**：Minecraft
+  没有为它们提供菜单（Bukkit 里这些库存类型没有对应菜单、也不能被创建），所以没有窗口可画。`create menu` 会
+  明确报 `Unsupported inventory type`，而不是猜一个形状。
 - 页面只能通过 `insert page` / 创建时的 `with page` 产生，没有声明式的 page 段落 —— 一页 = 一个布局
   + 一个标题，这是有意为之。
 
