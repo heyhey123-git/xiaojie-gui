@@ -1,0 +1,65 @@
+name: Wiki
+
+# The Chinese documentation is mirrored to the repository wiki, which is a git repository of its own.
+# Only that half is published: the repository is where both languages live, and the wiki is the reading
+# copy for the people the plugin is written for.
+#
+# CI ignores a change to a Markdown file, so this workflow has to name what it watches. It runs on the
+# branch the wiki follows, not on pull requests: a pull request must not be able to publish anything.
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'docs/**'
+      - 'scripts/publish-wiki.ps1'
+      - 'scripts/wiki-pages.tsv'
+      - 'scripts/wiki-sidebar.md'
+      - '.github/workflows/wiki.yml'
+  workflow_dispatch:
+
+# The wiki belongs to this repository, so the token this run starts with may write to it.
+permissions:
+  contents: write
+
+# Two pushes in quick succession would otherwise have the second run push onto a wiki the first one has
+# already moved; queued rather than cancelled, so that the last push is the one that ends up published.
+concurrency:
+  group: wiki
+  cancel-in-progress: false
+
+jobs:
+
+  publish:
+    name: Publish the wiki
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6
+
+      # This needs the wiki to exist. A wiki that was never opened has no repository behind it yet, so
+      # create one page by hand in the web interface before this workflow is expected to work; after
+      # that the page is replaced by the mirror on the next run.
+      - name: Check out the wiki
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+
+      - name: Render the pages
+        shell: pwsh
+        run: ./scripts/publish-wiki.ps1 -WikiDirectory wiki
+
+      - name: Push what changed
+        working-directory: wiki
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "The wiki already matches the documentation."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --all
+          git commit --message "docs: mirror the Chinese documentation from ${GITHUB_SHA:0:7}"
+          git push
