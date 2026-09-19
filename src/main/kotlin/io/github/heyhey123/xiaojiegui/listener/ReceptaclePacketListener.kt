@@ -42,12 +42,15 @@ object ReceptaclePacketListener :
                     event.isCancelled = true
                     return
                 }
+                // A client can send a click this addon has no name for. It is dropped rather than thrown:
+                // the window it belongs to is the server's own, so ignoring it is exactly what an
+                // unimplemented click should do, and a packet listener that throws fills the log with
+                // stack traces for input that is not a bug in the plugin.
                 val clickType = ClickType.from(
                     mode = packet.windowClickType.ordinal,
                     button = packet.button,
                     slot = slot
-                )
-                    ?: throw IllegalArgumentException("Unknown click type: ${packet.windowClickType} with button ${packet.button} at slot $slot")
+                ) ?: return
                 TaskUtil.sync {
                     receptacle.clicked(clickType, slot, null)
                 }

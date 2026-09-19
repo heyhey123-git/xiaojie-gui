@@ -1,7 +1,5 @@
 package io.github.heyhey123.xiaojiegui.gui.interact
 
-import org.bukkit.event.inventory.InventoryAction
-
 typealias BukkitClickType = org.bukkit.event.inventory.ClickType
 
 /**
@@ -120,11 +118,17 @@ enum class ClickType(
         get() = if (mode == ClickMode.SWAP && button in 0..8) button + 1 else null
 
     /**
-     * Determines if the item can be moved based on the click type.
+     * Whether this click can move an item to a slot other than the one it names, which is what a
+     * `phantom` menu has to know: it puts back what the client changed locally, one slot at a time when
+     * the click only touched its own slot, and the whole window when it did not.
      *
-     * @return `true` if the item can be moved, `false` otherwise.
+     * The answer is not `isKeyboardClick()`, which is true for the `Q` drop as well: a drop takes the
+     * item out of the window, so the slot it names is the only one that changed.
+     *
+     * @return `true` if the click can move items between slots
      */
-    fun isItemMoveable(): Boolean = isKeyboardClick() || isShiftClick() || mustBeCreativeAction() || this == DOUBLE_CLICK
+    fun isItemMoveable(): Boolean =
+        isShiftClick() || isNumberKeyClick() || this == SWAP_OFFHAND || mustBeCreativeAction() || this == DOUBLE_CLICK
 
     /**
      * Gets whether this ClickType requires creative action.
@@ -146,8 +150,24 @@ enum class ClickType(
     fun matches(mode: Int, button: Int): Boolean = this.mode.id == mode && this.button == button
 
     companion object {
+
+        /**
+         * The slot number the game sends for a click that did not land in the window at all, which is
+         * how a click on the background and a drop into the world arrive.
+         */
+        const val OUTSIDE_SLOT = -999
+
+        /**
+         * The click type of one container click packet, or null when the packet is one this addon has no
+         * name for. A client can send anything, so a caller has to decide what to do with an unknown one;
+         * `ReceptaclePacketListener` ignores it, because the window it belongs to is the server's own.
+         *
+         * @param mode the packet's own click type, by its protocol number
+         * @param button the packet's button
+         * @param slot the slot the packet names, [OUTSIDE_SLOT] for a click outside the window
+         */
         fun from(mode: Int, button: Int, slot: Int = -1): ClickType? {
-            if (slot == -999) {
+            if (slot == OUTSIDE_SLOT) {
                 return when {
                     LEFT.matches(mode, button) -> OUTSIDE_LEFT
                     RIGHT.matches(mode, button) -> OUTSIDE_RIGHT
@@ -157,26 +177,44 @@ enum class ClickType(
                 }
             }
             return entries.find { it.matches(mode, button) }
+                // A swap carries its hotbar slot as the button, so a swap with a button that is not a
+                // hotbar slot is still a swap, and reports itself as one that named no key.
+                ?: if (mode == ClickMode.SWAP.id) NUMBER_KEY_INVALID else null
         }
 
-        fun find(mode: Int, button: Int, bukkitClickType: BukkitClickType): ClickType = entries.find { it.mode.id == mode && it.button == button && it.bukkitClickType == bukkitClickType }
-            ?: when (bukkitClickType) {
-                BukkitClickType.NUMBER_KEY -> NUMBER_KEY_INVALID
-                else -> UNKNOWN
-            }
+        fun find(mode: Int, button: Int, bukkitClickType: BukkitClickType): ClickType =
+            entries.find { it.mode.id == mode && it.button == button && it.bukkitClickType == bukkitClickType }
+                ?: when (bukkitClickType) {
+                    BukkitClickType.NUMBER_KEY -> NUMBER_KEY_INVALID
+                    else -> UNKNOWN
+                }
 
-        fun fromBukkit(clickType: BukkitClickType, action: InventoryAction, slot: Int): ClickType {
+        /**
+         * The click type of one bukkit click event.
+         *
+         * Bukkit's own click type is what a script reads -- `the click type` is Skript's, and this addon
+         * answers with the matching one -- so it decides the answer here. The action is deliberately not
+         * consulted: it says *what* happened to the items, not which gesture it was, and reading it as
+         * well would report a `Q` drop as the left button and a left click on the background as a drop.
+         *
+         * @param clickType the event's click type
+         * @param slot the event's raw slot, [OUTSIDE_SLOT] when the click was outside the window
+         */
+        fun fromBukkit(clickType: BukkitClickType, slot: Int): ClickType {
             if (clickType == BukkitClickType.NUMBER_KEY) {
                 val button = if (slot in 0..8) slot else -1
                 return find(ClickMode.SWAP.id, button, clickType)
             }
-            return when (action) {
-                InventoryAction.DROP_ONE_SLOT -> OUTSIDE_LEFT
-                InventoryAction.DROP_ALL_SLOT -> OUTSIDE_RIGHT
-                InventoryAction.DROP_ONE_CURSOR -> LEFT_DROP
-                InventoryAction.DROP_ALL_CURSOR -> RIGHT_DROP
-                else -> entries.find { it.bukkitClickType == clickType }
-            } ?: UNKNOWN
+            if (slot == OUTSIDE_SLOT) {
+                return when (clickType) {
+                    BukkitClickType.LEFT -> OUTSIDE_LEFT
+                    BukkitClickType.RIGHT -> OUTSIDE_RIGHT
+                    BukkitClickType.DROP -> LEFT_DROP
+                    BukkitClickType.CONTROL_DROP -> RIGHT_DROP
+                    else -> entries.find { it.bukkitClickType == clickType } ?: UNKNOWN
+                }
+            }
+            return entries.find { it.bukkitClickType == clickType } ?: UNKNOWN
         }
     }
 }

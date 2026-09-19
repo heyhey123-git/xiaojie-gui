@@ -27,16 +27,15 @@ object StaticInventoryListener : Listener, BaseListener {
         if (event.inventory.getHolder(false) !is StaticInventory.Holder) return
         val player = event.whoClicked as? Player ?: return
         val receptacle = player.viewingReceptacle ?: return
-        val clickType = ClickType.fromBukkit(
-            event.click,
-            event.action,
-            if (event.click == BukkitClickType.NUMBER_KEY) event.hotbarButton else event.slot
-        )
         // The raw slot, not `getSlot()`: a click in the player's own half of the window is numbered
         // relative to the inventory that was clicked there, so it would name a container slot the player
         // never touched -- and a callback for that slot would run. Both modes number window slots, so
         // this is the number a script can compare with the slots its layout declared.
-        receptacle.clicked(clickType, event.rawSlot, event)
+        //
+        // A number key is the one click whose meaning is carried by the button instead: it names the
+        // hotbar slot the stack is swapped with, so that is what `the pressed number key` reads.
+        val numberKeySlot = if (event.click == BukkitClickType.NUMBER_KEY) event.hotbarButton else event.rawSlot
+        receptacle.clicked(ClickType.fromBukkit(event.click, numberKeySlot), event.rawSlot, event)
     }
 
     @EventHandler

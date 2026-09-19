@@ -56,7 +56,11 @@ class DragHandlingTest {
         val interactions = mutableListOf<ReceptacleInteractEvent>()
         receptacle.onClick { interactions += it }
 
-        // A left drag over slots 4 and 5: start, one continue per slot, end.
+        // A left drag over slots 4 and 5: start, one continue per slot, end. In phantom mode nothing is
+        // really placed, so every slot the player swept over is reported: the game's own filtering (a slot
+        // that cannot take the item, a cursor that ran out of items) does not apply, and a script reads
+        // the gesture rather than its effect. In static mode those two are the same thing, because there
+        // the items really move.
         receptacle.dragPacket(4, 0)
         receptacle.dragPacket(4, 1)
         receptacle.dragPacket(5, 1)
