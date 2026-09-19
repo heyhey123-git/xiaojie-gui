@@ -106,6 +106,42 @@ The details that matter:
   slots and 9 hotbar slots follow it, in both modes. In `static` mode the player's half of the window is
   not the menu's (it holds the player's own items), so putting icons there does nothing.
 
+## What a drag means in phantom mode
+
+The fact first: in a phantom menu a player **cannot pick anything up**. The window is the server's own
+invention (every click packet is stopped by the plugin, which then re-sends the contents), so a drag cannot
+change a real item any more than a click can. So why handle it at all?
+
+1. **Not handling it leaves ghost items.** The client always predicts a container interaction locally, and
+   only the server's re-send can undo that. The drag's **start and end packets had no click type here**, so
+   they threw and were **neither cancelled nor followed by a re-send**: the slots the player swept over
+   stayed wrong on the client's side (exactly the ghost items warned about elsewhere).
+2. **The script's intent is real.** Without a real inventory a menu is still a button panel: which slots the
+   player swept over is the only thing a script can read. There are two sensible uses — "select several at
+   once" (a menu as a picker), or refusing it outright
+   (`if the dragged slots is set: cancel event`). Neither was possible before.
+3. **"One interaction, one event" is just as hard a rule here.** Items do not land anywhere, but a script's
+   **side effects** are real: messages, charging a player, opening another menu, counters. A drag that runs
+   a handler N times charges N times.
+4. **One way to write a script for both modes.** Changing a menu from `static` to `phantom` should not mean
+   rewriting it.
+
+A real client can barely produce a drag in a phantom menu at all: it only drags what it is holding, and it
+cannot hold anything in a phantom window (the contents are re-sent after every click). It still happens —
+in the short "predicted" window between picking something up and our re-send arriving, or with a modified
+client or another plugin in the way. So this is an input that has to be caught, not one that never arrives.
+
+**One deliberate difference**: `the dragged slots` means something slightly different in the two modes,
+because the two modes care about different things. In `static` it is **the slots the game would really
+fill** (slots that cannot take the item, and slots the cursor no longer has items for, are skipped, and
+`the cursor item` is the stack being spread); in `phantom` it is **every slot the player swept over**, since
+nothing is filled there and the intent is all there is. In neither mode does a plain click have
+`the dragged slots` (a one-slot drag is delivered by the game as a click).
+
+One last limit: `the cursor item` is **empty in phantom mode**. Since 1.21 the packet's cursor field is only
+a **hash** of the item rather than the item itself, so the server cannot see it, and this addon does not
+guess.
+
 ## Measured: one gesture, four results
 
 These were run against a real server with a real client (sending raw packets, because mineflayer does not

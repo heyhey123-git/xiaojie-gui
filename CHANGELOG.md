@@ -197,6 +197,15 @@ which is created on first start. No keys were renamed.
 - A click in the player's own half of a `static` window is reported with the window slot the client used.
   The old number was relative to that half, so it named a container slot the player never touched and ran
   a callback for it.
+- The click a script is told about is the click the player made. Reading the event's *action* as well as
+  its click type reported a `Q` drop in a slot as a click on the background, and a click on the background
+  as a drop; `the click type` is now what Skript reports for the same gesture, inside the window and out.
+- A container click the addon has no name for is dropped rather than thrown from the packet listener. The
+  window a `phantom` menu shows is the server's own, so an unimplemented click should do nothing instead of
+  filling the log with stack traces.
+- A `phantom` menu puts the whole window back for the clicks that can move an item between slots, and that
+  set no longer includes the drop keys: a `Q` drop takes the item out of the window, so the slot it names
+  is the only one that changed.
 - `/skript reload` closes every menu before the new scripts load. A menu holds the callbacks of the scripts
   that built it, so a menu that survived a reload answered the next click with code that was no longer in
   any script. The reloaded scripts build their menus again, as they do on start.
