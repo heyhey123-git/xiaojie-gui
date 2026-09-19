@@ -1,6 +1,6 @@
 # 在语法里指代菜单
 
-[English](../../README.md) | 简体中文
+[English](naming-menus.md) | 简体中文
 
 一段脚本可能同时有十几个菜单，所以每条语法都要知道你在说哪一个。有三种方式，分别对应三种场合。
 
@@ -65,8 +65,8 @@ set {_pages} to the page number of {_menu}
 set {_layout::*} to the default layout of menu {_menu}   # 这条是例外，见下
 ```
 
-`default layout` 是唯一一个把 `(menu|gui)` 写进自己 pattern 的属性，所以
-`the default layout of menu {_menu}` 和 `the default layout of {_menu}` 都可以。
+`default layout` 的 pattern 里带 `[(menu|gui)]`，所以 `the default layout of menu {_menu}` 和
+`the default layout of {_menu}` 都可以。
 
 ## 没有 id 的菜单
 

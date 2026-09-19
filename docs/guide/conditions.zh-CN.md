@@ -1,6 +1,6 @@
 # 条件
 
-[English](../../README.md) | 简体中文
+[English](conditions.md) | 简体中文
 
 ## 玩家背包是否隐藏
 
@@ -26,8 +26,8 @@ hide player inventory of {_menu}
 show player inventory of {_menu}
 ```
 
-注意 `is not` 的写法是 `(isn't|is not)`，**不能**写成 `isn't` 之外的变体 —— 例如 `is not hidden`
-是对的，`isn't not` 这种就没有意义。要判断"显示了"，写 `if player inventory of {_menu} is not hidden:`。
+否定只有两种写法：`isn't` 和 `is not`（pattern 就是 `(isn't|is not)`），别的写法（`isnt`、
+`isn't not`）都不认。要判断"显示了"，写 `if player inventory of {_menu} is not hidden:`。
 
 菜单是"没有值"时这个条件是 **false**（不是报错）：`if player inventory of {_menu} is hidden:` 在
 `{_menu}` 没设置时不会成立，脚本继续往下跑。

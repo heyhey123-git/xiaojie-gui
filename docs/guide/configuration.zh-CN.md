@@ -1,6 +1,6 @@
 # 配置
 
-[English](../../README.md) | 简体中文
+[English](configuration.md) | 简体中文
 
 插件没有任何命令、也没有权限节点。唯一可以配置的是 `plugins/xiaojie-gui/config.yml`，
 首次启动时自动生成，内容只有两个键：
@@ -55,4 +55,4 @@ Menu can only be opened from the main server thread, but got called from an asyn
 服务器上一直写着这两个键，升级后它们**才开始生效** —— 如果你的配置里写过 `force-truecolor: false`
 却一直看到彩色横幅，这就是原因。
 
-改完要重启服务端（不是 `reload`）：这两个值在插件启动后第一次用到时读一次，`reload` 不会重新读。
+改完要重启服务端：这两个值在插件启用后第一次用到时读一次，之后不会再读。
