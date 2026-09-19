@@ -1,0 +1,113 @@
+name: Release
+
+# Manual, and only from the default branch: the tag it creates points at the commit this run built and
+# tested, so a release cannot name a commit that was never verified.
+#
+# The version is read from `gradle.properties` rather than typed in, and the notes come from CHANGELOG.md,
+# so a release cannot go out undescribed or under a version nobody wrote down.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, verify and publish
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      # Checked before the build rather than after it: a release with no version, no notes or an existing
+      # tag should fail in seconds, not in two minutes.
+      - name: Read and check the version
+        id: version
+        run: |
+          version=$(sed -n 's/^version=//p' gradle.properties | tr -d '\r' | head -n 1)
+          if [ -z "$version" ]; then
+            echo "::error::gradle.properties declares no version."
+            exit 1
+          fi
+          if [[ "$version" == *SNAPSHOT* ]]; then
+            echo "::error::gradle.properties still says '$version'. Set the release version (for example 2.0.0), push that, and run this again."
+            exit 1
+          fi
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$version' is not a plain release version such as 2.0.0."
+            exit 1
+          fi
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "::error::release v$version already exists."
+            exit 1
+          fi
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v$version" >/dev/null 2>&1; then
+            echo "::error::tag v$version already exists."
+            exit 1
+          fi
+          if ! grep -q "^## $version" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## $version' section. Write what this release changes first."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # The same layers CI runs, on the exact commit about to be tagged, including the real Paper server
+      # test: the jar being published is the one that test just drove.
+      - name: Build, verify and run the server test
+        run: ./gradlew clean build serverTest --stacktrace
+
+      - name: Check the jar agrees with the version
+        run: |
+          jar="build/dist/xiaojiegui-${{ steps.version.outputs.version }}.jar"
+          if [ ! -f "$jar" ]; then
+            echo "::error::no $jar was produced, so the jar and gradle.properties disagree."
+            ls -l build/dist
+            exit 1
+          fi
+          sha256sum "$jar" | tee "$jar.sha256"
+
+      # One extraction for the release page and for correcting it later:
+      # `./gradlew releaseNotes` then `gh release edit v<version> --notes-file build/release-notes.md`.
+      - name: Write the release notes
+        run: ./gradlew releaseNotes --stacktrace
+
+      - name: Publish the release
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            "build/dist/xiaojiegui-${{ steps.version.outputs.version }}.jar" \
+            "build/dist/xiaojiegui-${{ steps.version.outputs.version }}.jar.sha256" \
+            --target "$GITHUB_SHA" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes-file build/release-notes.md
+
+      - name: Summarize
+        run: |
+          {
+            echo "### Released v${{ steps.version.outputs.version }}"
+            echo
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| Commit | \`$GITHUB_SHA\` |"
+            echo "| Jar | \`xiaojiegui-${{ steps.version.outputs.version }}.jar\` |"
+            echo "| Release | https://github.com/$GITHUB_REPOSITORY/releases/tag/v${{ steps.version.outputs.version }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
