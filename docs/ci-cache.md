@@ -152,7 +152,8 @@ test server, and one category was ours to fix:
   that is not `init`/`preInit`/`parseNode`) fails the run, and the log must contain the framed
   `'Page Title' expression` message, so the channel cannot silently fall out of use. `05-titles.sk`
   produces that message by writing to a page that does not exist and then asserting the menu was left
-  alone.
+  alone. The gate also requires the warning a **static** menu gets for `with hide player inventory` —
+  the keyword has nothing to hide there — so that refusal cannot quietly become a silent no-op.
 
 ## Validation boundary
 
@@ -185,7 +186,7 @@ The final local `build serverTest clientTest --info --profile --console=plain --
 passed in 1m 41s. It re-ran the Paper server and bot: 49 server completion records and 13
 client scenario records passed, including zero bridge failures. The unit-test task was
 up-to-date; its existing XML results contain 114 tests across 18 suites, with no failures
-or errors. The scripts contain 103 native `assert` statements, not a measured execution
+or errors. The scripts contain 104 native `assert` statements, not a measured execution
 count. The assertion-log self-check is attached to `check` and rejected nine invalid log
 shapes. An offline replay of a successful server log with only its final assertion summary
 removed failed with exactly one problem: `Expected exactly one final assertion summary,
@@ -193,12 +194,15 @@ found 0.` The production JAR was separately checked to exclude the bridge and Sk
 classes. This warm local duration is not a GitHub Actions performance estimate.
 
 The runtime-error channel was validated in the same style: the full `build serverTest clientTest`
-passed with 50 server completion records — the newest being the refused out-of-bounds page title —
-and 13 client records; the log carries exactly one addon `(from …)` frame, the deliberate parse-time
-warning. The new gate check was proved offline with `verifyServerTestLog`: the unmodified log passes,
-a copy whose framed `'Page Title'` block is rewritten into the old bare shape fails on the new problem,
-and a copy that adds one bare frame next to the intact framed block fails on that check alone
-(`build/bare-runtime-frame-verification.log`).
+passed with 51 server completion records — the newest being the static menu whose `with hide player
+inventory` is ignored — and 13 client records; the log carries exactly one addon `(from …)` frame, the
+deliberate parse-time warning. The new gate check was proved offline with `verifyServerTestLog`: the
+unmodified log passes, a copy whose framed `'Page Title'` block is rewritten into the old bare shape
+fails on the new problem, and a copy that adds one bare frame next to the intact framed block fails on
+that check alone (`build/bare-runtime-frame-verification.log`). The two lines the gate now requires
+besides the detail markers — `XiaojieGUI has been disabled!` and the static-menu warning — were proved
+the same way: a copy with both removed fails on exactly those two problems and nothing else
+(`build/missing-gate-lines-verification.log`).
 
 No remote cold/warm run, cache hit, upload completion, or speedup is claimed. Confirm these
 on the next GitHub run, including a subsequent warm run and whether the post-step time
