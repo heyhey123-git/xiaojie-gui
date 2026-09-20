@@ -1,0 +1,211 @@
+[CENTER][IMG]https://github.com/heyhey123-git/xiaojie-gui/raw/master/docs/assets/banner.zh-CN.png[/IMG]
+
+[B][SIZE=4]给 Skript 用的菜单插件[/SIZE][/B]
+用 Skript 语法建菜单、写布局、把点击回调写在物品旁边，不用碰 Java，也不用另学一套 GUI 库。[/CENTER]
+
+[HR][/HR]
+
+[B]xiaojie-gui[/B] 把菜单做成普通的 Skript 元素：脚本里建一个菜单、给它一段布局、把布局里的字符和物品绑起来，
+点击回调就写在绑定语句的下面。用 Java 写一个 GUI 要处理物品栏、事件监听和刷新时机；在 Skript 里手搓同样要
+自己记每个格子放了什么、点击落在第几格、什么时候该把内容重发一遍。这个插件把这些收进一套语法：菜单是一个
+可以命名的对象，布局一行一个字符串，字符和物品用 [ICODE]map key[/ICODE] 对上，需要说清位置时用
+[ICODE]override slot[/ICODE] 直接给格子编号。
+
+写脚本的人拿到的具体是这些：布局的字符就是格子，点击回调可以和物品写在一起，分页和"把一页填成一列结果"都是
+现成的，点得太快的连点会被冷却挡掉。菜单的定义是所有玩家共享的，而每个人打开之后拿到的是自己的一份窗口：
+他在第几页、他的标题是什么、只给他看的图标长什么样，都互不影响。默认的 [ICODE]phantom[/ICODE] 模式用数据包
+画窗口，玩家看到的是一排按钮，里面的物品拿不走，适合做按钮菜单；需要玩家真的存取、整理物品时就改用
+[ICODE]static[/ICODE] 模式，那是服务端真实创建的一个物品栏，物品可以正常移动、交换、丢弃。
+
+它有意不做的也有几件，先说清楚：没有命令、没有权限节点，一切入口都是脚本；没有配置文件，插件不写任何数据
+文件；窗口里放不了输入框，原版容器没有这个控件，搜索这类输入交给聊天栏；两个玩家看同一个菜单时看不到同一份
+真实箱子，要共享的东西只能用图标表达；页面只能加、不能删，想减少页数只能销毁整个菜单重建。
+
+容器类型跟随 Skript 自己的容器类型，但只支持客户端真的会画出来的那些。箱子、投掷器、工作台、铁砧、商人这些
+都有窗口；[ICODE]composter[/ICODE]、[ICODE]chiseled bookshelf[/ICODE]、[ICODE]decorated pot[/ICODE]、
+[ICODE]shelf[/ICODE]、[ICODE]jukebox[/ICODE] 以及玩家自己的 2×2 合成格没有窗口可画，创建时会明确报出来，
+而不是猜一个形状。
+
+[B][SIZE=3]基本信息[/SIZE][/B]
+[LIST]
+[*][B]适用核心[/B]：Paper 26.2 或更新（[ICODE]plugin.yml[/ICODE] 里声明了 [ICODE]api-version: 26.2[/ICODE]），
+服务端本身需要 Java 25。更旧的服务端会直接拒绝加载本插件，而不是加载成功后在运行时报奇怪的错。
+[*][B]前置插件[/B]：Skript 2.16.2 或更新。Skript 在 [ICODE]plugin.yml[/ICODE] 里是 [ICODE]depend[/ICODE]，
+没有它插件不会启用；插件用的是 2.16 的 addon 注册接口，更旧的 Skript 不在支持范围内。
+[*][B]硬依赖[/B]：[ICODE]packetevents[/ICODE]（2.13.0）也是 [ICODE]depend[/ICODE]。窗口是插件自己发的数据包，
+少了它插件不会启用。
+[*][B]可选[/B]：SkBee。只有"标题直接用文本组件"这一条路需要它（[ICODE]titled {_title}[/ICODE] 那种写法）；
+没装 SkBee 时标题照常写字符串，其它功能一样能用。
+[*][B]命令与权限[/B]：不需要任何命令和权限。所有入口都是 Skript 语法，菜单的打开、翻页、关闭都由脚本决定。
+[*][B]配置文件与数据目录[/B]：没有配置文件，也没有数据文件夹。插件不生成 [ICODE]config.yml[/ICODE]，
+也不写任何数据文件。
+[/LIST]
+
+[B][SIZE=3]安装[/SIZE][/B]
+[LIST=1]
+[*]下载 [ICODE]xiaojiegui-<版本>.jar[/ICODE]。
+[*]把它放进服务端的 [ICODE]plugins/[/ICODE] 目录，和 Skript、PacketEvents 放在一起。
+[*]重启服务端。
+[*]把写好的脚本放进 [ICODE]plugins/Skript/scripts/[/ICODE]，执行 [ICODE]/sk reload[/ICODE] 就能看到菜单。
+[/LIST]
+jar 里打包了 Kotlin 标准库和它带的 JetBrains 注解，并且都重定位到插件自己的包名下
+（[ICODE]io.github.heyhey123.xiaojiegui.libs.*[/ICODE]），不会和别的插件里的同一份副本撞车。jar 没有混淆，
+源码公开可读——想看某条语法是怎么实现的，直接读仓库里的 Kotlin 源码就行。
+
+脚本重载时插件会先销毁全部菜单，玩家会被弹出窗口，然后新脚本在 [ICODE]on load[/ICODE] 里重新建一遍。这就是
+为什么菜单几乎总是建在 [ICODE]on load[/ICODE] 里，也是为什么同一个 id 反复建是安全的。
+
+[B][SIZE=3]一段脚本长这样[/SIZE][/B]
+[CODE]on load:
+    create a phantom menu with chest inventory titled "&6商店" with layout "#########" and "#AAAAAAA#" and "<#######>" with id "shop":
+        insert page 2 with layout "#########" and "#BBBBBBB#" and "<#######>" with title "&6第二页"
+        map key "#" to icon red stained glass pane for menu with id "shop"
+        map key "A" to icon diamond named "&b第一页的东西" for menu with id "shop"
+        map key "B" to icon emerald named "&a第二页的东西" for menu with id "shop"
+        map key "<" to icon arrow named "&e上一页" for menu with id "shop" and when clicked:
+            if the page is greater than 1:
+                turn to page (the page - 1) for player
+        map key ">" to icon arrow named "&e下一页" for menu with id "shop" and when clicked:
+            if the page is less than the page number of the menu with id "shop":
+                turn to page (the page + 1) for player
+
+command /shop:
+    trigger:
+        set {_menu} to the menu with id "shop"
+        open menu {_menu} for player[/CODE]
+
+布局的三行就是菜单的三行，[ICODE]&[/ICODE] 是颜色码。[ICODE]<[/ICODE] 和 [ICODE]>[/ICODE] 在两页里都
+出现，所以不写 [ICODE]on page[/ICODE] 的 [ICODE]map key[/ICODE] 会把它们映射到两页上，翻页按钮因此在哪一页
+都能用；[ICODE]A[/ICODE] 和 [ICODE]B[/ICODE] 各自只有一页有格子，互不干扰。布局里的 [ICODE]#[/ICODE] 在
+两页里都被映射成红色玻璃板，一眼能看出 [ICODE]map key[/ICODE] 认的是字符，一个字符铺满所有同名字的格子。
+
+[B][SIZE=3]特性[/SIZE][/B]
+[LIST]
+[*][B]布局就是菜单的形状。[/B] [ICODE]with layout[/ICODE] 一行一个字符串，每个字符就是一个格子；同一个
+字符出现几次，[ICODE]map key[/ICODE] 就一起铺几个格子。空格也是格子，只是没被映射，所以留空。想给具体
+位置塞一个东西就用 [ICODE]override slot[/ICODE]，它认格子编号，不认字符。
+[*][B]两种模式，按需要选。[/B] 默认的 [ICODE]phantom[/ICODE]（虚拟）窗口由插件用数据包画出来，里面的
+物品玩家拿不走，适合按钮菜单；[ICODE]static[/ICODE]（真实）是服务端真正创建的一个物品栏，物品可以正常
+移动、交换、丢弃，适合自定义仓库和交易界面。一句话：[ICODE]phantom[/ICODE] 是按钮板，[ICODE]static[/ICODE]
+是真箱子。
+[*][B]每个玩家一份窗口。[/B] 菜单是定义，窗口是某个玩家打开后看到的那一份：他可以停在第 3 页、有他自己的
+标题、有只给他看的图标，别人不受影响。[ICODE]the menu window of player[/ICODE] 就是它，
+[ICODE]the menu viewers of {_menu}[/ICODE] 能列出正在看这个菜单的人。
+[*][B]分页是加出来的。[/B] 创建时给的布局永远是第 1 页，[ICODE]insert page[/ICODE] 加页，
+[ICODE]turn to page[/ICODE] 翻页，[ICODE]on page turn[/ICODE] 接住翻页。每一页可以有自己的布局和标题；
+翻页只会清掉正要离开的那一页自己的格子，玩家放在空格子里的东西会留在原处。
+[*][B]列表页一次刷新整页。[/B] 把一页的格子都映射给同一个 key，再用
+[ICODE]set the menu list of the menu window of player to {结果::*}[/ICODE] 一次填好：多余的物品丢掉，
+没填满的格子清空，窗口只更新一次而不是每格一次。点到第几个结果读 [ICODE]the menu list index[/ICODE]，
+点到的不是结果格时它没有值，所以一个事件就能把"点按钮"和"点结果"分开。
+[*][B]拖拽是一等交互。[/B] 玩家按住左键划过几格就是一次 [ICODE]on menu interact[/ICODE]，
+[ICODE]the dragged slots[/ICODE] 是被扫过的所有格子，[ICODE]cancel event[/ICODE] 拒绝整次拖拽（协议上也
+没法只应用一半）。拖拽只能放、不能拿，所以记账时"谁拿了什么"只看点击，"谁放了什么"才看拖拽。
+[*][B][ICODE]locked icons[/ICODE] 让格子变成菜单自己的。[/B] 布局里有图标的格子拿不走、放不进、换不掉、
+丢不出，落在这些格子上的拖拽整次拒绝；空着的格子仍然属于玩家。所以"商店"（有图标）和"背包"（整页留空）是
+同一个机制，而且锁定不会拦住格子回调——商店的"购买"照常触发，商品原地不动。
+[*][B]点击类型就是 Skript 自己的词。[/B] [ICODE]on menu interact[/ICODE] 里 [ICODE]the click type[/ICODE]
+和 [ICODE]the event-clicktype[/ICODE] 是同一个值，用 [ICODE]left mouse button[/ICODE]、
+[ICODE]left mouse button with shift[/ICODE]、[ICODE]double click[/ICODE] 这些 Skript 字面量来判断。
+Skript 的点击类型分不出按的是哪个数字键，所以插件另给了 [ICODE]the pressed number key[/ICODE]（1 到 9，
+其它点击没有值）。
+[*][B]点击太快的连点会被丢掉。[/B] [ICODE]with 500 ms click delay[/ICODE] 决定两次点击之间的最小间隔，
+默认 50 毫秒；没到时间的点击会被静默丢弃，事件不触发，格子回调也不跑。排查"点了没反应"时先看这个值。
+[*][B]出错给一句话，不给堆栈。[/B] 不支持的容器类型、越界的页码、在菜单事件之外使用事件值，得到的都是
+可读的报错或控制台里的一句说明，而不是 Skript 内部的异常。
+[/LIST]
+
+[B][SIZE=3]完整语法在哪[/SIZE][/B]
+这页不列全部写法——每条语法的参数和示例都在仓库文档里。中文页面在
+[URL=https://github.com/heyhey123-git/xiaojie-gui/tree/master/docs]docs/ 目录[/URL] 下，每个英文页面都有
+对应的中文版（[ICODE]docs/guide/xxx.zh-CN.md[/ICODE]）；想按名字搜索语法，看
+[URL=https://skripthub.net/docs/?addon=xiaojie-gui]SkriptHub 上的插件页[/URL]（英文界面）。
+
+[B][SIZE=3]2.0.0 更新说明[/SIZE][/B]
+[B]新增[/B]
+[LIST]
+[*][B]列表页。[/B] 把一个列表映射给一个 key，那一页的格子就成了结果格；[ICODE]set the menu list[/ICODE]
+为某个玩家一次填好整页，[ICODE]the menu list index[/ICODE] 读回点到第几个结果。于是"物品浏览器"＝一个布局
+加一次调用加一个下标。
+[*][B][ICODE]locked icons[/ICODE]。[/B] 让布局里有图标的格子属于菜单：点击、Shift 点击、数字键、副手交换、
+丢出、双击收集都动不了它们，落在这些格子上的拖拽整次拒绝。运行时可以用
+[ICODE]lock the icons of %menu%[/ICODE] / [ICODE]unlock the icons of %menu%[/ICODE] 开关。
+[*][B]拖拽真的被处理了。[/B] 以前只有"恰好扫过一格"的拖拽能被看见（游戏会把它变成一次点击），真正的
+多格拖拽会在没有任何事件的情况下改变窗口：商店拦不住，背包也看不到。现在一次拖拽就是一次交互，
+[ICODE]the dragged slots[/ICODE] 是它扫过的所有格子，[ICODE]cancel event[/ICODE] 一次拒绝整次。
+[/LIST]
+[B]变更[/B]
+[LIST]
+[*][B]运行环境升到 Paper 26.2 / Skript 2.16.2 / PacketEvents 2.13.0，Java 25。[/B]
+[ICODE]plugin.yml[/ICODE] 声明了 [ICODE]api-version: 26.2[/ICODE]，更旧的服务端会直接拒绝加载，而不是
+加载成功后在运行时报奇怪的错。
+[*][B]标题直接给值就行，不要写前缀。[/B] [ICODE]titled "主菜单"[/ICODE]、
+[ICODE]update title of page 1 in {_menu} to "第一页"[/ICODE] 就是全部写法。[ICODE]string:[/ICODE] 和
+[ICODE]component:[/ICODE] 是插件 pattern 内部的分支标记，手写上前缀会让整段文字（含前缀）变成标题，
+2.0.0 起会明确报错。颜色码 [ICODE]&6[/ICODE]、[ICODE]&l[/ICODE] 和 Adventure 的
+[ICODE]&x&f&f&5&5&0&0[/ICODE] 十六进制写法照常可用。
+[*][B]页码从 1 开始，创建时的布局永远是第 1 页。[/B] [ICODE]page 0[/ICODE] 不存在。
+[ICODE]with page N[/ICODE] 只决定 [ICODE]open menu[/ICODE] 先显示第几页，不再影响菜单有几页——以前一旦
+写了它，插件就不创建任何页面，而没有页面的菜单打不开。
+[*][B]删掉或改名的写法。[/B] 旧的 [ICODE]gui[/ICODE] 语法（[ICODE]create a gui …[/ICODE]、
+[ICODE]the player's gui[/ICODE]、[ICODE]if player has a gui open:[/ICODE]）已删除而不是修好，改用菜单语法与
+[ICODE]the menu session of player[/ICODE]；[ICODE]the viewers of {_menu}[/ICODE] 会被 Skript 2.16 自己注册的
+[ICODE]viewer[s][/ICODE] 属性接走并返回空，要写 [ICODE]the menu viewers of {_menu}[/ICODE]（
+[ICODE]all players viewing {_menu}[/ICODE] 不变）；模式改成普通文本，[ICODE]receptaclemode[/ICODE] 类型取消。
+[/LIST]
+[B]修复[/B]
+[LIST]
+[*][B]标题不再一用就崩。[/B] 以前所有带标题的语法只要脚本执行到就抛内部异常，菜单根本没被创建出来；
+现在它们都正常工作。
+[*][B]翻页不再清空整个窗口。[/B] 现在只清掉正要离开的那一页自己有的格子，玩家放进空格子里的东西会留在
+原处——"翻页背包"这才做得出来。
+[*][B]固定大小的布局用的是客户端真正画出来的格子数。[/B] 工作台 10 格、信标和讲台 1 格、附魔台 2 格、
+锻造台 4 格、制图台 3 格。以前数错了不报任何错，但玩家背包里的东西和窗口里的每一次点击都会整体错位。
+[*][B]更多容器类型能建菜单了。[/B] 木桶、末影箱、发射器、附魔台、制图台、合成器以前报
+[ICODE]Unsupported inventory type[/ICODE]，现在都有了自己的窗口；其中两个在 Skript 里要写
+[ICODE]enchanting table inventory[/ICODE] 和 [ICODE]cartography table inventory[/ICODE]。
+[*][B][ICODE]update title of page N[/ICODE] 只改正在看第 N 页的人。[/B] 以前会改掉该菜单所有观众的窗口
+标题，在第 2 页的人会一直看到第 1 页的标题；[ICODE]cancel event[/ICODE] 在 [ICODE]on menu open[/ICODE]
+与 [ICODE]on page turn[/ICODE] 里也真的生效了。
+[/LIST]
+完整的改动清单（还包括新加的窗口读取 [ICODE]the occupied slots of %menusession%[/ICODE]、数字键判断
+[ICODE]the pressed number key[/ICODE] 等）在
+[URL=https://github.com/heyhey123-git/xiaojie-gui/releases]Releases[/URL] 与仓库的
+[ICODE]docs/CHANGELOG-zh.md[/ICODE] 里。
+
+[B][SIZE=3]须知[/SIZE][/B]
+[LIST]
+[*][B]改标题其实是重新开一次窗口。[/B] 协议里没有"原地改标题"这个操作，插件重新开窗的动作有一个 tick 的
+延迟。同一个 tick 里既改标题又关窗口也没问题：窗口一旦关掉，那次迟到的重开就不再生效。两种顺序都在客户端
+测试里验过，脚本按自己顺手的顺序写就行。
+[*][B]窗口开着时，玩家用不了聊天栏和暂停菜单，也执行不了任何命令。[/B] 这是原版客户端的行为，不是插件
+造成的；想退出游戏得先关掉菜单，再按 ESC。
+[*][B]同一个 id 再 [ICODE]create menu[/ICODE] 会先销毁旧菜单。[/B] 这是有意为之：[ICODE]on load[/ICODE]
+里重复建同一个菜单是安全的，旧的那份被关掉，玩家不会卡在一个已经消失的窗口里。
+[*][B]不支持的容器类型只在控制台说一句。[/B] [ICODE]composter[/ICODE]、
+[ICODE]chiseled bookshelf[/ICODE]、[ICODE]decorated pot[/ICODE]、[ICODE]shelf[/ICODE]、
+[ICODE]jukebox[/ICODE] 以及玩家自己的 2×2 合成格没有窗口可画，[ICODE]create menu[/ICODE] 会明确报
+[ICODE]Unsupported inventory type[/ICODE]，而不是给你一个半成品窗口。
+[*][B]控制台的文字是英文，语言文件不是聊天语言。[/B] 插件自己的提示、警告和报错都是英文；jar 里的
+[ICODE]lang/default.lang[/ICODE] 只提供 Skript 报错时用的类型名词（[ICODE]menu[/ICODE]、
+[ICODE]menu window[/ICODE]），它不会改服务器给玩家看的任何文字。
+[/LIST]
+
+[B][SIZE=3]链接[/SIZE][/B]
+[LIST]
+[*][URL=https://github.com/heyhey123-git/xiaojie-gui]源码仓库[/URL]——完整文档在 [ICODE]docs/[/ICODE] 下，
+每个英文页面都有对应的中文版（[ICODE]docs/xxx.zh-CN.md[/ICODE]）。
+[*][URL=https://github.com/heyhey123-git/xiaojie-gui/releases]下载与更新日志[/URL]——每个版本的 jar 和
+详细改动说明。
+[*][URL=https://github.com/heyhey123-git/xiaojie-gui/tree/master/docs]文档目录[/URL]——快速上手、创建菜单、
+页面、填充菜单、标题、模式、会话、事件、条件、拖拽这些页面都在这里。
+[*][URL=https://skripthub.net/docs/?addon=xiaojie-gui]SkriptHub 上的插件页[/URL]——可以按名字搜索语法
+（英文界面）。
+[*][URL=https://github.com/heyhey123-git/xiaojie-gui/blob/master/CONTRIBUTION.md]CONTRIBUTION.md[/URL]——
+怎么构建、怎么跑测试服务端、代码风格是什么。
+[*][URL=https://github.com/heyhey123-git/xiaojie-gui/issues]问题反馈[/URL]——bug 与提问。
+[/LIST]
+
+[B][SIZE=3]许可协议[/SIZE][/B]
+AGPL-3.0，完整条文在仓库的 [ICODE]LICENSE[/ICODE] 里。可以阅读源码，也可以反编译 jar——源码本来就公开。
+这是一份有传染性的许可：改了它、再对外提供服务时，需要把改动后的源码也交给使用者。用在付费服务器上没有问题。

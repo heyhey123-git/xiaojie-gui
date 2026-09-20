@@ -187,6 +187,15 @@ that CHANGELOG section. Correcting the notes of a release that is already out is
 hand: `./gradlew releaseNotes`, then
 `gh release edit v<version> --notes-file build/release-notes.md`.
 
+The release publishes the jar; the syntax on SkriptHub follows it on its own. A `Release` run that
+completed successfully starts `.github/workflows/skripthub.yml`, which generates the same JSON and sends
+it to SkriptHub's API one element at a time: `scripts/publish-skripthub.mjs` is a diff, so it updates what
+changed, creates what is missing, and only reports what it will not touch (deleting an element, its
+examples and its supporting plugins stay the dashboard's job). It needs an environment named `skripthub`
+holding `SKRIPTHUB_TOKEN` from the SkriptHub API documentation page, and it finds the addon by this
+repository's URL, so the name SkriptHub shows it under can change without touching anything here.
+Dispatching that workflow by hand with `dry-run` reports the same thing without writing.
+
 ## 6. Documentation
 
 Two halves, for two readers:
@@ -209,6 +218,12 @@ Two halves, for two readers:
   export, and the wiki stays the list for those. The version in the JSON comes from `gradle.properties`,
   so it cannot disagree with the jar; a 2.0.0 run reports 58 elements, which is the 63 this addon
   registers minus its five events.
+- The **forum pages** are written down here instead of typed into an editor each time:
+  `docs/skunity-resource.bbcode.txt` (English) and `docs/minebbs-resource.bbcode.txt` (Chinese) are the
+  resource descriptions, and `docs/update-message.bbcode.txt` is the short bilingual note that goes out
+  with a version. BB-code, because neither forum renders Markdown -- and the Chinese page carries no
+  syntax list on purpose: MINEBBS's firewall refuses a post that long, so it points at the wiki and
+  SkriptHub instead. A syntax or feature change belongs in all three.
 
 A page may only describe syntax that exists: read the element's own patterns and prefer its `@Examples`
 verbatim, since those are the ones the example gate parses. A claim about a trap belongs in the page only
