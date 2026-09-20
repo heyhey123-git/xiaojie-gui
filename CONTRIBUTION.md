@@ -86,9 +86,14 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
 - `@Example` must parse. Examples are documentation that users copy; an example that Skript cannot
   read is a bug report waiting to happen. The server test parses them.
 - A required expression (`%type%`) must never sit inside an optional group (`[...]`); it has to be
-  `%-type%`. The failure mode is that the whole element disappears with a single `[Skript] Severe
-  Error` line in the log while the server starts normally, which is exactly what the server test is
-  for.
+  `%-type%`. Leaving the group out does not hand the element a null: Skript fills that slot with the
+  class's *default expression* (typically the current event's value, so the syntax quietly reads
+  something nobody wrote), and a class with no default expression fails the whole element with
+  `SkriptAPIException: The class 'object' does not provide a default expression. Either allow null
+  (with %-object%) or make it mandatory`. `object` is the common case -- a title slot typed `%-object%`
+  is what `titles.md` describes -- and the symptom is one `[Skript] Severe Error` line while the server
+  starts normally, which is exactly what the server test is for. `object` is not the only type that can
+  do this, so the rule is about the shape, not about which class it is.
 - A `type` that only another addon registers (SkBee's `textcomponent`) must not appear in a pattern
   unless the element also registers a fallback pattern without it: pattern compilation is per
   pattern string, so one unknown type fails the entire syntax, including the alternatives next to

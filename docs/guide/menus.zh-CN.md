@@ -36,12 +36,12 @@ create [a] [phantom|static] menu
     with %inventorytype%
     titled <标题>
     with layout %strings%
-    [with player layout %strings%]
-    [with id %string%]
-    [with page %number%]
-    [with %number% ms click delay]
-    [with|without hide player inventory]
-    [with|without locked icons]
+    [with player layout %-strings%]
+    [with id %-string%]
+    [with page %-number%]
+    [with %-number% ms click delay]
+    [(with|without) hide player inventory]
+    [(with|without) locked icons]
 ```
 
 顺序是固定的：`with player layout` 在 `with layout` **之后**，`with id` 又在它之后，`with page` 再往后。

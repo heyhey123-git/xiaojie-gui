@@ -38,12 +38,12 @@ create [a] [phantom|static] menu
     with %inventorytype%
     titled <title>
     with layout %strings%
-    [with player layout %strings%]
-    [with id %string%]
-    [with page %number%]
-    [with %number% ms click delay]
-    [with|without hide player inventory]
-    [with|without locked icons]
+    [with player layout %-strings%]
+    [with id %-string%]
+    [with page %-number%]
+    [with %-number% ms click delay]
+    [(with|without) hide player inventory]
+    [(with|without) locked icons]
 ```
 
 The order is fixed: `with player layout` comes **after** `with layout`, `with id` comes after it, and
