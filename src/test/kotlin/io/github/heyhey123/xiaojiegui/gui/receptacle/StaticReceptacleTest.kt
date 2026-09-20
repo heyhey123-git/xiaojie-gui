@@ -93,6 +93,55 @@ class StaticReceptacleTest {
         )
     }
 
+    @Test
+    fun `two players have a window each, not one shared chest`() {
+        // `static` is a real inventory, so the question that follows is what it is shared with. It is shared
+        // with nothing: a receptacle creates its own holder in its constructor, and one receptacle is one
+        // window. Two players looking at the same menu therefore have two real inventories, which is also
+        // why the guide says two players cannot share a real chest through this addon.
+        val layout = ViewLayout.Chest.GENERIC_9X3
+        val other = server.addPlayer()
+        val mine = StaticReceptacle(Component.text("Shop"), layout)
+        val theirs = StaticReceptacle(Component.text("Shop"), layout)
+        mine.open(player)
+        theirs.open(other)
+
+        mine.setElement(0, ItemStackMock(Material.DIAMOND, 3))
+
+        assertEquals(
+            null,
+            theirs.getElement(0),
+            "What one window's player leaves behind must not appear in another player's window."
+        )
+    }
+
+    @Test
+    fun `closing a window clears it, so a later one starts from the page`() {
+        val layout = ViewLayout.Chest.GENERIC_9X3
+        val first = StaticReceptacle(Component.text("Shop"), layout)
+        first.open(player)
+        first.setElement(0, ItemStackMock(Material.DIAMOND, 3))
+
+        first.close(true)
+
+        assertEquals(
+            null,
+            first.getElement(0),
+            "Closing has to clear the container, or its items would outlive the window that held them."
+        )
+
+        // A window opened later is a different receptacle with a different inventory, so nothing of the
+        // previous player is there to inherit. That is what makes reusing a menu -- the same id, a second
+        // player, a reload that rebuilds it -- safe, and what the backpack recipe in the cookbook exists for:
+        // anything a script wants back has to be read out before the window closes.
+        val second = StaticReceptacle(Component.text("Shop"), layout)
+        assertEquals(
+            null,
+            second.getElement(0),
+            "A later window of the same menu must start from the page's own contents."
+        )
+    }
+
 //    @Test
 //    fun `set title for the opened receptacle`() {
 //        val title = Component.text("Test Receptacle")

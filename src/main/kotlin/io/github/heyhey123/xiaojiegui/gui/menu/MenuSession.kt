@@ -112,7 +112,10 @@ class MenuSession(
      *
      */
     fun close() {
-        receptacle?.close(true)
+        // A session can have no receptacle -- one shut temporarily, or one whose window never opened -- and
+        // closing it has to end it the way `shut` ends it rather than do nothing at all.
+        val open = receptacle
+        if (open != null) open.close(true) else shut()
     }
 
     /**

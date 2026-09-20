@@ -30,11 +30,15 @@ object BukkitInventoryListener : Listener, BaseListener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onPlayerChangeWorld(event: PlayerChangedWorldEvent) {
-        MenuSession.querySession(event.player)?.shut()
+        // `close` rather than `shut`: the window is still there while the script's `on menu close` runs, so
+        // a backpack that saves on close keeps what the player was carrying across the world change.
+        MenuSession.querySession(event.player)?.close()
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onPlayerDeath(event: PlayerDeathEvent) {
-        MenuSession.querySession(event.entity)?.shut()
+        // The same, for the same reason: a death is one of the ways a window ends without the player
+        // closing it, and the script has to get its one chance to read the contents first.
+        MenuSession.querySession(event.entity)?.close()
     }
 }

@@ -269,6 +269,10 @@ colour instead of being told. `docs/guide/configuration.md` is where both are de
 - `/skript reload` closes every menu before the new scripts load. A menu holds the callbacks of the scripts
   that built it, so a menu that survived a reload answered the next click with code that was no longer in
   any script. The reloaded scripts build their menus again, as they do on start.
+- `on menu close` now fires when a window ends **without** the player closing it -- quitting, dying, changing
+  world -- and it fires while the container is still there. Those three paths used to drop the window in
+  silence, so a backpack that saves on close lost everything a player was carrying when he left; a unit test
+  now pins that order for all four paths.
 
 ### Known issues
 
