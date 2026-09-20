@@ -302,6 +302,21 @@ async function scenario (bot, windows) {
   }
   log('page 1 shows exactly the four items the layout puts there, in slots 0 to 3')
 
+  // And nothing below the container either: `11-client.sk` overrides slot 27 there on purpose, and a menu
+  // that shows the player's inventory owns only its own half, so that item must never arrive. What the
+  // client reads in the cell is whatever the player carries -- which is why the assertion is about the
+  // page's own item rather than about the cell being empty.
+  const belowContainer = labelOf(menu.slots[27])
+  check(
+    belowContainer !== 'never-shown',
+    'the page\'s own item for slot 27, below the container, arrived in the player\'s cell: ' +
+      `${JSON.stringify(typeOf(menu.slots[27]))} named ${JSON.stringify(belowContainer)}`
+  )
+  log(
+    `the page's own item for slot 27 never arrived (the client reads ${JSON.stringify(belowContainer)} ` +
+      'there, its own cell): with the inventory shown those rows are the player\'s'
+  )
+
   // 2. The clicks the server records. `11-client.sk` names the same clicks in its detail lines, so the
   //    two halves of the scenario describe one set of three clicks.
   await click(bot, PAGE_ONE[0])

@@ -50,3 +50,27 @@ on load:
     else:
         log "XIAOJIE_SELFTEST detail: player layout FAILED to win over without hide -> shown"
     destroy the menu {_menu}
+
+# `show player inventory` cannot take that half back: the page lays it out, and a window that is half the
+# page's icons and half the player's items is the one window this addon does not build. So the request is
+# refused -- with a line saying what to do instead -- and the menu is left as it was. The pair below is the
+# whole of it: the refusal is narrow, and a menu with no player layout still shows its inventory normally.
+on load:
+    create a phantom menu with chest inventory titled "Refused show" with layout "AAAAA    ", "         ", "         " with player layout "B        " with id "layoutrefuse" with 0 ms click delay:
+        set {_unused} to 1
+    create a phantom menu with chest inventory titled "Showable" with layout "AAAAA    ", "         ", "         " with id "layoutshowable" with hide player inventory:
+        set {_unused} to 1
+    set {_menu} to the menu with id "layoutrefuse"
+    show player inventory of {_menu}
+    if player inventory of {_menu} is hidden:
+        log "XIAOJIE_SELFTEST detail: show player inventory refused -> still hidden"
+    else:
+        log "XIAOJIE_SELFTEST detail: show player inventory FAILED to be refused -> shown"
+    destroy the menu {_menu}
+    set {_menu} to the menu with id "layoutshowable"
+    show player inventory of {_menu}
+    if player inventory of {_menu} is hidden:
+        log "XIAOJIE_SELFTEST detail: show without a player layout FAILED -> still hidden"
+    else:
+        log "XIAOJIE_SELFTEST detail: show without a player layout -> shown"
+    destroy the menu {_menu}

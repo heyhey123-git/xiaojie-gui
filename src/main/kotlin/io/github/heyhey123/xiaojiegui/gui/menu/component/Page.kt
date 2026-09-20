@@ -56,9 +56,9 @@ class Page(
      * player's inventory to be hidden.
      *
      * The pattern is read once, when the page is built, so this is what a page was declared with rather than
-     * what the flag says now: `EffHidePlayerInv` warns when a script shows the inventory of a menu whose
-     * page asks for it, because from then on those rows are the player's again while the page still lays
-     * icons out for them.
+     * what the flag says now. It is what `EffHidePlayerInv` refuses to contradict: those rows are this page's
+     * own space, so a menu that has such a page cannot be shown the player's inventory, and neither state
+     * can ever meet the other.
      */
     val hasPlayerLayout: Boolean = playerLayoutPattern.any { it.isNotBlank() }
 

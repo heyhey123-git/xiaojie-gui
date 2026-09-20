@@ -123,6 +123,40 @@ class PhantomReceptacleTest {
     }
 
     @Test
+    fun `an icon a page lays out below the container is cleared while the inventory is shown`() {
+        // The rows below the container are the player's own while the inventory is shown, so what arrives
+        // there has to be the player's items and nothing else: `contents` is what a whole-window refresh
+        // sends, and an icon left in it would appear in every cell the player happens to leave empty.
+        val player = mockk<Player>(relaxed = true)
+        val inventory = mockk<PlayerInventory>(relaxed = true)
+        val inventoryContents = arrayOfNulls<ItemStack?>(36)
+
+        val title = Component.text("Phantom Receptacle Test")
+        val layout = ViewLayout.Chest.GENERIC_9X3
+        val receptacle = PhantomReceptacle(title, layout)
+
+        val pageIcon = mockk<ItemStack>()
+        receptacle.setElement(layout.containerSize, pageIcon) // the first cell below the container
+
+        every { player.uniqueId } returns UUID.randomUUID()
+        every { player.inventory } returns inventory
+        every { inventory.contents } returns inventoryContents
+        every { mockedPacketHelper.sendOpenScreen(player, 114, layout.type, any()) } just Runs
+        every { mockedPacketHelper.sendContainerSetContent(player, 114, any()) } just Runs
+
+        receptacle.open(player)
+
+        // The player carries nothing, so the cell has to arrive empty rather than carrying the page's icon.
+        verify {
+            mockedPacketHelper.sendContainerSetContent(
+                player,
+                114,
+                match<Array<ItemStack?>> { items -> items[layout.containerSize] == null }
+            )
+        }
+    }
+
+    @Test
     fun `retitle receptacle and send update to player`() {
         val player = mockk<Player>(relaxed = true)
         every { player.uniqueId } returns UUID.randomUUID()

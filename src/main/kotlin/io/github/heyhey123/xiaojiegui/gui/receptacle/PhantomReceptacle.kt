@@ -136,9 +136,19 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
     /**
      * Set up the player's inventory, copying items from the player's actual inventory
      * into the receptacle's contents if the player inventory is not to be hidden.
+     *
+     * What is below the container is then the player's, and only the player's: the rows are cleared first,
+     * because `contents` is what a whole-window refresh sends, and an icon a page laid out for those rows
+     * would otherwise arrive in every cell the player happens to leave empty. That is what makes "the page's
+     * icons drawn over the player's items" impossible rather than merely discouraged.
      */
     fun setupPlayerInventory() {
         if (hidePlayerInventory || viewer == null) return
+
+        for (slot in layout.containerSize until contents.size) {
+            contents[slot] = null
+        }
+
         viewer!!.inventory.contents.forEachIndexed { index, itemStack ->
             if (itemStack != null) {
                 val slot =

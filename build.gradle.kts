@@ -225,6 +225,11 @@ val serverTestExpectedDetails = mapOf(
     // Written against each other, `with player layout` wins: it is the keyword that says that half is the
     // menu's, so `without hide player inventory` is the half of the pair that is ignored.
     "player layout wins over without hide" to "hidden",
+    // And the one syntax that could put the two states in one window refuses to: `show player inventory` on
+    // a menu whose page lays those rows out leaves the menu hidden, while a menu without such a page still
+    // shows its inventory.
+    "show player inventory refused" to "still hidden",
+    "show without a player layout" to "shown",
     // One file per inventory type: that type's layout becoming a page is the whole assertion.
     "inventory type beacon" to "1 page(s)",
     "inventory type workbench" to "1 page(s)",
@@ -895,6 +900,15 @@ abstract class ClientTest : DefaultTask() {
         val examples = dir.resolve("plugins/Skript/scripts/07-examples.sk")
         val hidden = if (examples.isFile) examples to examples.readBytes() else null
         examples.delete()
+
+        // Paper keeps a world's players under `world/players` (an older layout put them in
+        // `world/playerdata`). The bot logs in as the same offline account every run, so without this it is
+        // handed back the inventory the run before left it holding, and a scenario that reads a cell of the
+        // player's own half would be asserting against those leftovers. Both names are cleared, so what
+        // joins is a fresh player; the rest of the world is left alone.
+        for (name in listOf("world/players", "world/playerdata")) {
+            dir.resolve(name).deleteRecursively()
+        }
         // The translation layer is copied in here, next to the jar under test, because it is part of the
         // same "this run's plugins" set and has to come out again for the same reason.
         return RunDirectoryChanges(hidden, copied, copyViaPluginsInto(dir))

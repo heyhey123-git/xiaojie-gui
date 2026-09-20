@@ -41,6 +41,10 @@ on join:
         # the items behind it -- and it sees both.
         insert page with layout "Z        ", "         ", "         " with title "Client Page Two"
         map key "Z" to icon apple named "slot-z-apple" for menu with id "client" on page 2
+        # An item a page lays out *below* the container of a menu that shows the player's inventory. Neither
+        # the client nor anyone else may ever see it: those rows are the player's here, and the bot reads its
+        # own slot 27 back and expects the player's cell (nothing, for this bot) rather than this stone.
+        override slot 27 in page 1 to stone named "never-shown" for menu with id "client"
     set {_menu} to the menu with id "client"
     set {_a::*} to the slots of key "A" in page 1 of {_menu}
     set {_b::*} to the slots of key "B" in page 1 of {_menu}

@@ -15,7 +15,12 @@ import org.bukkit.event.Event
 import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Hide Player Inventory")
-@Description("Hide or show the player inventory section in a menu.")
+@Description(
+    "Hide or show the player inventory section in a menu.",
+    "Showing it is refused for a menu whose page lays the rows below the container out (a `player layout`): " +
+        "those rows are the menu's own space there, and a window cannot be half the page's and half the " +
+        "player's. Build the menu without a player layout to give the player that half back."
+)
 @Examples(
     "hide player inventory of {_menu}",
     "show player inventory of {_menu}"
@@ -57,16 +62,17 @@ class EffHidePlayerInv : Effect() {
             return
         }
 
-        // Showing the inventory takes the rows below the container back for the player, which undoes what a
-        // player layout asks for: that page's icons for those rows are then drawn over the player's own
-        // items, and this addon builds no window that is half one and half the other. One line each time it
-        // is asked for, rather than a menu that quietly becomes that.
+        // The rows below the container are the menu's own space in a menu whose page lays them out, and the
+        // two states cannot both be had: a window that is half the page's icons and half the player's items
+        // is the one window this addon does not build. So showing the inventory is refused here, with a line
+        // that says what to do instead, rather than producing that window or quietly ignoring the request.
         if (isNegated && menu.pages.any { it.hasPlayerLayout }) {
             Skript.warning(
-                "\"show player inventory\" undoes the player layout of this menu: the rows below the " +
-                    "container are the player's while its inventory is shown, so the icons the page lays " +
-                    "out for them land on the player's own items."
+                "\"show player inventory\" cannot undo the player layout of this menu: the rows below the " +
+                    "container are that page's own space. Destroy the menu and build it again without a " +
+                    "player layout to give the player that half back."
             )
+            return
         }
 
         menu.properties.hidePlayerInventory = !isNegated
