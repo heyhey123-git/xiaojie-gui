@@ -71,7 +71,14 @@ sealed class ViewLayout(
     }
 
     companion object {
-        fun fromInventoryType(type: InventoryType): ViewLayout = when (type) {
+        /**
+         * The layout for [type], or null when the client has no window the addon can build for it.
+         *
+         * A script author can name any inventory type, so "no such window" is their mistake to be told about, not
+         * an exception: the callers that face a script ask this question and report; [fromInventoryType] is for
+         * the paths where the type is already known to be buildable.
+         */
+        fun fromInventoryTypeOrNull(type: InventoryType): ViewLayout? = when (type) {
             InventoryType.CHEST -> Chest.GENERIC_9X3
             InventoryType.DROPPER -> FixedContainer.GENERIC_3X3
             InventoryType.WORKBENCH -> FixedContainer.WORKBENCH
@@ -95,7 +102,19 @@ sealed class ViewLayout(
             InventoryType.SMOKER -> FixedContainer.SMOKER
             InventoryType.CARTOGRAPHY -> FixedContainer.CARTOGRAPHY_TABLE
             InventoryType.STONECUTTER -> FixedContainer.STONECUTTER
-            else -> throw IllegalArgumentException("Unsupported inventory type: $type")
+            else -> null
         }
+
+        /** Whether [type] has a window this addon can build at all. */
+        fun isBuildable(type: InventoryType): Boolean = fromInventoryTypeOrNull(type) != null
+
+        /**
+         * The layout for [type], for the paths where the type is already known to be buildable.
+         *
+         * A script author names the type, so the paths that face one ask [isBuildable] and report; this is what
+         * the internals ask once a menu holds a type that has already been through that gate.
+         */
+        fun fromInventoryType(type: InventoryType): ViewLayout =
+            fromInventoryTypeOrNull(type) ?: throw IllegalArgumentException("Unsupported inventory type: $type")
     }
 }

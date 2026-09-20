@@ -18,6 +18,7 @@ import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
+import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
@@ -214,6 +215,11 @@ class SecBuildMenu : Section() {
         val inventoryType = this.inventoryTypeExpr.getSingle(event)
         if (inventoryType == null) {
             error("Inventory type cannot be null.")
+            return walk(event, false)
+        }
+
+        if (!ViewLayout.isBuildable(inventoryType)) {
+            error("Unsupported inventory type: $inventoryType. The client has no window for it, so the menu was not created.")
             return walk(event, false)
         }
 

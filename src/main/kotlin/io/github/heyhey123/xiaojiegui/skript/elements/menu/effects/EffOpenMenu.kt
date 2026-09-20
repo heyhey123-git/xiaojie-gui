@@ -13,6 +13,7 @@ import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
+import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
@@ -77,6 +78,17 @@ class EffOpenMenu : Effect() {
 
         if (menu == null) {
             error("Failed to get the menu to open. Please check your code.")
+            return
+        }
+
+        // A static menu shows a real inventory, and Bukkit cannot create every window: the merchant's contents
+        // come from the merchant API. Saying so here is the difference between a script author reading one line
+        // and reading a stack trace; it is checked before the player because no player can make it work.
+        if (menu.properties.mode == Receptacle.Mode.STATIC && !menu.inventoryType.isCreatable) {
+            error(
+                "Unsupported inventory type: ${menu.inventoryType}. A static menu shows a real inventory, and " +
+                    "Bukkit cannot create this one, so there is nothing to open. Use phantom mode for it."
+            )
             return
         }
         val player = playerExpr.getSingle(event)

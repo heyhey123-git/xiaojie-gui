@@ -16,6 +16,7 @@ import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
+import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewLayout
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
@@ -162,6 +163,14 @@ class EffSecCreateMenu : EffectSection() {
         val inventoryType = this.inventoryTypeExpr.getSingle(event)
         if (inventoryType == null) {
             error("Inventory type is required.")
+            return walk(event, false)
+        }
+
+        // Not every inventory type a script can name has a window this addon can build a page for, and the
+        // type is the author's to choose: say which window is missing and stop before anything is created,
+        // rather than letting the layout lookup throw a stack trace over a one-word mistake.
+        if (!ViewLayout.isBuildable(inventoryType)) {
+            error("Unsupported inventory type: $inventoryType. The client has no window for it, so the menu was not created.")
             return walk(event, false)
         }
 
