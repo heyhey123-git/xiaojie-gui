@@ -34,6 +34,7 @@ command /acc [<text>]:
             send "&e/acc titles &7标题：颜色、十六进制、翻页换标题" to player
             send "&e/acc rename2 &7只改第 2 页标题（两个客户端对照）" to player
             send "&e/acc tagged &7string: 形式的标题会被拒绝" to player
+            send "&e/acc sametick &7同一 tick 内开窗 + 改标题（验证标题要不要等几 tick）" to player
             send "&e/acc lower &7player layout：下半部分是页面自己的格子" to player
             send "&e/acc viewers &7看这个菜单的人有几个（双人对照用）" to player
             send "&e/acctype <类型> &7逐个容器类型，例如 /acctype workbench" to player
@@ -182,6 +183,18 @@ command /acc [<text>]:
             set {_menu} to the menu with id "acc_titles"
             update title of page 1 in {_menu} to string:"Tagged"
             send "&e要做的：看控制台应有一句可读的错误（string: 是语法标签，不是给脚本写的），标题不变。" to player
+            stop
+
+        # 同一 tick 内"开窗 + 改标题"。协议里改标题只能靠再发一次"打开窗口"，而这份代码曾经等 3 tick
+        # 才发它；这条命令就是那个延迟要防的场景，用来验证标题其实不需要等。
+        if arg-1 is "sametick":
+            set {_menu} to the menu with id "acc_phantom"
+            if {_menu} is not set:
+                send "&e先执行一次 /acc phantom 把菜单建出来。" to player
+                stop
+            open menu {_menu} for player
+            update title of page 1 in {_menu} to "&a同一 tick 改标题" and refresh
+            send "&e要做的：窗口标题应马上变成 &a同一 tick 改标题&e，而且钻石和时钟两个格子还在。" to player
             stop
 
         # -----------------------------------------------------------------------------------------

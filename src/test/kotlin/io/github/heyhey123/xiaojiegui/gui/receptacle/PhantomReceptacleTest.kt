@@ -245,7 +245,9 @@ class PhantomReceptacleTest {
         receptacle.open(player)
 
         mockkObject(TaskUtil)
-        every { TaskUtil.sync(period = 0L, now = false, delay = 3L, any()) } answers {
+        every {
+            TaskUtil.sync(period = 0L, now = false, delay = PhantomReceptacle.TITLE_REOPEN_DELAY_TICKS, any())
+        } answers {
             receptacle.initializationPackets()
             mockk()
         }

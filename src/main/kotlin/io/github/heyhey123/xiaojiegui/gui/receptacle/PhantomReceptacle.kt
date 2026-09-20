@@ -13,6 +13,34 @@ import org.bukkit.inventory.ItemStack
 
 class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(title, layout, Mode.PHANTOM) {
 
+    companion object {
+        /**
+         * How many ticks the title re-open is deferred by.
+         *
+         * The protocol has no "set title": the only way a window's title changes is a second open-screen
+         * packet, which is what [title] sends (with the window's whole contents behind it).
+         *
+         * Where this used to come from, and why it is 0 now: TrMenu's `WindowReceptacle` changed a title
+         * with `submit(delay = 3, async = true) { initializationPackets() }` -- three *ticks* (TabooLib
+         * documents its delay as ticks) on an *asynchronous* task. Both halves of that say "get out of the
+         * call stack that changed the title": an async task is not the tick or the packet handler that asked
+         * for it. `TaskUtil.sync` with delay 0 already is the next tick, which is the same thing, and a real
+         * 26.2 client was used to check it: opening a menu and retitling it in the same command
+         * (`/acc sametick` in `docs/manual-acceptance.sk`), a page turn, and a per-page title refresh all
+         * show the new title with the extra ticks removed. The old value was a margin, not a measurement.
+         *
+         * Note that TrMenu sent real incrementing state ids with its content packets (`stateId = stateId`)
+         * while this addon sends -1, which the client treats as "no state check": that ordering hazard is
+         * another reason a plugin with real state ids may want to defer the re-open, and not one this code
+         * shares.
+         *
+         * What *is* pinned is that the re-open has to happen at all: the client test waits for the window of
+         * page 2 after a page turn and times out when this packet is skipped, and a page turn is exactly what
+         * schedules it (the receptacle being left carries the new page's title to the client).
+         */
+        internal const val TITLE_REOPEN_DELAY_TICKS = 0L
+    }
+
     /**
      * The contents of the receptacle.
      */
@@ -84,7 +112,7 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
         // what carries the new page's title to the client -- the session holds a different receptacle by
         // the time the task runs. Guarding on identity makes the client sit on the old title forever
         // (the client test waits for the page 2 window and times out).
-        TaskUtil.sync(delay = 3L) {
+        TaskUtil.sync(delay = TITLE_REOPEN_DELAY_TICKS) {
             viewer ?: return@sync
             initializationPackets()
         }

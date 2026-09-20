@@ -144,6 +144,10 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
       停住；再执行 `/acc rename2`（这条命令会先给执行者开第 1 页）后，**只有**停在第 2 页的那个客户端
       标题应该变。这条需要两个客户端对照，自动化只有一个 bot。
 - [ ] `/acc tagged`：控制台应有一句可读错误（`string:` 是语法标签，不是给脚本写的），标题不变。
+- [ ] `/acc sametick`：一条命令里"开窗 + 改标题"。窗口标题应**立刻**变成「同一 tick 改标题」，钻石和
+      时钟两个格子还在。这条是专门用来验证"改标题要不要等几 tick"的：协议里改标题只能再发一次
+      "打开窗口"，代码里那个延迟目前是 0（下一 tick），如果你在这里看到标题没变、或变了但格子空了，
+      就是需要留余量的证据。
 - [ ] 装 SkBee 时：把 `docs/manual-acceptance-skbee.sk` 也复制到 `plugins/Skript/scripts/`，
       `/skript reload scripts`，然后 `/accskbee`——窗口标题应显示为 `SkBee 组件标题`。
       这份单独一个文件是因为 `a new text component from` 是 SkBee 自己的语法，没装 SkBee 的服务器连
