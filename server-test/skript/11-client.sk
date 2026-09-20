@@ -30,7 +30,7 @@ on join:
     # scenario is asserted, so a click this guard swallows would be a missing detail line, and the bot
     # would be racing a setting that has nothing to do with what the layer covers. Setting it to 0 in the
     # create section keeps the delay out of the scenario instead of out of the log.
-    create a phantom menu with chest inventory titled "Client Page One" with layout "ABCN     ", "         ", "         " with id "client" with 0 ms click delay:
+    create a phantom menu with chest inventory titled "Client Page One" with layout "ABCN     " and "         " and "         " with id "client" with 0 ms click delay:
         map key "A" to icon stone named "slot-a-stone" for menu with id "client"
         map key "B" to icon diamond named "slot-b-diamond" for menu with id "client"
         map key "C" to icon emerald named "slot-c-emerald" for menu with id "client"
@@ -39,7 +39,7 @@ on join:
         # changes to: `turn to page 2` below passes no title, so the page's title is used. Its one item is
         # an apple, which page 1 does not show, so the bot can tell a title change apart from a change of
         # the items behind it -- and it sees both.
-        insert page with layout "Z        ", "         ", "         " with title "Client Page Two"
+        insert page with layout "Z        " and "         " and "         " with title "Client Page Two"
         map key "Z" to icon apple named "slot-z-apple" for menu with id "client" on page 2
         # An item a page lays out *below* the container of a menu that shows the player's inventory. Neither
         # the client nor anyone else may ever see it: those rows are the player's here, and the bot reads its
@@ -127,7 +127,7 @@ on page turn:
 # half would hold the player's own item) and a click on it arrives like any other slot's. The bot opens it
 # last, by command, so it cannot put a window in front of the half of the run above it.
 on load:
-    create a phantom menu with chest inventory titled "Client Lower Half" with layout "AAAAAAAAA", "         ", "         " with player layout "B        ", "         ", "         ", "         " with id "client_lower" with 0 ms click delay:
+    create a phantom menu with chest inventory titled "Client Lower Half" with layout "AAAAAAAAA" and "         " and "         " with player layout "B        " and "         " and "         " and "         " with id "client_lower" with 0 ms click delay:
         map key "A" to icon stone named "lower-a-stone" for menu with id "client_lower"
         map key "B" to icon bread named "lower-b-bread" for menu with id "client_lower"
 

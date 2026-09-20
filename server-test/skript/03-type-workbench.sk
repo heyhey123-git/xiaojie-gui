@@ -1,5 +1,5 @@
 on load:
-    create a phantom menu with workbench inventory titled "Workbench" with layout "AAAAAAAAA", "AAAAAAAAA", "AAAAAAAAA" with id "type_workbench":
+    create a phantom menu with workbench inventory titled "Workbench" with layout "AAAAAAAAA" and "AAAAAAAAA" and "AAAAAAAAA" with id "type_workbench":
         set {_pages} to the page number of the menu with id "type_workbench"
         assert {_pages} is 1 with "workbench inventory must create one page"
         log "XIAOJIE_SELFTEST detail: inventory type workbench -> %{_pages}% page(s)"

@@ -17,7 +17,7 @@ function browserPage(p: player, page: number):
     set the menu list of {_window} to {browser::shown::%uuid of {_p}%::*}
 
 on load:
-    create a phantom menu with chest inventory titled "&6Browser" with layout "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "P       N" with id "browser" with 0 ms click delay:
+    create a phantom menu with chest inventory titled "&6Browser" with layout "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "P       N" with id "browser" with 0 ms click delay:
         map key "L" to icon {browser::all::*} for menu with id "browser"
         map key "P" to icon arrow named "&ePrevious" for menu with id "browser" and when clicked:
             set {_page} to the page of the menu window of player

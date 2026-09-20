@@ -3,7 +3,7 @@
 # No player is involved here: this covers registration, parsing and the menu model.
 
 on load:
-    create a phantom menu with chest inventory titled "Selftest" with layout "AAAAAAAAA", "A       A", "AAAAAAAAA" with id "selftest":
+    create a phantom menu with chest inventory titled "Selftest" with layout "AAAAAAAAA" and "A       A" and "AAAAAAAAA" with id "selftest":
         set {_pages} to the page number of the menu with id "selftest"
         assert {_pages} is 1 with "create phantom chest menu: expected one page"
         log "XIAOJIE_SELFTEST detail: create phantom chest menu -> %{_pages}% page(s)"

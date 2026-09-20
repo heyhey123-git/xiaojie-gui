@@ -21,7 +21,7 @@
 
 on load:
     delete {xiaojie_selftest::one_slot_drag_seen}
-    create a static menu with chest inventory titled "Drag Test" with layout "ABCD     ", "         ", "         " with id "dragtest" with 0 ms click delay:
+    create a static menu with chest inventory titled "Drag Test" with layout "ABCD     " and "         " and "         " with id "dragtest" with 0 ms click delay:
         map key "A" to icon diamond named "drag-a" for menu with id "dragtest"
         map key "B" to icon emerald named "drag-b" for menu with id "dragtest"
         map key "C" to icon 2 stone named "drag-two" for menu with id "dragtest"
@@ -42,7 +42,7 @@ command /dragtest:
 # to still be there both times. It then does the buying-shop case: a shift click from the player's own half
 # into a free slot has to work, and one that would land on the goods has to be refused.
 on load:
-    create a static menu with chest inventory titled "Locked Test" with layout "SS       ", "         ", "         " with id "lockedtest" with 0 ms click delay with locked icons:
+    create a static menu with chest inventory titled "Locked Test" with layout "SS       " and "         " and "         " with id "lockedtest" with 0 ms click delay with locked icons:
         map key "S" to icon diamond named "locked-goods" for menu with id "lockedtest"
 
 # The same switch at runtime: `with locked icons` sets it while the menu is created, and

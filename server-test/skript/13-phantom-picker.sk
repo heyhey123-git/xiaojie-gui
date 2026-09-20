@@ -6,7 +6,7 @@
 # directory: a snippet that stops parsing fails the build instead of going stale in a page.
 
 on load:
-    create a phantom menu with chest inventory titled "&6Pick items" with layout "ABCDE    ", "         ", "        X" with id "picker" with 0 ms click delay:
+    create a phantom menu with chest inventory titled "&6Pick items" with layout "ABCDE    " and "         " and "        X" with id "picker" with 0 ms click delay:
         map key "A" to icon apple named "&fApple" for menu with id "picker"
         map key "B" to icon bread named "&fBread" for menu with id "picker"
         map key "C" to icon cake named "&fCake" for menu with id "picker"

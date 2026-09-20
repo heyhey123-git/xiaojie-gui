@@ -9,7 +9,9 @@
 # This file is parsed by `serverTest` on every run.
 
 on load:
-    create a static menu with chest inventory titled "&6Backpack" with layout "         ", "         ", "         " with id "backpack" with 0 ms click delay:
+    # No colon: the menu needs no body, and a section with nothing indented under it is an empty
+    # section, which Skript warns about while the script loads.
+    create a static menu with chest inventory titled "&6Backpack" with layout "         " and "         " and "         " with id "backpack" with 0 ms click delay
 
 command /backpack:
     trigger:

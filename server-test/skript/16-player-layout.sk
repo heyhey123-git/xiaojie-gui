@@ -9,7 +9,7 @@
 # the container instead would report a smaller number, and one the menu ignored would report nothing.
 
 on load:
-    create a phantom menu with chest inventory titled "Player layout" with layout "AAAAA    ", "         ", "         " with player layout "B        ", "         ", "         ", "         " with id "playerlayout" with 0 ms click delay:
+    create a phantom menu with chest inventory titled "Player layout" with layout "AAAAA    " and "         " and "         " with player layout "B        " and "         " and "         " and "         " with id "playerlayout" with 0 ms click delay:
         map key "A" to icon apple named "layout-a" for menu with id "playerlayout"
         map key "B" to icon bread named "layout-b" for menu with id "playerlayout"
     set {_menu} to the menu with id "playerlayout"
@@ -26,7 +26,7 @@ on load:
 # -- so a layout declared on page 2 hides it for page 1 too, and the rows it lays out start where that
 # page's own container ends.
 on load:
-    create a phantom menu with chest inventory titled "Inserted layout" with layout "AAAAA    ", "         ", "         " with id "insertlayout":
+    create a phantom menu with chest inventory titled "Inserted layout" with layout "AAAAA    " and "         " and "         " with id "insertlayout":
         set {_menu} to the menu with id "insertlayout"
         insert page with layout "CCCC     " with player layout "D        " with title "Second"
         assert player inventory of {_menu} is hidden with "inserted player layout must hide the inventory"
@@ -42,7 +42,7 @@ on load:
 # saying that the `without hide player inventory` next to it was ignored. The line is not asserted here --
 # what matters is that the menu came out hidden rather than as neither one thing nor the other.
 on load:
-    create a phantom menu with chest inventory titled "Conflicting layout" with layout "AAAAA    ", "         ", "         " with player layout "B        " with id "layoutconflict" without hide player inventory:
+    create a phantom menu with chest inventory titled "Conflicting layout" with layout "AAAAA    " and "         " and "         " with player layout "B        " with id "layoutconflict" without hide player inventory:
         set {_unused} to 1
     set {_menu} to the menu with id "layoutconflict"
     assert player inventory of {_menu} is hidden with "player layout must win over without hide"
@@ -54,9 +54,9 @@ on load:
 # refused -- with a line saying what to do instead -- and the menu is left as it was. The pair below is the
 # whole of it: the refusal is narrow, and a menu with no player layout still shows its inventory normally.
 on load:
-    create a phantom menu with chest inventory titled "Refused show" with layout "AAAAA    ", "         ", "         " with player layout "B        " with id "layoutrefuse" with 0 ms click delay:
+    create a phantom menu with chest inventory titled "Refused show" with layout "AAAAA    " and "         " and "         " with player layout "B        " with id "layoutrefuse" with 0 ms click delay:
         set {_unused} to 1
-    create a phantom menu with chest inventory titled "Showable" with layout "AAAAA    ", "         ", "         " with id "layoutshowable" with hide player inventory:
+    create a phantom menu with chest inventory titled "Showable" with layout "AAAAA    " and "         " and "         " with id "layoutshowable" with hide player inventory:
         set {_unused} to 1
     set {_menu} to the menu with id "layoutrefuse"
     show player inventory of {_menu}
