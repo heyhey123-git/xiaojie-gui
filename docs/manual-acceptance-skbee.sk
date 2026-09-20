@@ -1,0 +1,17 @@
+# 人工验收的可选附加脚本：SkBee 的文本组件标题。
+#
+# 单独一个文件的原因：`a new text component from` 是 SkBee 自己的语法，没装 SkBee 的服务器连解析都
+# 过不去（`docs/manual-acceptance.sk` 里的每一行则只用本插件和 Skript 的语法）。装了 SkBee 就把它一起
+# 复制到 plugins/Skript/scripts/，然后 `/skript reload scripts`、`/accskbee`。
+#
+# 与 docs/manual-acceptance.sk 一样：只有命令，没有 on load，也没有会影响别的菜单的监听。每次
+# `serverTest` 也会解析它（测试服装了 SkBee），所以写坏了会在 CI 先失败。
+
+command /accskbee:
+    trigger:
+        set {_title} to a new text component from "&6SkBee 组件标题"
+        create a phantom menu with chest inventory titled {_title} with layout "A        " with id "acc_skbee" with 0 ms click delay:
+            map key "A" to icon stone named "A" for menu with id "acc_skbee"
+        set {_menu} to the menu with id "acc_skbee"
+        open menu {_menu} for player
+        send "&e要做的：窗口标题应显示为 &6SkBee 组件标题&e。`serverTest` 断言的是读回来的值，渲染要人看。" to player
