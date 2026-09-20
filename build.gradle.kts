@@ -536,8 +536,10 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         forbidLine("A script line could not be understood.", Regex("""Can't understand this"""))
         // Skript refuses an expression that belongs to another event with "The expression 'x' may only be
         // used in an inventory click event", which is not one of the three wordings above. The `[Skript]
-        // Line N:` header cannot be forbidden itself: warnings and the addon's own deliberate runtime
-        // errors (`Title cannot be null.`) print under the same header.
+        // Line N:` header cannot be forbidden itself: parse-time warnings print under it. The addon's own
+        // deliberate runtime messages no longer do -- effects and sections report through the
+        // `error(…)`/`warning(…)` they inherit from `RuntimeErrorProducer`, which frames each one with the
+        // script and the syntax name -- so a bare header carrying one would be a regression.
         forbidLine(
             "An expression was used outside the event it belongs to.",
             Regex("""may only be used in an? [a-z ]*event""")
