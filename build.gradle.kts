@@ -298,6 +298,7 @@ val serverTestExpectedDetails = mapOf(
     "insert page with title" to "2 page(s), page 2 titled Second",
     "update page title" to "Renamed",
     "tagged title form changes nothing" to "Renamed",
+    "out of bounds page title refused" to "Renamed",
     // Both statements need a player and a session this layer does not have, so `parsed` is the value.
     "turn page title parses" to "parsed",
     "session title parses" to "parsed",
@@ -555,6 +556,19 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         // The scripts name a branch `... FAILED ...` when it found the wrong thing, and that half of the
         // mechanism only works here: the undeclared-name check below reads the scripts, not the log.
         forbidLine("One of the scripts reported a failed check.", Regex("""XIAOJIE_SELFTEST detail: .*FAILED"""))
+
+        // An addon message reported at runtime comes back framed by RuntimeErrorProducer; the bare
+        // `[Skript] Line N:` shape is parse time. This log runs with Skript's debug on, so the trailing
+        // `(from <jar>//<class>)` frame names the method that logged: `init`/`preInit`/`parseNode` are parse
+        // time, and anything else is a runtime call that went back to the parse-time logger.
+        forbidLine(
+            "An addon message was logged through the parse-time logger at runtime.",
+            Regex("""\(from xiaojiegui-[^)]*\.jar//[^)]*\.(?!init\(|preInit\(|parseNode\()[\w$]+\(""")
+        )
+        requireLine(
+            "The addon's runtime messages never reached Skript's runtime channel.",
+            "encountered an error while executing the 'Page Title' expression"
+        )
 
         val undeclared = undeclaredDetails.get()
         if (undeclared.isNotEmpty()) {

@@ -57,6 +57,17 @@ on load:
 
 on load:
     set {_menu} to the menu with id "titles"
+    # The only write here that goes through the expression's own changer: the `update title ...`
+    # statements above go through the effect instead. Page 9 does not exist, so the expression refuses
+    # the write and says so on the runtime channel, and the trigger keeps going afterwards because a
+    # runtime message does not abort it.
+    set the title of page 9 in {_menu} to "Nowhere"
+    set {_title} to the title of page 1 in {_menu}
+    assert "%{_title}%" is "Renamed" with "refused out of bounds page title must leave page 1 alone"
+    log "XIAOJIE_SELFTEST detail: out of bounds page title refused -> %{_title}%"
+
+on load:
+    set {_menu} to the menu with id "titles"
     destroy the menu {_menu}
     assert {_menu} is destroyed with "titles menu must be destroyed"
     log "XIAOJIE_SELFTEST detail: destroy titles menu -> done"
