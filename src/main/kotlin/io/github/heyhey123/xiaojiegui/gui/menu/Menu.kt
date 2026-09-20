@@ -559,7 +559,10 @@ class Menu(
 
         id?.let { menusWithId.remove(id) }
 
-        for (viewer in viewers) {
+        // A copy of the set, because closing a viewer's session is what removes that viewer from it
+        // (`MenuSession.shut`): iterating the live set threw a ConcurrentModificationException as soon as a
+        // menu had two viewers, which left the menu half destroyed and the later viewer's window open.
+        for (viewer in viewers.toList()) {
             val session = MenuSession.querySession(viewer)
             if (session?.menu != this) continue
 

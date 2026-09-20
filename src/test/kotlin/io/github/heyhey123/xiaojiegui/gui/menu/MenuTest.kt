@@ -22,6 +22,7 @@ import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -242,6 +243,36 @@ class MenuTest {
         verify(exactly = 1) { receptacle.refresh(slot) }
         assertSame(item, page.slotOverrides[slot])
         assertTrue(page.clickCallbacks.containsKey(slot))
+    }
+
+    @Test
+    fun `destroy function - closes every viewer, although closing one removes it from the set`() {
+        // Closing a viewer's session is what removes that viewer from `Menu.viewers` (`MenuSession.shut`),
+        // so `destroy` has to iterate a copy: with a second viewer it threw a
+        // ConcurrentModificationException and left that window open. The real close path reaches `shut()`
+        // through the page's `onClose` callback; here the receptacle is stubbed to do the same thing, which
+        // is all this test needs to pin the iteration.
+        val menu = Menu(null, properties, InventoryType.CHEST)
+        val first = mockk<Player>(relaxed = true)
+        val second = mockk<Player>(relaxed = true)
+        every { first.uniqueId } returns UUID.randomUUID()
+        every { second.uniqueId } returns UUID.randomUUID()
+
+        for (viewer in listOf(first, second)) {
+            val session = MenuSession.getSession(viewer)
+            session.menu = menu
+            val receptacle = mockk<ViewReceptacle>(relaxed = true)
+            every { receptacle.close(any()) } answers { session.shut() }
+            session.receptacle = receptacle
+            menu.viewers.add(viewer.uniqueId)
+        }
+
+        // Act
+        menu.destroy()
+
+        assertEquals(0, menu.viewers.size)
+        assertNull(MenuSession.querySession(first))
+        assertNull(MenuSession.querySession(second))
     }
 
     @Test
