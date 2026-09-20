@@ -52,7 +52,7 @@ mechanism, which is why the mode is text. The same trap applies to the old `rece
 | the player's mouse | only "a click"; the item always stays where it is | ordinary behaviour in a chest |
 | the rows below the container | `player layout` when they are hidden, otherwise a copy of the player's own items | the player sees his own real inventory |
 | refreshing one slot on its own | supported | not supported (`refresh` does nothing) |
-| changing an icon for one player | supported | supported (session icons live on the window layer) |
+| changing an icon for one player | supported | supported (window icons live on the window layer) |
 
 In one line: **`phantom` is a "button board", `static` is a "real chest".**
 

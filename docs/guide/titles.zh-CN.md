@@ -72,12 +72,12 @@ create a phantom menu with chest inventory titled {_title} with layout "########
 `Valid Menu title is required.`（`create menu`）或
 `The given menu title is not a textcomponent, and cannot be converted to string.`（其它语法）。
 
-## 每页的标题 vs 每个会话的标题
+## 每页的标题 vs 每个窗口的标题
 
 | 想改什么 | 写法 | 影响范围 |
 |---|---|---|
 | 某一页的标题（永久） | `update title of page 1 in {_menu} to "…"` | 该页；加 `and refresh` 会通知正在看**这一页**的人 |
-| 某个会话的窗口标题（只对一个人） | `update title of the menu session of player to "…" and refresh` | 那一个玩家的窗口 |
+| 某个窗口的标题（只对一个人） | `update title of the menu session of player to "…" and refresh` | 那一个玩家的窗口 |
 | 直接改值 | `set the title of page 1 in {_menu} to "…"` | 只改模型，不主动推送 |
 
 `update title of page N …` **只会**给正在看第 N 页的玩家换标题；在第 2 页的人看到的一直是第 2 页的标题，

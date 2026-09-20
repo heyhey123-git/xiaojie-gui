@@ -77,7 +77,7 @@ the layout leaves empty stay entirely the player's, which is why a shop (icons) 
 nothing but empty slots) are the same mechanism.
 
 Which slots count as "has an icon" is deliberate: **the ones the layout names a key for**, plus the ones
-`override slot` has covered. An item a script puts into one player's session at runtime with
+`override slot` has covered. An item a script puts into one player's window at runtime with
 `set icon in slot N of {_session}` does **not** count -- the first two are the menu's furniture, the same
 for everyone, and the last one is that player's own content, which is usually exactly what they are meant
 to be able to take.

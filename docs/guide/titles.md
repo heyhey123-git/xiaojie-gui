@@ -76,12 +76,12 @@ Without SkBee, anything other than a string is not a title: `titled {_someItem}`
 `Valid Menu title is required.` at runtime (`create menu`) or
 `The given menu title is not a textcomponent, and cannot be converted to string.` (the other syntax).
 
-## Per-page titles vs per-session titles
+## Per-page titles vs per-window titles
 
 | What you want to change | How to write it | What it affects |
 |---|---|---|
 | one page's title (permanently) | `update title of page 1 in {_menu} to "…"` | that page; adding `and refresh` notifies the players looking at **that page** |
-| one session's window title (one person only) | `update title of the menu session of player to "…" and refresh` | that one player's window |
+| one window's title (one person only) | `update title of the menu session of player to "…" and refresh` | that one player's window |
 | the value directly | `set the title of page 1 in {_menu} to "…"` | the model only, with no push |
 
 `update title of page N …` **only** retitles the players who are looking at page N; someone on page 2

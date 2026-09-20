@@ -198,7 +198,7 @@ Skript 的点击类型分不出按的是哪个数字键，所以插件另给了 
 [*][URL=https://github.com/heyhey123-git/xiaojie-gui/releases]下载与更新日志[/URL]——每个版本的 jar 和
 详细改动说明。
 [*][URL=https://github.com/heyhey123-git/xiaojie-gui/tree/master/docs]文档目录[/URL]——快速上手、创建菜单、
-页面、填充菜单、标题、模式、会话、事件、条件、拖拽这些页面都在这里。
+页面、填充菜单、标题、模式、窗口、事件、条件、拖拽这些页面都在这里。
 [*][URL=https://skripthub.net/docs/?addon=xiaojie-gui]SkriptHub 上的插件页[/URL]——可以按名字搜索语法
 （英文界面）。
 [*][URL=https://github.com/heyhey123-git/xiaojie-gui/blob/master/CONTRIBUTION.md]CONTRIBUTION.md[/URL]——

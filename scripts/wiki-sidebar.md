@@ -15,7 +15,7 @@
 
 - [事件与事件值](Events)
 - [拖拽是怎么工作的](Dragging)
-- [会话](Sessions)
+- [窗口](Windows)
 - [条件](Conditions)
 
 **参考**
@@ -41,7 +41,7 @@
 
 - [Events and Event Values](Events-English)
 - [How Drags Work](Dragging-English)
-- [Sessions](Sessions-English)
+- [Windows](Windows-English)
 - [Conditions](Conditions-English)
 
 **Reference**

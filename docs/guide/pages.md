@@ -104,7 +104,7 @@ backpack menu keep what the player put in its empty slots across a page turn.
 
 Turning pages requires the **same inventory layout** as the open window (including the chest row count).
 A different layout is rejected before the page number or existing contents change. Closing and opening a
-different-sized page creates a new session; it is **not** a way to migrate stored items safely. Save or
+different-sized page creates a new window; it is **not** a way to migrate stored items safely. Save or
 return player-owned items explicitly before closing a storage menu.
 
 ## A two-page menu
@@ -138,7 +138,7 @@ interfering with each other.
 | What you want | How to write it |
 |---|---|
 | how many pages the menu has | `the page number of {_menu}` |
-| which page a session is on | `the page of the menu session of player` |
+| which page a window is on | `the page of the menu session of player` |
 | which page a player is on | `player's current menu page` |
 | the title of a page | `the title of page 1 in {_menu}` |
 | which slots a key occupies in a layout | `the slots of key "A" in page 1 of {_menu}` |

@@ -31,7 +31,10 @@ on menu close:
 
 ## 事件值的两种写法
 
-本插件自己的事件值都按脚本会说的说法写，**不带 `event-` 前缀**：
+本插件注册的表达式都按脚本会说的说法写，**不带 `event-` 前缀**——也就是下表前八行。最后两行是 Skript
+交给事件的**事件值**（`EventValueRegistry`），写法正好相反，**必须带** `event-`：`the event-menu` 和
+`the event-menu window`。裸写不是表达式，`the menu`、`the session` 这类写法会直接解析失败，而不是悄悄
+返回空。
 
 | 值 | 意思 | 在哪些事件里 |
 |---|---|---|
@@ -43,8 +46,8 @@ on menu close:
 | `the page` | 事件发生在第几页 | `on menu open`、`on menu interact`、`on page turn`（出发页） |
 | `the future page` | 正在翻到第几页 | `on page turn` |
 | `the title` | 即将翻到的那一页的标题（可设置） | `on page turn` |
-| `the menu` | 事件的菜单 | 四个都有 |
-| `the session` | 事件的菜单会话 | 四个都有 |
+| `the event-menu` | 事件的菜单 | 四个都有 |
+| `the event-menu window` | 事件讲的那个窗口 | 四个都有 |
 
 `the event-` 形式（`the event-slot` 除外，它和 Skript 自己的 `event-slot` 撞名）作为别名保留，照顾已经
 这么写的脚本：`the event-page`、`the event-title`、`the event-icon` 都能用，值和上面完全一样。
@@ -106,7 +109,7 @@ on menu interact:
 
 ## 谁在看这个事件
 
-`player` 是事件的玩家，和 `the session` 的 `viewer` 是同一个：
+`player` 是事件的玩家，和窗口的 `viewer` 是同一个：
 
 ```skript
 on menu interact:
@@ -117,7 +120,7 @@ on menu interact:
 
 要注意菜单是可以**同时被多个人打开**的，而且每个人可以在不同的页上。`on menu interact` 只给点击的
 那个人触发。要改别人看到的东西，用 `the menu viewers of {_menu}` 或者 `and refresh` 那类会通知所有观众的
-写法，见[会话](sessions.zh-CN.md)。（`the viewers of …` 在 2.16 上被 Skript 自己的属性接走，见那一页。）
+写法，见[窗口](windows.zh-CN.md)。（`the viewers of …` 在 2.16 上被 Skript 自己的属性接走，见那一页。）
 
 ## 取消
 

@@ -31,8 +31,11 @@ not appear; cancel the turn and the player stays on the page he was on.
 
 ## The two ways to write an event value
 
-This plugin's own event values are all written the way a script would say them, **without the `event-`
-prefix**:
+The expressions this plugin registers are written the way a script would say them, **without the `event-`
+prefix** -- the first eight rows below. The last two are the values Skript itself hands an event
+(`EventValueRegistry`), and those are written **with** it: `the event-menu` and `the event-menu window`. The
+bare forms are not expressions at all, so `the menu` and `the session` fail to parse instead of quietly
+returning nothing.
 
 | Value | Meaning | In which events |
 |---|---|---|
@@ -44,8 +47,8 @@ prefix**:
 | `the page` | which page the event happened on | `on menu open`, `on menu interact`, `on page turn` (the page it is leaving) |
 | `the future page` | which page it is turning to | `on page turn` |
 | `the title` | the title of the page being turned to (settable) | `on page turn` |
-| `the menu` | the event's menu | all four |
-| `the session` | the event's menu session | all four |
+| `the event-menu` | the event's menu | all four |
+| `the event-menu window` | the window the event is about | all four |
 
 The `the event-` forms (except `the event-slot`, which collides with Skript's own `event-slot`) are kept
 as aliases, for scripts already written that way: `the event-page`, `the event-title` and
@@ -113,7 +116,7 @@ attach an invisible button with `when slot 9 in page 1 of {_menu} is clicked:`, 
 
 ## Who is watching this event
 
-`player` is the event's player, the same one as the session's `viewer`:
+`player` is the event's player, the same one as the window's `viewer`:
 
 ```skript
 on menu interact:
@@ -125,7 +128,7 @@ on menu interact:
 Note that a menu can be **open for several people at once**, and each of them can be on a different
 page. `on menu interact` fires only for the person who clicked. To change what others see, use
 `the menu viewers of {_menu}` or one of the `and refresh` forms that notify every viewer, see
-[Sessions](sessions.md). (`the viewers of …` is answered by Skript's own property on 2.16, see that
+[Windows](windows.md). (`the viewers of …` is answered by Skript's own property on 2.16, see that
 page.)
 
 ## Cancelling

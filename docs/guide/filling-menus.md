@@ -161,7 +161,7 @@ In `define button %string%`, both `icon:` and `when clicked:` are required. Defi
 **overwrites** the old one. `all buttons` lists every button id.
 
 A button's callback is **shared**: any menu and any slot that maps this button runs the same code on a
-click. To find out which menu it was inside the callback, use `the menu` in the menu event.
+click. To find out which menu it was inside the callback, use `the event-menu` in the menu event.
 
 **One warning**: when `override slot … to button "x" for …:` carries a section body, the button takes
 effect and the section is **ignored with a warning**
@@ -179,8 +179,8 @@ map key "A" to icon stone for {_menu} and when clicked:
         send "And it was a diamond." to player
 ```
 
-`player` is the one who clicked, and `the menu` / `the session` are the menu and the session of this
-interaction.
+`player` is the one who clicked, and `the event-menu` / `the event-menu window` are the menu and the window
+of this interaction.
 
 ## Changing contents on the fly
 
@@ -196,8 +196,8 @@ Without `and refresh` the change only goes into the model, and the screen still 
 This flag is exactly the difference between **what others see** and **what you see**: `and refresh`
 refreshes the matching slots for **every player currently looking at that page**.
 
-If you want to change **one player's** window only (showing him a highlight, say), use the **session's**
-icon, see [Sessions](sessions.md):
+If you want to change **one player's** window only (showing him a highlight, say), use the **window's**
+icon, see [Windows](windows.md):
 
 ```skript
 set icon in slot 5 of the menu session of player to red stained glass pane

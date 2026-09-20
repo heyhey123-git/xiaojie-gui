@@ -73,7 +73,7 @@ else:
 
 ## 判断"玩家有没有打开菜单"
 
-没有专门的语法，用会话：
+没有专门的语法，用窗口：
 
 ```skript
 if the menu session of player is not set:

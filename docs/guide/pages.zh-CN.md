@@ -96,7 +96,7 @@ turn to page 2 for player with new title "第二章"
 页面的标题 —— 要永久改标题用 `update title of page N in {_menu} to "…"`。
 
 翻页要求目标页与当前窗口使用**相同的容器布局**（包括箱子行数）。布局不一致时，会在改变页码或
-现有物品之前拒绝翻页。关闭后再打开不同大小的页面会创建新会话，**不是**安全迁移存储物品的方式；
+现有物品之前拒绝翻页。关闭后再打开不同大小的页面会创建新窗口，**不是**安全迁移存储物品的方式；
 关闭存储菜单前，请显式保存或返还玩家的物品。
 
 ## 一个两页菜单
@@ -129,7 +129,7 @@ command /shop:
 | 想要 | 写法 |
 |---|---|
 | 菜单一共几页 | `the page number of {_menu}` |
-| 某个会话当前在第几页 | `the page of the menu session of player` |
+| 某个窗口当前在第几页 | `the page of the menu session of player` |
 | 某个玩家当前在第几页 | `player's current menu page` |
 | 某页的标题 | `the title of page 1 in {_menu}` |
 | 布局里某个 key 在第几格 | `the slots of key "A" in page 1 of {_menu}` |

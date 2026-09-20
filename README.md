@@ -6,7 +6,7 @@ Inventory GUI framework for Bukkit/Paper-based Minecraft servers, written in Kot
 
 - **Modern API Design**: A Kotlin-first approach provides an expressive and concise API while maintaining full compatibility with Java.
 - **Powerful Menu System**: Simplifies complex GUI construction with support for declarative layouts, multipage pagination, and both static and virtual receptacles.
-- **Session-based & Event-driven**: Provides independent menu sessions for each player and allows for fine-grained logical control through a rich set of custom events (open, close, interaction, etc.).
+- **Window-based & Event-driven**: Gives each player an independent menu window and allows for fine-grained logical control through a rich set of custom events (open, close, interaction, etc.).
 - **Deep Skript Integration**: Offers first-class Skript support, enabling users without programming experience to create and manage menus through simple scripts.
 - **Reliable & Tested**: Core functionalities are unit-tested to ensure the framework's stability and reliability.
 
@@ -52,7 +52,7 @@ plugins:
 - Layout: declarative slot arrangement and key-to-slot mapping.
 - Menu: a logical GUI definition combining layout, pages, and behaviors.
 - Page: paginated view of components within a menu.
-- MenuSession: per-player session state with lifecycle (open/close/refresh).
+- MenuSession: per-player window state with lifecycle (open/close/refresh).
 - Receptacle: low-level inventory container abstraction (static/view/phantom).
 - Events: open, close, interact, page turn, and receptacle events.
 

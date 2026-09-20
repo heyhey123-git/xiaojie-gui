@@ -237,7 +237,7 @@ colour instead of being told. `docs/guide/configuration.md` is where both are de
   two things a browser still cannot do (a page count that shrinks, and typing inside a window) are written
   down in the guide instead.
 - What a player has open is called a **window** in everything a script reads: `the menu window of player`,
-  and `the window` inside a menu event. `the menu session of player` and `session` still parse and mean the
+  and `the event-menu window` inside a menu event. `the menu session of player` and `session` still parse and mean the
   same thing, so no script has to change, and the type's own description no longer reads like a database
   manual. The guide's page on it now opens by saying what a window is -- and that most scripts never name
   one, with a table of the things that need it and the many that do not.

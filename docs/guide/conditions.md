@@ -77,7 +77,7 @@ else:
 
 ## Testing "does the player have a menu open"
 
-There is no dedicated syntax; use a session:
+There is no dedicated syntax; use a window:
 
 ```skript
 if the menu session of player is not set:

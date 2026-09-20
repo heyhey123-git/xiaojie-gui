@@ -153,7 +153,7 @@ on load:
 旧的。`all buttons` 列出所有按钮 id。
 
 按钮的回调是**共享**的：任何菜单、任何格子只要映射了这个按钮，点击都跑同一段代码。想在回调里知道
-是哪个菜单，用菜单事件里的 `the menu`。
+是哪个菜单，用菜单事件里的 `the event-menu`。
 
 **一个提醒**：`override slot … to button "x" for …:` 带段落体时，按钮会生效，段落会被**忽略并警告**
 （`Both a button ID and a section were provided …`）。二选一。
@@ -169,7 +169,7 @@ map key "A" to icon stone for {_menu} and when clicked:
         send "而且那是一颗钻石。" to player
 ```
 
-`player` 是点击的人，`the menu` / `the session` 是这次交互的菜单和会话。
+`player` 是点击的人，`the event-menu` / `the event-menu window` 是这次交互的菜单和窗口。
 
 ## 动态改内容
 
@@ -184,8 +184,8 @@ on menu interact:
 不带 `and refresh` 时改动只进了模型，屏幕上还是旧的。**给别人看的**和**给自己看的**区别就在这个
 标志上：`and refresh` 会刷新**所有正在看这一页的玩家**的对应格子。
 
-如果只想改**某个玩家**的窗口（例如给他自己显示一个高亮），用**会话**的图标，见
-[会话](sessions.zh-CN.md)：
+如果只想改**某个玩家**的窗口（例如给他自己显示一个高亮），用**窗口**的图标，见
+[窗口](windows.zh-CN.md)：
 
 ```skript
 set icon in slot 5 of the menu session of player to red stained glass pane

@@ -68,14 +68,14 @@ typing stays in the chat bar and the menu only shows results, which keeps both s
 
 ## There is no shared inventory
 
-Two players looking at one menu **do not see the same chest**: a `static` menu's inventory is per session
+Two players looking at one menu **do not see the same chest**: a `static` menu's inventory is per window
 (each player's own real inventory), and that is deliberate.
 
 A "shared shelf" is expressed with **icons**: what is on the shelf comes from the page's layout and from
 `override slot`, and `override slot` and `updateIconForKey` push a change to **every** player looking at
 that page. A shop is therefore a shared shelf of icons plus each player's own storage in the empty slots.
-Letting several players operate one real inventory would collide head-on with "one inventory per session,
-one page per session", so it is not planned.
+Letting several players operate one real inventory would collide head-on with "one inventory per window,
+one page per window", so it is not planned.
 
 ## There is no `set slot N of {_menu}` and the like
 
