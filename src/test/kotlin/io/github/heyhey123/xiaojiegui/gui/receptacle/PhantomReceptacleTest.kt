@@ -17,8 +17,24 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import java.util.UUID
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class PhantomReceptacleTest {
+
+    @Test
+    fun `a hidden player inventory leaves the slots past the container to the menu`() {
+        // With the player's inventory hidden there is nothing to mirror into the lower half of a phantom
+        // window, so those slots are the menu's own space: an icon a script puts there has to come back out
+        // of it, and not be replaced by whatever the player happens to carry in that inventory slot.
+        val receptacle = PhantomReceptacle(Component.text("Hidden"), ViewLayout.Chest.GENERIC_9X3).apply {
+            hidePlayerInventory = true
+        }
+        val icon = mockk<ItemStack>(relaxed = true)
+
+        receptacle.setElement(30, icon)
+
+        assertEquals(icon, receptacle.getElement(30))
+    }
 
     private lateinit var mockedPacketHelper: PacketHelper
 

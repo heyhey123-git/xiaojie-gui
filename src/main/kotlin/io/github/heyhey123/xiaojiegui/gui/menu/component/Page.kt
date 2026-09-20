@@ -144,7 +144,11 @@ class Page(
                 processLine(patternLine, rowIndex, 0)
             }
 
-        // The player's inventory, for a phantom page that shows it: it starts after the container.
+        // The player's inventory, for a phantom page that shows it: it starts after the container, and the
+        // pattern decorates that copy (a button hidden among the player's rows is what it is for). With the
+        // inventory hidden there is no copy to decorate -- those slots are then the menu's own space, which
+        // a script writes at runtime with `set icon in slot N of {_window}` instead. In `static` mode the
+        // lower half is the player's real inventory and never the menu's.
         if (properties.mode == Receptacle.Mode.PHANTOM && !properties.hidePlayerInventory) {
             this.playerInventoryPattern.asSequence()
                 .take(4)

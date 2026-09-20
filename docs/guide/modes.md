@@ -72,7 +72,10 @@ sorts and stores items in (a custom vault, a trade window).
   the player does there does not really change his inventory. So a `phantom` menu is not suited to
   interactions that carry items around.
 - `hide player inventory` only affects "whether those 4 rows below are there"; it does not affect the
-  container part above.
+  container part above. **With them hidden those 36 slots are not the player's, they are the menu's own
+  space**: nothing is mirrored into them, a script can put icons there with
+  `set icon in slot N of {_window}`, and clicks on them arrive like any other slot's. `player inventory
+  layout` describes the **display copy when it is shown**, so it does nothing while they are hidden.
 
 **`static`**
 

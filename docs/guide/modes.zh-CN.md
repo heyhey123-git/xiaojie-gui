@@ -67,7 +67,9 @@ if the mode of {_menu} is "phantom":
   多花一点性能的地方。
 - 下方玩家背包是用 `player inventory layout` 摆出来的一份**显示副本**，玩家在里面的操作不会真的改到
   背包。所以 `phantom` 菜单不适合做需要搬运物品的交互。
-- `hide player inventory` 只影响"下方那 4 行还在不在"，对上面的容器部分没影响。
+- `hide player inventory` 只影响"下方那 4 行还在不在"，对上面的容器部分没影响。**隐藏之后，那 36 格并不属于玩家，
+  而是菜单自己的空间**：那里不会镜像玩家的物品，脚本可以用 `set icon in slot N of {_window}` 往里面放东西、也可以
+  接收那里的点击。`player inventory layout` 描述的是**显示出来的那份副本**，所以在隐藏时它不生效。
 
 **`static`**
 

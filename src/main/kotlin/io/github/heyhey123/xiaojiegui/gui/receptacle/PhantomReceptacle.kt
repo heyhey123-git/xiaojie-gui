@@ -26,10 +26,11 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
     private var draggedSlots: MutableSet<Int>? = null
 
     override fun getElement(slot: Int): ItemStack? {
-        // The player's own half is read live rather than out of the copy this receptacle keeps for the
-        // packets: it is their real inventory, reading one slot costs one lookup instead of copying all 36,
-        // and a script reading a slot is asking about the player, not about what was last sent to them.
-        if (slot !in layout.containerSlotRange) return playerHalfItem(slot)
+        // Past the container the window holds either the player's own items or the menu's, and which of the
+        // two it is, is exactly what hiding the player's inventory decides. Hidden, those slots are the
+        // menu's own space and `contents` is where a script's icons are; shown, they are a copy of the
+        // player's real inventory, and reading that live costs one lookup instead of copying all 36.
+        if (!hidePlayerInventory && slot !in layout.containerSlotRange) return playerHalfItem(slot)
         return contents.getOrNull(slot)
     }
 

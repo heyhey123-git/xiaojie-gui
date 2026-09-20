@@ -239,6 +239,12 @@ which is created on first start. No keys were renamed.
   same thing, so no script has to change, and the type's own description no longer reads like a database
   manual. The guide's page on it now opens by saying what a window is -- and that most scripts never name
   one, with a table of the things that need it and the many that do not.
+- With `hide player inventory` in a `phantom` menu, the 36 slots below the container are the **menu's own
+  space**, not the player's: nothing is mirrored into them, a script can put icons there and clicks on them
+  arrive like any other slot's. That was already true of what a script wrote into them, and it is now also
+  true of what a script reads back out: `a phantom window reads the player's own half live` must not read
+  the player's inventory there. `player inventory layout` still describes the display copy of the rows
+  while they are shown, and does nothing while they are hidden.
 - A `phantom` window reads the player's own half live instead of copying their whole inventory on every
   read, which was the one hot spot the performance pass found.
 - Two runnable examples now ship in `server-test/`: a list-page browser (`14-browser-list.sk`) and a backpack
