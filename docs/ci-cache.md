@@ -97,9 +97,12 @@ The test JVM enables `skript.testing.enabled` and `skript.testing.devMode`, and 
 registers test syntax but does not run Skript's full automated suite or automatically
 export its results; normal plugin scripts still load. One of those is
 `docs/manual-acceptance.sk`, the script the manual checklist drives: it is copied into the
-run directory and parsed here, so a line of it that stops parsing fails the build instead of
-someone's game. It creates its menus from commands and its listener speaks for `acc_*` menus
-alone, so it changes nothing about the run.
+run directory and parsed here, so a line of it that stops parsing fails the build instead
+of someone's game, and `17-acceptance-script.sk` runs its `/acc argcheck` dispatcher
+through the console so the gate can require the line it logs — reading a command argument
+wrongly makes every command print the help text, which is a failure only a player would
+otherwise notice. It creates its menus from commands and its listener speaks for `acc_*`
+menus alone, so it changes nothing about the run.
 
 A separate test-only bridge observes `TestTracker` and reports assertion failures at
 shutdown. It is not part of the production addon JAR. Both Gradle test tasks must reject
@@ -206,11 +209,11 @@ type — and 13 client records; the log carries exactly one addon `(from …)` f
 parse-time warning, and no `Severe Error` at all. The new gate check was proved offline with
 `verifyServerTestLog`: the unmodified log passes, a copy whose framed `'Page Title'` block is rewritten
 into the old bare shape fails on the new problem, and a copy that adds one bare frame next to the intact
-framed block fails on that check alone (`build/bare-runtime-frame-verification.log`). The four lines the
-gate requires besides the detail markers — `XiaojieGUI has been disabled!`, the static-menu warning and
-the two container refusals — were proved the same way: a copy with each pair removed fails on exactly
-those problems and nothing else (`build/missing-gate-lines-verification.log`,
-`build/missing-unsupported-lines-verification.log`).
+framed block fails on that check alone (`build/bare-runtime-frame-verification.log`). The lines the gate
+requires besides the detail markers — `XiaojieGUI has been disabled!`, the static-menu warning, the two
+container refusals and the acceptance dispatcher's `XIAOJIE_ACC argument=argcheck` — were proved the same
+way where a copy could be cut: a copy with each pair removed fails on exactly those problems and nothing
+else (`build/missing-gate-lines-verification.log`, `build/missing-unsupported-lines-verification.log`).
 
 No remote cold/warm run, cache hit, upload completion, or speedup is claimed. Confirm these
 on the next GitHub run, including a subsequent warm run and whether the post-step time

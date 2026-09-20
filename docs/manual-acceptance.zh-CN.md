@@ -27,7 +27,8 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 
 `docs/manual-acceptance.sk` 只用普通语法，任何 Paper 26.2 + Skript 2.16.2 的服务器都能跑；它**只在命令里**
 创建菜单、交互监听只对 `acc_*` 菜单说话，所以不会影响别的脚本。每次 `serverTest` 也会把它当普通脚本解析
-一遍，写坏了会在 CI 里先失败，而不是在你游戏里。
+一遍，写坏了会在 CI 里先失败，而不是在你游戏里；它的命令参数由 `/acc argcheck` 这条自检分支守着
+（`serverTest` 会用控制台执行一次并要求那行日志出现），因为参数读错的表现是"每条命令都只打印帮助列表"。
 
 ### 0.2 怎么看结果
 
@@ -47,8 +48,9 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 
 - [ ] 用**默认配置**启动：不加载测试模式的 JVM 参数，`plugins/Skript/config.sk` 保持
       `verbosity: normal`。控制台**不应**出现 `Missing entry 'types.*'`（那是 debug 行）。
-- [ ] 随手写一句类型写错的脚本（例如 `open menu 5 for player`）触发一次 Skript 报错：类型名应显示成
-      `menu`，而不是 `types.menu`。这一条验证的是本插件的 `lang/default.lang` 是否真的生效。
+- [ ] 类型名那一半不需要人工：测试服开着 Skript 的 debug，`lang/default.lang` 一旦不再被读取，
+      日志就会出现 `Missing entry 'types.menu'`，`serverTest` 会直接失败——门禁盯着这一条。
+      你要确认的只是**生产形态**这一半：默认配置下不应该出现任何 `Missing entry`。
 - [ ] 横幅彩色（`force-truecolor: false` 时为纯色），出现 `XiaojieGUI has been enabled!`，
       没有 `[Skript] Severe Error`，也没有 `can't understand`。
 - [ ] 加载 README 里的示例脚本后，控制台不出现 `List is missing 'and' or 'or'`，也不出现
@@ -82,9 +84,9 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 - [ ] 与幽灵模式的**区别**确实是设计里的那个：这里物品能被真的拿走、放进背包（库存由服务端托管）。
 - [ ] `/acc statichide`：下半部分**仍然显示**玩家背包——这个关键字对 static 没有作用，`serverTest`
       已经断言插件会就此警告一句（看控制台），这里人眼看的是"窗口确实没变"。
-- [ ] `create a static menu with merchant inventory ...` 给出的是一句**人话**（说明 static 不支持商人）：
-      把这一行手写进脚本、`/skript reload scripts`，然后看控制台。`02-flags.sk` 已经断言了这句消息与
-      "没有开窗"，这里人眼确认的是它读起来确实像一句话，而不是堆栈。
+- [ ] `/acctype merchantstatic`：控制台给出的是一句**人话**（说明 static 不支持商人、用 phantom），
+      窗口不应该打开。`02-flags.sk` 已经断言了这句消息与"没有开窗"，这里人眼确认它读起来确实像一句话，
+      而不是 Java 堆栈。`/acctype merchant` 则是能正常打开的 phantom 商人窗口。
 - [ ] `/acc drag` 的**拖拽**（只有 `static` 下才有意义，机制见 `docs/guide/dragging.zh-CN.md`）：
       - [ ] 光标为空时拖拽：什么都不发生，聊天栏与控制台都没有异常。`clientTest` 只覆盖了"手上有物品"的三种拖拽。
       - [ ] 拿一叠物品按住左键扫过几个空的自有格子，松手后**每一格**都应有它那一份。
@@ -121,7 +123,7 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 | `brewing stand` / `hopper inventory` | 5 | |
 | `dropper` / `dispenser` / `crafter` | 9 | dropper 与 dispenser 是**两个不同界面** |
 | `barrel` / `ender chest` / `shulker box` | 27 | |
-| `crafting table inventory` | —— | **应该报 `Unsupported inventory type`**：客户端没有这个窗口（`02-flags.sk` 已断言消息与"没有建出菜单"） |
+| `crafting table inventory` | —— | 用 `/acctype craftingtable`：**应该报 `Unsupported inventory type`**，窗口不开（`02-flags.sk` 已断言消息与"没有建出菜单"） |
 
 ## 4. 标题
 
@@ -135,18 +137,10 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 - [ ] `/acc rename2`：两个客户端同时打开这个菜单，一个停在第 1 页、一个停在第 2 页；执行后**只有**
       停在第 2 页的那个客户端标题应该变。这条需要两个客户端对照，自动化只有一个 bot。
 - [ ] `/acc tagged`：控制台应有一句可读错误（`string:` 是语法标签，不是给脚本写的），标题不变。
-- [ ] 装了 SkBee 时，文本组件标题能正常显示。SkBee 的 `a new text component from` 是它自己的语法，
-      所以这段要**自己临时加进服务器**（没有 SkBee 的服务器连解析都过不去）：
-      ```skript
-      command /accskbee:
-          trigger:
-              set {_title} to a new text component from "&6SkBee 组件标题"
-              create a phantom menu with chest inventory titled {_title} with layout "A        " with id "acc_skbee":
-                  map key "A" to icon stone named "A" for menu with id "acc_skbee"
-              set {_menu} to the menu with id "acc_skbee"
-              open menu {_menu} for player
-      ```
-      见 `docs/guide/titles.zh-CN.md`；`serverTest` 断言的是读回来的值，渲染要人看。
+- [ ] 装 SkBee 时：把 `docs/manual-acceptance-skbee.sk` 也复制到 `plugins/Skript/scripts/`，
+      `/skript reload scripts`，然后 `/accskbee`——窗口标题应显示为 `SkBee 组件标题`。
+      这份单独一个文件是因为 `a new text component from` 是 SkBee 自己的语法，没装 SkBee 的服务器连
+      解析都过不去。`serverTest` 断言的是读回来的值，渲染要人看。见 `docs/guide/titles.zh-CN.md`。
 
 ## 5. 交互
 
@@ -204,6 +198,6 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 | 层 | 命令 | 覆盖 |
 |---|---|---|
 | 单元测试 | `./gradlew test` | 点击类型、点击冷却、页面计算、每个布局的格子数（对齐 Bukkit 自己的库存大小）、`locked icons` 的每种拒绝情形 |
-| 真实服务端 | `./gradlew serverTest` | 元素能否注册、脚本能否解析、原版 `assert` 与 53 条行为完成记录、每个 `@Examples` 的解析、`docs/manual-acceptance.sk`（本次验收要用的脚本）的解析、停服日志，以及日志形态门禁（运行期消息必须走运行期通道、禁止 `Severe Error` / `can't understand` / 已知解析错误形状） |
+| 真实服务端 | `./gradlew serverTest` | 元素能否注册、脚本能否解析、原版 `assert` 与 53 条行为完成记录、每个 `@Examples` 的解析、`docs/manual-acceptance.sk`（本次验收要用的脚本）的解析与参数自检、停服日志，以及日志形态门禁（运行期消息必须走运行期通道、禁止 `Severe Error` / `can't understand` / 已知解析错误形状） |
 | 真实客户端 | `./gradlew clientTest` | 26.1 客户端穿过 Via 翻译层：窗口、标题、物品**类型**、四种点击、翻页、拖拽（含被拒绝的拖拽与空光标以外的三种）、`locked icons` 下点击/Shift/数字键都拿不走商品、隐藏玩家背包时下方那几行显示的是页面自己的图标（点它也算一次普通点击），而显示玩家背包时页面为那些格子摆的东西一个也不会出现 |
 | 文档导出 | `./gradlew gendocs` | SkriptHub 用的 JSON（58 个元素；事件不在导出里） |
