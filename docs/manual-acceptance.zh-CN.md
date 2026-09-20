@@ -35,6 +35,10 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 - 游戏里输入 `/acc` 会列出全部命令；每条命令都会把"要做什么"发到聊天栏。
 - **聊天栏**是主要观察窗口：菜单格子上的一次交互会打印 `[菜单事件] 点击第 N 格…`，玩家自己背包那半不会。
 - **控制台**指启动服务器的终端，或 `logs/latest.log`；下面说"看控制台"时都指这两处。
+- 两个**原版行为**，验收时不要当成缺陷：容器开着的时候，客户端**不能打开聊天栏、也就不能执行任何指令**；
+  暂停菜单同样要先关掉容器再按 ESC 才会出现。所以每条检查都先关掉上一个窗口再输入下一条命令。
+- 关窗口：**ESC 和菜单里的关闭按钮都能关**（`/acc phantom` 的 B 格子就是关闭按钮），两条路径都验过。
+  所以"想退出游戏"的正常流程是：先关掉菜单，再按 ESC 开暂停菜单。
 
 ### 0.3 常见节奏
 
@@ -51,8 +55,8 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 - [ ] 类型名那一半不需要人工：测试服开着 Skript 的 debug，`lang/default.lang` 一旦不再被读取，
       日志就会出现 `Missing entry 'types.menu'`，`serverTest` 会直接失败——门禁盯着这一条。
       你要确认的只是**生产形态**这一半：默认配置下不应该出现任何 `Missing entry`。
-- [ ] 横幅彩色（`force-truecolor: false` 时为纯色），出现 `XiaojieGUI has been enabled!`，
-      没有 `[Skript] Severe Error`，也没有 `can't understand`。
+- [ ] 横幅按控制台自己判断颜色（控制台会把转义序列原样打出来时就是纯文本），出现
+      `XiaojieGUI has been enabled!`，没有 `[Skript] Severe Error`，也没有 `can't understand`。
 - [ ] 加载 README 里的示例脚本后，控制台不出现 `List is missing 'and' or 'or'`，也不出现
       `Empty configuration section`。
 - [ ] 把 `plugins/Skript/config.sk` 的 `language` 换成 `simplifiedchinese` 重启一次：类型名词与运行期
@@ -106,12 +110,14 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 
 自动化逐个创建过其中 10 种（`03-type-*.sk`）并断言"1 页"，单元测试钉着每种布局的格子数。这里人眼要
 确认的是**界面身份**（是不是那个方块）与**玩家背包有没有被挤歪**——格子数写错时，唯一的症状就是整个
-玩家背包和点击错位。这张表与 `docs/guide/menus.zh-CN.md` 一致。
+玩家背包和点击错位。`lectern` 是唯一的例外：原版这个窗口的客户端菜单**只有 1 格**，没有玩家背包那半
+（`beacon` 的菜单仍有玩家那半的格子，只是原版界面画不画是另一回事）。这张表与
+`docs/guide/menus.zh-CN.md` 一致。
 
 | 类型 | 格子数 | 人眼要确认的 |
 |---|---|---|
 | `chest inventory` | 行数 × 9 | 行数 = 布局字符串条数 |
-| `workbench inventory` | **10** | 是工作台界面：结果格在最左上，3×3 在它周围 |
+| `workbench inventory` | **10** | 是工作台界面：**左边 3×3 输入格、右边一个结果格** |
 | `beacon inventory` | **1** | 只有放宝石那一格 |
 | `enchanting table inventory` | **2** | 物品格 + 青金石格 |
 | `smithing inventory` | **4** | 模板、装备、材料、结果 |
@@ -134,8 +140,9 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
       自动化断言了翻页与标题值，人看的是视觉切换干不干净。
 - [ ] `&#ff5500` 是**字面量**（Spigot 的行为，不是本插件的 bug）。把 `&x` 那行改成 `&#ff5500橙色`
       再看一次即可。
-- [ ] `/acc rename2`：两个客户端同时打开这个菜单，一个停在第 1 页、一个停在第 2 页；执行后**只有**
-      停在第 2 页的那个客户端标题应该变。这条需要两个客户端对照，自动化只有一个 bot。
+- [ ] `/acc rename2`：两个客户端都先 `/acc titles`（脚本不会重建已存在的菜单），其中一个用纸张翻到第 2 页
+      停住；再执行 `/acc rename2`（这条命令会先给执行者开第 1 页）后，**只有**停在第 2 页的那个客户端
+      标题应该变。这条需要两个客户端对照，自动化只有一个 bot。
 - [ ] `/acc tagged`：控制台应有一句可读错误（`string:` 是语法标签，不是给脚本写的），标题不变。
 - [ ] 装 SkBee 时：把 `docs/manual-acceptance-skbee.sk` 也复制到 `plugins/Skript/scripts/`，
       `/skript reload scripts`，然后 `/accskbee`——窗口标题应显示为 `SkBee 组件标题`。
@@ -150,15 +157,9 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
       **静默丢弃**（事件不触发、格子回调不跑），控制台没有报错。`clientTest` 一直用 0ms。
 - [ ] `/acc pages`：从第 1 页点下一页翻到第 2 页；再点下一页应什么都不发生（聊天栏会给一句说明）；
       回第 1 页后点上一页同理。结果要么是不动、要么是一句人话，不是堆栈。
-- [ ] 两个玩家同时用 `/acc phantom` 打开同一个菜单时，观看人数应该是 2。临时把这段加进服务器验证
-      （写法以 `docs/guide/sessions.zh-CN.md` 的 `the menu viewers of` 为准）：
-      ```skript
-      command /accviewers:
-          trigger:
-              set {_menu} to the menu with id "acc_phantom"
-              set {_viewers::*} to the menu viewers of {_menu}
-              send "现在有 %size of {_viewers::*}% 个人在看这个菜单：%{_viewers::*}%" to player
-      ```
+- [ ] **两个客户端对照**：两台客户端都执行 `/acc phantom`（脚本不会重建已经存在的菜单，所以不会把对方的
+      窗口关掉），然后任意一台执行 `/acc viewers`：人数应该是 2，列表里是两个名字。这条自动化做不了
+      （`clientTest` 只有一个 bot）。
 
 数字键、四种点击类型、事件值与 `docs/guide/events.zh-CN.md` 的一致性都已经由 `clientTest` 与
 `serverTest` 的断言覆盖，不再列在这里。
@@ -173,17 +174,12 @@ static 菜单上 `with hide player inventory` 的警告（`02-flags.sk` 建这�
 
 ## 7. 配置
 
-`plugins/xiaojie-gui/config.yml`，改完**重启服务端**（这两个值在插件启用后只读一次）；自动化一直跑
-默认值，所以这两个开关只有人能试：
-
-- [ ] `enable-async-check: false`：从异步代码里开菜单不再报错。默认 `true` 是刻意的：菜单要动库存，
-      就得在主线程上。
-- [ ] `force-truecolor: false`：控制台横幅变纯色；游戏内不受影响。
+插件没有选项，也不生成配置文件：主线程检查（§1–§6 里那些菜单操作）无条件执行，启动横幅按控制台自己
+判断（§0.4）；两者都没有开关可试，这一节只是说明"没有配置项"这件事本身。
 
 ## 8. 收尾
 
-- [ ] 把 `plugins/xiaojie-gui/config.yml` 改回默认值、`plugins/Skript/config.sk` 的 `language` 改回
-      `english`（§0 的非英语检查用过它）。
+- [ ] 把 `plugins/Skript/config.sk` 的 `language` 改回 `english`（§0 的非英语检查用过它）。
 - [ ] 删掉 `plugins/Skript/scripts/manual-acceptance.sk`，`/skript reload scripts`。
 - [ ] `server.properties` 的 `online-mode` 改回原值；如果为了双人对照建了第二个账号，把它删掉。
 

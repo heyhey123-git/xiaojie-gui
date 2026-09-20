@@ -53,11 +53,14 @@ command /acc [<text>]:
         # 幽灵模式：README 里的那个菜单
         # -----------------------------------------------------------------------------------------
         if arg-1 is "phantom":
-            create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########" and "#  A  B #" and "#########" with id "acc_phantom" with 0 ms click delay:
-                map key "A" to icon diamond named "&bSay hello" for menu with id "acc_phantom" and when clicked:
-                    send "&aA 的格子回调触发了。" to player
-                map key "B" to icon clock named "&eClose" for menu with id "acc_phantom" and when clicked:
-                    close the menu for player
+            # 不存在才创建。`create` 遇到已存在的 id 会销毁旧菜单、连带关掉正在看它的玩家，而
+            # `/acc phantom` 正是清单里两个客户端共用的那个菜单——重建会把先打开的那位踢出窗口。
+            if the menu with id "acc_phantom" is not set:
+                create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########" and "#  A  B #" and "#########" with id "acc_phantom" with 0 ms click delay:
+                    map key "A" to icon diamond named "&bSay hello" for menu with id "acc_phantom" and when clicked:
+                        send "&aA 的格子回调触发了。" to player
+                    map key "B" to icon clock named "&eClose" for menu with id "acc_phantom" and when clicked:
+                        close the menu for player
             set {_menu} to the menu with id "acc_phantom"
             open menu {_menu} for player
             send "&e要做的：把窗口里的钻石往外拖、把自己的物品往里拖（都不该成功）、Shift 点击按钮、" to player
@@ -152,23 +155,27 @@ command /acc [<text>]:
         # 标题：颜色、十六进制，以及翻页换标题
         # -----------------------------------------------------------------------------------------
         if arg-1 is "titles":
-            create a phantom menu with chest inventory titled "&6金色标题" with layout "X        " with id "acc_titles" with 0 ms click delay:
-                insert page with layout "X        " with title "&x&f&f&5&5&0&0橙色标题"
-                map key "X" to icon paper named "&e翻页" for menu with id "acc_titles" on pages 1 and 2 and when clicked:
-                    if the page is 1:
-                        turn to page 2 for player
-                    else:
-                        turn to page 1 for player
+            # 同样"不存在才创建"：`/acc titles` 与 `/acc rename2` 是两个客户端共用的那个菜单。
+            if the menu with id "acc_titles" is not set:
+                create a phantom menu with chest inventory titled "&6金色标题" with layout "X        " with id "acc_titles" with 0 ms click delay:
+                    insert page with layout "X        " with title "&x&f&f&5&5&0&0橙色标题"
+                    map key "X" to icon paper named "&e翻页" for menu with id "acc_titles" on pages 1 and 2 and when clicked:
+                        if the page is 1:
+                            turn to page 2 for player
+                        else:
+                            turn to page 1 for player
             set {_menu} to the menu with id "acc_titles"
             open menu {_menu} for player
             send "&e要做的：确认第 1 页标题是金色、第 2 页是橙色（十六进制）；点纸张来回翻页。" to player
             stop
 
         if arg-1 is "rename2":
+            # 先给执行者打开第 1 页，再改第 2 页标题：命令自带开窗，验收时不必先手动开一遍。
             set {_menu} to the menu with id "acc_titles"
+            open menu {_menu} for player
             update title of page 2 in {_menu} to "&a改过的第 2 页" and refresh
-            send "&e要做的：两个客户端同时打开这个菜单，一个停在第 1 页、一个停在第 2 页；" to player
-            send "&e执行这条命令后，只有停在第 2 页的那个客户端标题应该变。" to player
+            send "&e要做的：两个客户端都先 /acc titles，其中一个用纸张翻到第 2 页停住；" to player
+            send "&e再在任意一个客户端执行 /acc rename2：只有停在第 2 页的那个标题应该变。" to player
             stop
 
         if arg-1 is "tagged":

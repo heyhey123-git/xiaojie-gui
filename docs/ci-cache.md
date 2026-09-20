@@ -163,7 +163,11 @@ test server, and one category was ours to fix:
   the keyword has nothing to hide there — so that refusal cannot quietly become a silent no-op. The same
   treatment reached a container type the client has no window for: `ViewLayout` answers whether a type is
   buildable (`isBuildable`) instead of throwing, and the create, entry-form and static-open paths report
-  `Unsupported inventory type: …` on the runtime channel, which is what the guides already promised.
+  `Unsupported inventory type: …` on the runtime channel, which is what the guides already promised. One
+  Skript 2.16.2 gap is worth knowing rather than fixing: the `log.runtime.*` wording lives only in
+  `english.lang` (and the catalan/spanish files), so a server whose Skript `language` is anything else
+  prints those raw key names above our framed messages instead of a sentence. That is Skript's gap, not
+  the addon's; the manual checklist tells a tester the same so it is not reported as our bug.
 
 ## Validation boundary
 
