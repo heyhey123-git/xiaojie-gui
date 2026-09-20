@@ -118,9 +118,10 @@ change a real item any more than a click can. So why handle it at all?
    they threw and were **neither cancelled nor followed by a re-send**: the slots the player swept over
    stayed wrong on the client's side (exactly the ghost items warned about elsewhere).
 2. **The script's intent is real.** Without a real inventory a menu is still a button panel: which slots the
-   player swept over is the only thing a script can read. There are two sensible uses — "select several at
-   once" (a menu as a picker), or refusing it outright
-   (`if the dragged slots is set: cancel event`). Neither was possible before.
+   player swept over is the only thing a script can read. What is worth handling is a drag that arrives from
+   somewhere unusual -- a modified client, another plugin, or the short predicted window above -- and refusing
+   it outright (`if the dragged slots is set: cancel event`) is the usual answer. A picker is built out of
+   *clicks*; the section after this one says why a sweep cannot be the gesture.
 3. **"One interaction, one event" is just as hard a rule here.** Items do not land anywhere, but a script's
    **side effects** are real: messages, charging a player, opening another menu, counters. A drag that runs
    a handler N times charges N times.
@@ -143,11 +144,19 @@ One last limit: `the cursor item` is **empty in phantom mode**. Since 1.21 the p
 a **hash** of the item rather than the item itself, so the server cannot see it, and this addon does not
 guess.
 
-## Using a drag as "select several" (phantom mode)
+## A picker, and why a drag cannot be one
 
-Nothing can be moved in a phantom menu, so the only thing a drag carries is the **gesture** itself: "I swept
-over these slots". Used as a picker, one click selects one item and one sweep selects a row of them, with **no
-second code path for drags**:
+A phantom menu makes a good picker: one click selects the cell it hit, the selection is drawn for that player
+with `set icon in slot N of {_session}` -- an icon set at runtime is **not** one of the slots `locked icons`
+protects, which is what makes per-player content possible -- and a confirm button reads the set back.
+`server-test/skript/13-phantom-picker.sk` is that menu, parsed by `serverTest` on every run.
+
+The gesture cannot be a **sweep**, though. A vanilla client only drags something it is holding, and in a
+phantom window there is nothing it can hold, so "sweep across five cells to select five" is not something a
+player can perform -- which is the same fact as the paragraph above, seen from the script's side. The picker
+still asks `the dragged slots` first, because a gesture that arrives from a modified client or another plugin
+should count as one selection rather than five, and falls back to `the clicked slot`. What a script must not
+do is *rely* on the sweep arriving:
 
 ```skript
 on menu interact:
@@ -162,11 +171,6 @@ on menu interact:
         else:
             add loop-value to {picked::%uuid of player%::*}
 ```
-
-A complete, runnable version is `server-test/skript/13-phantom-picker.sk` (with a confirm button that reports
-which slots were picked), and it is parsed by `serverTest` so it cannot quietly stop working. It uses
-`set icon in slot N of {_session}` to draw the selection: an icon set at runtime is **not** one of the slots
-`locked icons` protects, which is exactly what makes per-player content possible.
 
 ## Measured: one gesture, four results
 
