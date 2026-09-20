@@ -14,9 +14,11 @@ shows the part of each recipe that matters; the whole script is in the copy.
 
 ## A shop
 
-The goods sit in one row with a price button directly under each one. The goods cells belong to the menu, so
-`with locked icons` keeps a player from taking them; the price row is one key mapped to a list, so a click on
-it says which good it is through `the menu list index`.
+The goods sit in one row with a price button directly under each one. The menu is `phantom`, which is what
+keeps a player from taking the goods at all: nothing in a phantom window can move, and any click that tries
+is undone by the addon. This shop therefore carries no `with locked icons` -- that flag protects the slots of
+a `static` menu, where the items are real. The price row is one key mapped to a list, so a click on it says
+which good it is through `the menu list index`.
 
 ```skript
 on load:
@@ -28,16 +30,21 @@ on load:
     set {shop::prices::4} to stone named "&eBuy 4"
     set {shop::prices::5} to stone named "&eBuy 5"
 
-    create a phantom menu with chest inventory titled "&6Shop" with layout "12345    " and "ppppp    " and "         " with id "shop" with locked icons:
-        # Five goods, one key each, so every good owns a slot of its own. A key mapped to a single item is
-        # not a list key, which leaves the price row below as the page's only list.
-        map key "1" to icon diamond named "&bDiamond" for menu with id "shop"
-        map key "2" to icon emerald named "&aEmerald" for menu with id "shop"
-        map key "3" to icon gold ingot named "&6Gold ingot" for menu with id "shop"
-        map key "4" to icon iron ingot named "&7Iron ingot" for menu with id "shop"
-        map key "5" to icon redstone named "&cRedstone" for menu with id "shop"
-        # The list key: the five buttons, in the layout order of the five `p` cells.
-        map key "p" to icon {shop::prices::*} for menu with id "shop"
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6Shop"
+        layout: "12345    ", "ppppp    ", "         "
+        id: "shop"
+        edit:
+            # Five goods, one key each, so every good owns a slot of its own. A key mapped to a single item
+            # is not a list key, which leaves the price row below as the page's only list.
+            map key "1" to icon diamond named "&bDiamond" for {_menu}
+            map key "2" to icon emerald named "&aEmerald" for {_menu}
+            map key "3" to icon gold ingot named "&6Gold ingot" for {_menu}
+            map key "4" to icon iron ingot named "&7Iron ingot" for {_menu}
+            map key "5" to icon redstone named "&cRedstone" for {_menu}
+            # The list key: the five buttons, in the layout order of the five `p` cells.
+            map key "p" to icon {shop::prices::*} for {_menu}
 
 command /shop:
     trigger:
@@ -63,13 +70,16 @@ on menu interact:
     send "&aYou bought %{_buy}% for %{_price}% coins." to player
 ```
 
-- A goods cell is a slot the layout **gives a key**, and that is what `with locked icons` protects: no click,
-  shift click, number key, offhand swap, drop or double-click collect can take from it, and a drag that
-  touches one is refused as a whole. The slots the layout leaves empty stay the player's -- which is how a
-  shop and a backpack are the same mechanism; see [Menus](menus.md) and [How it works](how-it-works.md).
-- One interaction is decided in a fixed order: the slot callbacks run first, then the event fires, and
-  `locked icons` is applied last. So the "buy" callback has run by the time the goods are protected, and
-  nothing has to put them back; see [How a click is decided](how-it-works.md#how-a-click-is-decided).
+- A goods cell is a slot the layout **gives a key**. In a `static` menu that is exactly what
+  `with locked icons` protects -- no click, shift click, number key, offhand swap, drop or double-click
+  collect can take from it, and a drag that touches one is refused as a whole -- while a `phantom` menu needs
+  no flag, because its window cannot move anything in the first place; see [Menus](menus.md) and
+  [How it works](how-it-works.md). The slots the layout leaves empty stay the player's, which is how a shop
+  and a backpack are the same mechanism.
+- One interaction is decided in a fixed order: the slot callbacks run first, then the event fires, and in a
+  `static` menu `locked icons` is applied last. So the "buy" callback has run by the time the goods are
+  protected, and nothing has to put them back; see
+  [How a click is decided](how-it-works.md#how-a-click-is-decided).
 - The price row is one key because a page has room for exactly one list key: both `set the menu list` and
   `the menu list index` go by the **first** key the page mapped several items to. Give each good a key and
   the whole price row one key, and the index is the good's number.
@@ -96,15 +106,16 @@ set icon in slot 9 of the menu window of player to barrier named "&cSold out"
 - `set icon in slot N of the menu window of player` writes **this player's window**: it changes the copy he
   sees and does not touch the menu itself. A page turn redraws that page into the window, so a temporary icon
   in a slot the page owns is overwritten by it; see [Windows](windows.md).
-- Once a slot has been `override slot … to barrier`, it is no longer a list cell, so `the menu list index` no
-  longer names its position -- the sold-out cell stops being a price button, and the next `set the menu list`
-  does not write a button back into it.
+- A sold-out cell is still a list cell as far as the list is concerned: `override slot` writes the page's own
+  icon over that cell, but the cell keeps its place in the list, so `the menu list index` still names it and a
+  later `set the menu list` would write a button back into it. What refuses the sale is the callback's own
+  stock check -- the picture is a courtesy, the check is the rule.
 
 ## A browser for a thousand items
 
 45 results to a page, one result per cell, and two cells for the previous and next page. The whole page is
-filled with **one call**; it is filled on the page turn rather than in the arrow buttons; and whether a click
-hit a result or an arrow is decided by whether `the menu list index` is empty.
+filled with **one call**, made **after** the window is open or the page has turned; and whether a click hit a
+result or an arrow is decided by whether `the menu list index` is empty.
 
 ```skript
 # One page of the browser: put 45 items into the window's list cells. `set the menu list` drops the items
@@ -119,16 +130,25 @@ function fillBrowser(window: menusession, page: number):
     set the menu list of {_window} to {browser::shown::*}
 
 on load:
-    create a phantom menu with chest inventory titled "&6Item browser" with layout "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "P       N" with id "browser":
-        map key "L" to icon {browser::all::*} for menu with id "browser"
-        map key "P" to icon arrow named "&ePrevious" for menu with id "browser" and when clicked:
-            set {_page} to the page of the menu window of player
-            if {_page} is greater than 1:
-                turn to page {_page} - 1 for player
-        map key "N" to icon arrow named "&eNext" for menu with id "browser" and when clicked:
-            set {_page} to the page of the menu window of player
-            if {_page} is less than the page number of the menu with id "browser":
-                turn to page {_page} + 1 for player
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6Item browser"
+        layout: "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "P       N"
+        id: "browser"
+        edit:
+            map key "L" to icon {browser::all::*} for {_menu}
+            map key "P" to icon arrow named "&ePrevious" for {_menu} and when clicked:
+                set {_page} to the page of the menu window of player
+                if {_page} is greater than 1:
+                    turn to page {_page} - 1 for player
+                    # Fill after the turn: the page is loaded after its event, and loading it writes the
+                    # key's own icons into the cells, which would overwrite a list written before it.
+                    fillBrowser(the menu window of player, {_page} - 1)
+            map key "N" to icon arrow named "&eNext" for {_menu} and when clicked:
+                set {_page} to the page of the menu window of player
+                if {_page} is less than the page number of {_menu}:
+                    turn to page {_page} + 1 for player
+                    fillBrowser(the menu window of player, {_page} + 1)
 
 command /browse:
     trigger:
@@ -137,16 +157,8 @@ command /browse:
         loop 1000 times:
             set {browser::all::%loop-number%} to stone named "&7Item %loop-number%"
         open menu (the menu with id "browser") for player
-
-on menu open:
-    if the event-menu is the menu with id "browser":
-        fillBrowser(the menu window of player, 1)
-
-# Filling on the page turn rather than in the arrow button keeps the content right whichever way the page
-# was turned -- the button, `turn to page` from another script, or anything added later.
-on page turn:
-    if the event-menu is the menu with id "browser":
-        fillBrowser(the menu window of player, the future page)
+        # After the window is open, never from `on menu open`: that event runs before there is a window to
+        # write into. The last bullet below says why both events are the wrong place.
 
 on menu interact:
     set {_picked} to {browser::shown::%the menu list index%}
@@ -163,10 +175,13 @@ on menu interact:
 - `the menu list index` is **1-based**, and it is empty when the clicked cell is not a list cell. That is how
   one event tells a result from the previous/next arrow; see
   [List pages](filling-menus.md#list-pages-filling-a-page-with-a-column-of-items).
-- Filling in `on page turn` rather than in the arrow callback covers every way a page can be turned, and
-  `the future page` is the page being turned to; it has a value only in `on page turn`, as
-  [Events](events.md) and [Pages](pages.md) explain. The page count is fixed when the menu is created, so a
-  shorter search does not mean fewer pages -- that boundary is in [Not Supported Yet](not-supported-yet.md).
+- Fill **after** the window or the page is there, never from `on menu open` or `on page turn`: `on menu open`
+  fires before the window exists, and a page turn loads the page *after* its event, so a list written inside
+  either one is refused or overwritten. The two arrow callbacks and `/browse` are the places this browser
+  turns a page, so they are the places it fills; a script that turns this menu's page anywhere else has to
+  fill there too, or the cells keep showing the icon the key was mapped to. The page count is fixed when the
+  menu is created, so a shorter search does not mean fewer pages -- that boundary is in
+  [Not Supported Yet](not-supported-yet.md).
 
 ## A backpack that remembers
 
@@ -176,9 +191,15 @@ left in them has to be read out before the window ends and put back cell by cell
 
 ```skript
 on load:
-    # No colon: the menu needs no body, and a section with nothing under it is an empty section,
-    # which Skript warns about while the script loads.
-    create a static menu with chest inventory titled "&6Backpack" with layout "         " and "         " and "         " with id "backpack" with 0 ms click delay
+    # `build a menu` is a section, so its first line needs the colon; the properties under it are its
+    # body, so there is no empty section for Skript to warn about.
+    build a menu {_menu}:
+        mode: static
+        inventory type: chest inventory
+        title: "&6Backpack"
+        layout: "         ", "         ", "         "
+        id: "backpack"
+        click delay: 0
 
 command /backpack:
     trigger:

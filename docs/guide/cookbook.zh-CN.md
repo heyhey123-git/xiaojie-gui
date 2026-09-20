@@ -12,8 +12,10 @@
 
 ## 一间商店
 
-货摆在一行，每个货下面一格是价格按钮。商品格属于菜单，所以 `with locked icons` 让玩家拿不走它们；价格行
-用一个 key 映射一个列表，点中哪一格由 `the menu list index` 说出商品号。
+货摆在一行，每个货下面一格是价格按钮。菜单是 `phantom`，这本身就保证玩家拿不走商品：幽灵窗口里的东西动
+不了，任何试图移动的点击都会被插件撤销。所以这间商店**不写** `with locked icons`——那个开关保护的是
+`static` 菜单的格子，那里的物品才是真的。价格行用一个 key 映射一个列表，点中哪一格由
+`the menu list index` 说出商品号。
 
 ```skript
 on load:
@@ -25,16 +27,21 @@ on load:
     set {shop::prices::4} to stone named "&eBuy 4"
     set {shop::prices::5} to stone named "&eBuy 5"
 
-    create a phantom menu with chest inventory titled "&6Shop" with layout "12345    " and "ppppp    " and "         " with id "shop" with locked icons:
-        # 五件货，一个 key 一件，所以每件货独占一格；只有单个物品的 key 不是列表行，
-        # 于是下面那一行价格是这一页唯一的列表。
-        map key "1" to icon diamond named "&bDiamond" for menu with id "shop"
-        map key "2" to icon emerald named "&aEmerald" for menu with id "shop"
-        map key "3" to icon gold ingot named "&6Gold ingot" for menu with id "shop"
-        map key "4" to icon iron ingot named "&7Iron ingot" for menu with id "shop"
-        map key "5" to icon redstone named "&cRedstone" for menu with id "shop"
-        # 列表行：五个按钮，按布局里五个 `p` 格子的顺序。
-        map key "p" to icon {shop::prices::*} for menu with id "shop"
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6Shop"
+        layout: "12345    ", "ppppp    ", "         "
+        id: "shop"
+        edit:
+            # 五件货，一个 key 一件，所以每件货独占一格；只有单个物品的 key 不是列表行，
+            # 于是下面那一行价格是这一页唯一的列表。
+            map key "1" to icon diamond named "&bDiamond" for {_menu}
+            map key "2" to icon emerald named "&aEmerald" for {_menu}
+            map key "3" to icon gold ingot named "&6Gold ingot" for {_menu}
+            map key "4" to icon iron ingot named "&7Iron ingot" for {_menu}
+            map key "5" to icon redstone named "&cRedstone" for {_menu}
+            # 列表行：五个按钮，按布局里五个 `p` 格子的顺序。
+            map key "p" to icon {shop::prices::*} for {_menu}
 
 command /shop:
     trigger:
@@ -60,11 +67,13 @@ on menu interact:
     send "&aYou bought %{_buy}% for %{_price}% coins." to player
 ```
 
-- 商品格是布局里**写了 key 的格子**，所以 `with locked icons` 保护它们：点击、Shift 点击、数字键、副手
-  交换、丢出、双击收集都拿不走，碰到它们的拖拽整次拒绝。布局里空着的格子仍然属于玩家——商店和背包用的是
-  同一个机制，见[菜单](menus.zh-CN.md)与[工作原理](how-it-works.zh-CN.md)。
-- 一次点击的判定顺序是：先跑格子回调，再触发事件，最后才应用 `locked icons`。所以"购买"跑完之后商品还
-  在原处，不需要额外把商品放回去，见[工作原理](how-it-works.zh-CN.md#一次点击是怎么被判定的)。
+- 商品格是布局里**写了 key 的格子**。在 `static` 菜单里，这正是 `with locked icons` 保护的东西：点击、
+  Shift 点击、数字键、副手交换、丢出、双击收集都拿不走，碰到它们的拖拽整次拒绝；`phantom` 菜单不需要这个
+  开关，因为它的窗口本来就什么都动不了，见[菜单](menus.zh-CN.md)与[工作原理](how-it-works.zh-CN.md)。
+  布局里空着的格子仍然属于玩家——商店和背包用的是同一个机制。
+- 一次点击的判定顺序是：先跑格子回调，再触发事件，最后（在 `static` 菜单里）才应用 `locked icons`。所以
+  "购买"跑完之后商品还在原处，不需要额外把商品放回去，见
+  [工作原理](how-it-works.zh-CN.md#一次点击是怎么被判定的)。
 - 价格行只用一个 key，是因为一页只能有一个"列表 key"：`set the menu list` 和 `the menu list index` 认的
   都是**第一个**映射了多个物品的 key。给每件货一个 key、给整行价格一个 key，序号就正好是商品号。
 - 回调读的是 `the event-menu`：`the menu`、`the window`、`the session` 这些短写法不是事件值，根本解析
@@ -89,13 +98,14 @@ set icon in slot 9 of the menu window of player to barrier named "&cSold out"
 - `set icon in slot N of the menu window of player` 写的是**这个玩家的窗口**：只改他一个人看到的副本，
   不动菜单本身。翻页会把那一页重新画进窗口，所以落在那一页格子里的临时图标会被盖回去，见
   [窗口](windows.zh-CN.md)。
-- 一格被 `override slot … to barrier` 之后就不再是列表格了，`the menu list index` 在那格上不再是它的
-  位置——所以卖光的格子不会继续被当成价格按钮，`set the menu list` 下一次刷新时也不会再往那里写按钮。
+- 对**列表**来说，卖光的格子仍然是列表格：`override slot` 只是把这一页自己的图标盖在那一格上，格子在列表里
+  的位置没变，所以 `the menu list index` 照样给它编号，之后一次 `set the menu list` 还会把按钮写回去。真正
+  拦住这一单的是回调里自己的库存判断——换图只是好看，判断才是规矩。
 
 ## 一千件物品的浏览器
 
-一页显示 45 件，一格一个结果，另外两格是上一页/下一页。整页内容**一次调用**填进去；翻页时填，而不是在
-箭头按钮里填；点中的是结果还是箭头，由 `the menu list index` 是否为空区分。
+一页显示 45 件，一格一个结果，另外两格是上一页/下一页。整页内容**一次调用**填进去，而且必须在窗口已经打开、
+或者页面已经翻过去**之后**填；点中的是结果还是箭头，由 `the menu list index` 是否为空区分。
 
 ```skript
 # 浏览器的一页：把 45 件物品放进窗口的列表格。`set the menu list` 多出来的物品会丢掉、
@@ -110,16 +120,25 @@ function fillBrowser(window: menusession, page: number):
     set the menu list of {_window} to {browser::shown::*}
 
 on load:
-    create a phantom menu with chest inventory titled "&6Item browser" with layout "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "P       N" with id "browser":
-        map key "L" to icon {browser::all::*} for menu with id "browser"
-        map key "P" to icon arrow named "&ePrevious" for menu with id "browser" and when clicked:
-            set {_page} to the page of the menu window of player
-            if {_page} is greater than 1:
-                turn to page {_page} - 1 for player
-        map key "N" to icon arrow named "&eNext" for menu with id "browser" and when clicked:
-            set {_page} to the page of the menu window of player
-            if {_page} is less than the page number of the menu with id "browser":
-                turn to page {_page} + 1 for player
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6Item browser"
+        layout: "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "P       N"
+        id: "browser"
+        edit:
+            map key "L" to icon {browser::all::*} for {_menu}
+            map key "P" to icon arrow named "&ePrevious" for {_menu} and when clicked:
+                set {_page} to the page of the menu window of player
+                if {_page} is greater than 1:
+                    turn to page {_page} - 1 for player
+                    # 翻过去之后再填：翻页事件跑在页面加载之前，而加载会把 key 自己的图标写进这些格子，
+                    # 比它更早写的列表会被盖掉。
+                    fillBrowser(the menu window of player, {_page} - 1)
+            map key "N" to icon arrow named "&eNext" for {_menu} and when clicked:
+                set {_page} to the page of the menu window of player
+                if {_page} is less than the page number of {_menu}:
+                    turn to page {_page} + 1 for player
+                    fillBrowser(the menu window of player, {_page} + 1)
 
 command /browse:
     trigger:
@@ -128,15 +147,8 @@ command /browse:
         loop 1000 times:
             set {browser::all::%loop-number%} to stone named "&7Item %loop-number%"
         open menu (the menu with id "browser") for player
-
-on menu open:
-    if the event-menu is the menu with id "browser":
+        # 开窗之后再填，不要写在 `on menu open` 里：那个事件跑的时候还没有窗口可写。
         fillBrowser(the menu window of player, 1)
-
-# 在翻页时填，而不是在箭头按钮里填：不管这一页是怎么翻过去的，内容都是对的。
-on page turn:
-    if the event-menu is the menu with id "browser":
-        fillBrowser(the menu window of player, the future page)
 
 on menu interact:
     set {_picked} to {browser::shown::%the menu list index%}
@@ -152,10 +164,11 @@ on menu interact:
   的格子清空，所以短的一页不需要额外代码。
 - `the menu list index` 是**1 基**的，点到的不是列表格时没有值。这就是"结果"和"上一页/下一页"共用一个
   事件的方式，见[填充菜单](filling-menus.zh-CN.md#列表页把一页填成一列物品)。
-- 在 `on page turn` 里填，而不是在箭头按钮的回调里填：按钮、别的脚本里的 `turn to page`、以后加的其它
-  入口都会经过这个事件；`the future page` 才是要去的那一页，它只在 `on page turn` 里有值，见
-  [事件](events.zh-CN.md)与[页面](pages.zh-CN.md)。页数在菜单创建时就固定了，搜索变短不会让页数
-  变少，这一点写在[尚未支持](not-supported-yet.zh-CN.md)。
+- 填的时机必须在**窗口或页面已经就位之后**，不要写在 `on menu open` 或 `on page turn` 里：前者跑的时候窗口
+  还不存在，后者跑在页面加载之前——在它们里面写列表，不是被拒绝就是被覆盖。这个浏览器的翻页入口只有两个箭头
+  和 `/browse`，所以填充也就写在这三处；如果别的脚本直接给这个菜单翻页，那里也得自己填，否则格子里一直是 key
+  被映射时那个图标。页数在菜单创建时就固定了，搜索变短不会让页数变少，这一点写在
+  [尚未支持](not-supported-yet.zh-CN.md)。
 
 ## 会记住东西的背包
 
@@ -165,8 +178,14 @@ on menu interact:
 
 ```skript
 on load:
-    # 没有冒号：菜单不需要段落，而一个没有内容的段落会让 Skript 在加载时警告。
-    create a static menu with chest inventory titled "&6Backpack" with layout "         " and "         " and "         " with id "backpack" with 0 ms click delay
+    # `build a menu` 是段落，第一行需要冒号；下面的属性就是它的内容，所以不存在"空段落"的警告。
+    build a menu {_menu}:
+        mode: static
+        inventory type: chest inventory
+        title: "&6Backpack"
+        layout: "         ", "         ", "         "
+        id: "backpack"
+        click delay: 0
 
 command /backpack:
     trigger:

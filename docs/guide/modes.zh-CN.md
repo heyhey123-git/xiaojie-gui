@@ -87,7 +87,14 @@ if the mode of {_menu} is "phantom":
 也不跑）—— 排查"点了没反应"时先看这个值。
 
 ```skript
-create a static menu with hopper inventory titled "StaticSelftest" with layout "AAAAA" with id "static_selftest" with 250 ms click delay without hide player inventory:
+build a menu {_menu}:
+    mode: static
+    inventory type: hopper inventory
+    title: "StaticSelftest"
+    layout: "AAAAA"
+    id: "static_selftest"
+    click delay: 250
+    hide player inventory: false
 ```
 
 读回来：`the minimum click delay of {_menu}`。

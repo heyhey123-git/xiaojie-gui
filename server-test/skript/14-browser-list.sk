@@ -2,8 +2,9 @@
 # whose result cells share one key, one call to fill a page, and one index to read a click back. Nothing here
 # needs to know how many items there are until the player looks at them.
 #
-# This file is parsed by `serverTest` on every run, so the recipe in `docs/guide/filling-menus.zh-CN.md`
-# cannot quietly stop parsing.
+# This file is parsed by `serverTest` on every run, so the recipe in `docs/guide/cookbook.zh-CN.md` cannot
+# quietly stop parsing. It also shows the timing that recipe warns about: a page is filled *after* it is
+# shown, because `on menu open` runs before there is a window and `on page turn` runs before the page loads.
 
 function browserPage(p: player, page: number):
     set {_window} to the menu window of {_p}
@@ -23,10 +24,13 @@ on load:
             set {_page} to the page of the menu window of player
             if {_page} is greater than 1:
                 turn to page {_page} - 1 for player
+                # After the turn: loading the page writes the key's own icons into these cells.
+                browserPage(player, {_page} - 1)
         map key "N" to icon arrow named "&eNext" for menu with id "browser" and when clicked:
             set {_page} to the page of the menu window of player
             if {_page} is less than the page number of the menu with id "browser":
                 turn to page {_page} + 1 for player
+                browserPage(player, {_page} + 1)
 
 command /browse:
     trigger:
@@ -36,16 +40,8 @@ command /browse:
             set {browser::all::%loop-number%} to stone named "&7Item %loop-number%"
         set {_menu} to the menu with id "browser"
         open menu {_menu} for player
-
-on menu open:
-    if the event-menu is the menu with id "browser":
+        # And after the open, for the same reason: the window does not exist while `on menu open` runs.
         browserPage(player, 1)
-
-# Filling on the page turn rather than in the button is what keeps the content right whichever way the page
-# was turned -- the button, `turn to page` from another script, or a future command.
-on page turn:
-    if the event-menu is the menu with id "browser":
-        browserPage(player, the future page)
 
 on menu interact:
     set {_index} to the menu list index

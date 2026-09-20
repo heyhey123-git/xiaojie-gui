@@ -20,7 +20,7 @@ number key was pressed, and — when the player swept over several slots — eve
 Two modes decide what is behind the window. [ICODE]phantom[/ICODE] is a window the addon draws itself with
 packets: the items in it are fixed and cannot be taken out, which is what a row of buttons wants.
 [ICODE]static[/ICODE] is a real inventory the server creates: items move, swap and drop the way they do in a
-chest, which is what a vault or a trade window wants. A menu that does not name a mode is [ICODE]phantom[/ICODE].
+chest, which is what a vault wants. A menu that does not name a mode is [ICODE]phantom[/ICODE].
 
 What it deliberately is not: it registers no commands and no permission nodes, so every entry point is a
 script of your own; it writes no config file, so there is no setup step before a menu works; and it is not a
@@ -43,7 +43,8 @@ than through the deprecated static calls.
 plugin does not enable at all.
 [*][B]SkBee[/B] is optional, and only needed to use a text component as a menu title. Without it a title is
 plain text with the usual [ICODE]&[/ICODE] colour codes; a value that is not a string is refused with a message
-that says what it could not convert.
+that says what it could not convert; where the syntax lets the title be left out, an unreadable value is
+ignored and the current title stays.
 [*][B]No commands and no permissions.[/B] Everything is a Skript element, so there is nothing to grant and
 nothing to type into chat.
 [*][B]No config file and no data folder.[/B] There are no options to set and no state to keep, so nothing is
@@ -66,27 +67,34 @@ repository, as the resource standards require.
 
 [B][SIZE=3]A script looks like this[/SIZE][/B]
 [CODE]on load:
-    create a phantom menu with chest inventory titled "&6Shop" with layout "#########" and "#A     B#" and "#   C   #" and "#########" with id "shop" with 100 ms click delay:
-        insert page 2 with layout "#########" and "#D     B#" and "#   E   #" and "#########" with title "&6Page two"
-        map key "A" to icon diamond named "&bDiamond" for menu with id "shop" and when clicked:
-            send "&aYou picked the diamond in slot %the clicked slot%." to player
-        map key "D" to icon emerald named "&aEmerald" for menu with id "shop" and when clicked:
-            send "&aYou picked the emerald in slot %the clicked slot%." to player
-        map key "B" to icon clock named "&eClose" for menu with id "shop" and when clicked:
-            close the menu for player
-        map key "C" to icon arrow named "&eNext page" for menu with id "shop" and when clicked:
-            turn to page 2 for player with new title "&6Page two"
-        map key "E" to icon arrow named "&ePrevious page" for menu with id "shop" and when clicked:
-            turn to page 1 for player with new title "&6Page one"
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6Shop"
+        layout: "#########", "#A     B#", "#   C   #", "#########"
+        id: "shop"
+        click delay: 100
+        edit:
+            insert page 2 with layout "#########" and "#D     B#" and "#   E   #" and "#########" with title "&6Page two"
+            map key "A" to icon diamond named "&bDiamond" for {_menu} and when clicked:
+                send "&aYou picked the diamond in slot %the clicked slot%." to player
+            map key "D" to icon emerald named "&aEmerald" for {_menu} and when clicked:
+                send "&aYou picked the emerald in slot %the clicked slot%." to player
+            map key "B" to icon clock named "&eClose" for {_menu} and when clicked:
+                close the menu for player
+            map key "C" to icon arrow named "&eNext page" for {_menu} and when clicked:
+                turn to page 2 for player with new title "&6Page two"
+            map key "E" to icon arrow named "&ePrevious page" for {_menu} and when clicked:
+                turn to page 1 for player with new title "&6Page one"
 
 command /shop:
     trigger:
         set {_menu} to the menu with id "shop"
         open menu {_menu} for player[/CODE]
-The first line builds the menu, and everything indented under it belongs to it: page 2 is added, then each
-character of a layout is tied to an item and, where a [ICODE]when clicked[/ICODE] section follows, to the code
-a click on it runs. The character [ICODE]B[/ICODE] appears in both layouts, so it is the close button on
-whichever page it is drawn. The command finds the menu by its id and opens it for whoever typed it.
+The first line builds the menu and stores it in [ICODE]{_menu}[/ICODE], and everything indented under it
+belongs to it: page 2 is added, then each character of a layout is tied to an item and, where a
+[ICODE]when clicked[/ICODE] section follows, to the code a click on it runs. The character [ICODE]B[/ICODE]
+appears in both layouts, so it is the close button on whichever page it is drawn. The command finds the menu
+by its id and opens it for whoever typed it.
 
 [B][SIZE=3]Features[/SIZE][/B]
 [LIST]
@@ -107,9 +115,10 @@ and carries [ICODE]the clicked slot[/ICODE], [ICODE]the clicked icon[/ICODE], [I
 Skript's own words, and [ICODE]the pressed number key[/ICODE] as 1 to 9, which is the one thing Skript's click
 type cannot tell apart. [ICODE]cancel event[/ICODE] refuses the interaction.
 [*][B]A drag is one interaction, not one per slot.[/B] A sweep across several slots fires the event once, with
-every slot it reached in [ICODE]the dragged slots[/ICODE] and the carried stack in [ICODE]the cursor item[/ICODE].
-A one-slot drag is delivered by the game itself as an ordinary click, so a script never has to tell the two
-apart, and cancelling refuses the whole sweep because the protocol cannot apply half of one.
+every slot it reached in [ICODE]the dragged slots[/ICODE] and — in a [ICODE]static[/ICODE] menu, the only one
+with a real cursor — the carried stack in [ICODE]the cursor item[/ICODE]. A one-slot drag is delivered by the
+game itself as an ordinary click, so a script never has to tell the two apart, and cancelling refuses the whole
+sweep because the protocol cannot apply half of one.
 [*][B]Two modes, one script.[/B] [ICODE]phantom[/ICODE] draws the window with packets and keeps its contents
 fixed, so nothing in it can be carried away; [ICODE]static[/ICODE] is a real server inventory whose items the
 player moves, swaps and drops as usual. The same menu code works in either mode, so changing the mode is not a
@@ -120,9 +129,10 @@ single call — extra items dropped, cells with nothing left cleared, the window
 cell — and [ICODE]the menu list index[/ICODE] says which result was clicked.
 [*][B]Slots can belong to the menu.[/B] [ICODE]with locked icons[/ICODE] makes the slots a layout gives an icon
 to the menu's own: no click, shift click, number key, offhand swap, drop or double-click collect can take from
-them or put anything in. The slots the layout leaves empty stay the player's, which is how a shop (icons) and a
-backpack (empty slots) are the same mechanism, and [ICODE]lock the icons of %menu%[/ICODE] flips the switch
-while the server runs.
+them or put anything in. A [ICODE]phantom[/ICODE] window cannot move anything anyway, so this is what a
+[ICODE]static[/ICODE] menu needs. The slots the layout leaves empty stay the player's, which is how a shop
+(icons) and a backpack (empty slots) are the same mechanism, and [ICODE]lock the icons of %menu%[/ICODE] flips
+the switch while the server runs.
 [*][B]The container types are Skript's own.[/B] A chest is sized by its layout, and the fixed windows are there
 too: hopper, dropper, dispenser, barrel, ender chest, shulker box, anvil, beacon, furnace, smoker, blast
 furnace, grindstone, smithing table, loom, cartography table, brewing stand, lectern, stonecutter, enchanting
@@ -198,7 +208,9 @@ one-line error rather than silence.
 [*][B]Close Menu Session[/B] is the same operation addressed by the window itself instead of by the player.
 [*][B]Destroy Menu[/B] throws a menu away, by value or by id. Anyone looking at it is closed out, a destroyed
 menu cannot be opened or changed again, and destroying one twice does nothing.
-[*][B]Hide Player Inventory[/B] hides or shows the half of the window below the container. Showing it is
+[*][B]Hide Player Inventory[/B] hides or shows the half of the window below the container, in a
+[ICODE]phantom[/ICODE] menu. A [ICODE]static[/ICODE] window always shows the player's own inventory, so there
+the keyword does nothing, and a static menu created with it gets a line in the console saying so. Showing it is
 refused, with a line saying so, for a menu whose page lays those rows out: those rows are the page's own space
 there.
 [*][B]Insert Page[/B] adds a page to a menu — at the end, or at a position — with its own layout, player layout
@@ -286,7 +298,8 @@ Player Inventory Hidden:
 [ICODE]destroy[/ICODE], or by a script reload, which destroys every menu. A destroyed menu cannot be opened,
 turned or changed.
 [*][B]Player Inventory Hidden[/B] reads the [ICODE]hide player inventory[/ICODE] flag, which a player layout
-sets as well. When the menu is not set the condition is false rather than an error.
+sets as well in a [ICODE]phantom[/ICODE] menu. When the menu is not set the condition is false rather than an
+error.
 [/LIST]
 
 [B]Expressions[/B] — a value, readable where a value goes
@@ -414,7 +427,8 @@ Slots of Key:
 [*][B]Clicked Icon[/B] is the item in the slot the player clicked, in [ICODE]on menu interact[/ICODE];
 [ICODE]the icon[/ICODE] is the same value under its older name.
 [*][B]Clicked Slot[/B] is the number of the slot the player clicked, counting from 0 at the container's top
-left. For a drag it is the first slot the sweep reached.
+left. For a drag it is the first slot the sweep reached in a [ICODE]phantom[/ICODE] menu and the lowest slot
+the sweep touched in a [ICODE]static[/ICODE] one.
 [*][B]Cursor Item[/B] is the stack the player was holding. It has a value in [ICODE]static[/ICODE] mode; in
 [ICODE]phantom[/ICODE] mode the window is the server's own and there is no real cursor, so it is nothing.
 [*][B]Default Layout[/B] is the layout a new page inherits when it is added without one. It can be read, set,
@@ -423,10 +437,12 @@ added to, removed from and reset like any other property.
 exist, and a value below 1 is clamped to 1.
 [*][B]Default Title[/B] is the title new pages are given, which is the value [ICODE]titled …[/ICODE] set. It is
 a string, or a component on a server with SkBee.
-[*][B]Dragged Slots[/B] is every slot a sweep reached, in ascending order. It is empty for a click and also for
-a one-slot drag, which the game delivers as an ordinary click.
+[*][B]Dragged Slots[/B] is every slot a sweep reached, in ascending order in a [ICODE]static[/ICODE] menu and
+in the order the drag reached them in a [ICODE]phantom[/ICODE] one. It is empty for a click and also for a
+one-slot drag, which the game delivers as an ordinary click.
 [*][B]Event Page[/B] is the page the event happened on; in [ICODE]on page turn[/ICODE] the future page is the
-page being turned to. In the other menu events there is no future page, so it is nothing.
+page being turned to. In [ICODE]on menu open[/ICODE] and [ICODE]on menu interact[/ICODE] there is no future
+page, so it is nothing.
 [*][B]Event Title[/B] is the title the page being turned to will have, in [ICODE]on page turn[/ICODE]. It can be
 set there, and it applies to that one turn only.
 [*][B]Get All Buttons[/B] is every button id that has been defined.
@@ -438,7 +454,8 @@ no key, and it can be set like a property.
 [*][B]Menu Click Type[/B] is the click the player made, as Skript's own click type, written and compared with
 the words [ICODE]on inventory click[/ICODE] uses. [ICODE]the event-clicktype[/ICODE] is the same value.
 [*][B]Menu Contents[/B] is everything a window's container holds, in slot order, with the empty slots left out.
-Only the container is read, because the lower half of a [ICODE]static[/ICODE] window belongs to the player.
+Only the container is read, in either mode: the rows below it are left out even where a [ICODE]phantom[/ICODE]
+menu owns them.
 [*][B]Menu Current Page[/B] is the page a player is on, read from their window.
 [*][B]Menu ID[/B] is the id a menu was created with. A menu created without one has no id to read.
 [*][B]Menu Inventory Type[/B] is the container type the menu was created with.
@@ -481,10 +498,11 @@ and [ICODE]cartography table inventory[/ICODE].
 [*][B]Dragging is handled.[/B] A drag used to reach the addon only when it happened to touch exactly one slot,
 which the game itself delivers as a click; a real sweep changed the window with [ICODE]on menu interact[/ICODE]
 never running, so a shop could not refuse it and a backpack could not see it. One drag is now one interaction,
-with every slot it reached in [ICODE]the dragged slots[/ICODE] and the carried stack in
-[ICODE]the cursor item[/ICODE], and [ICODE]cancel event[/ICODE] refuses all of it at once.
+with every slot it reached in [ICODE]the dragged slots[/ICODE] and, in a [ICODE]static[/ICODE] menu, the carried
+stack in [ICODE]the cursor item[/ICODE], and [ICODE]cancel event[/ICODE] refuses all of it at once.
 [*][B]Locked icons.[/B] The slots a layout gives an icon to can be made the menu's own, so nothing can be taken
-from them or put into them. The same switch can be flipped while the server runs with
+from them or put into them. It is a [ICODE]static[/ICODE] menu's switch — a [ICODE]phantom[/ICODE] window
+cannot move anything anyway. The same switch can be flipped while the server runs with
 [ICODE]lock the icons of %menu%[/ICODE] and [ICODE]unlock the icons of %menu%[/ICODE], and read back with the
 condition.
 [*][B]A page can be a list.[/B] Mapping a list of items to one key turns that key's slots into the page's result
@@ -492,8 +510,9 @@ cells, and [ICODE]set the menu list of %menusession% to %itemstacks%[/ICODE] fil
 [ICODE]the menu list index[/ICODE] then says which result was clicked, which is what makes an item browser a
 layout plus one call plus one number.
 [*][B][ICODE]player layout[/ICODE], and a window that can be read back.[/B] The layout of the rows below the
-container is what [ICODE]player inventory layout[/ICODE] is called now, and writing one hides the player's
-inventory, so that half belongs to the menu instead of quietly doing nothing. A window can be read back with
+container is what [ICODE]player inventory layout[/ICODE] is called now, and in a [ICODE]phantom[/ICODE] menu
+writing one hides the player's inventory, so that half belongs to the menu instead of quietly doing nothing; on
+a [ICODE]static[/ICODE] menu it warns once and changes nothing. A window can be read back with
 [ICODE]the occupied slots of %menusession%[/ICODE] and [ICODE]the menu contents of %menusession%[/ICODE], which
 together with the icon expression is how a backpack is saved on close and put back on open.
 [/LIST]

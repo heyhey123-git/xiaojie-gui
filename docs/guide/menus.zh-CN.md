@@ -80,7 +80,12 @@ create [a] [phantom|static] menu
 一个取消、右下角一个确认：
 
 ```skript
-create a static menu with chest inventory titled "&6Sell" with layout "         " and "         " and "C       " and "        S" with locked icons:
+build a menu {_menu}:
+    mode: static
+    inventory type: chest inventory
+    title: "&6Sell"
+    layout: "         ", "         ", "C       ", "        S"
+    locked icons: true
 ```
 
 这里只有 `C` / `S` 两个按钮被锁住；中间那些空格是收购区，玩家照常点击放入、也照常 **Shift 点击**把背包里的
@@ -92,8 +97,10 @@ create a static menu with chest inventory titled "&6Sell" with layout "         
 - **双击收集**：它会从所有格子里把同类物品收走，所以只有**菜单自己的格子确实持有该物品**时才拒绝。
 - 其它操作（普通点击、右键、数字键、丢出……）不会碰到容器，全部放行。
 
-幽灵菜单是另一回事：那边整个窗口本来就是服务端画的，本来就什么都动不了，`locked icons` 在那里只表示
-"这些格子不是给你放东西的地方"。
+幽灵菜单是另一回事：那个窗口完全是服务端自己画的，任何可能移动物品的点击都会在脚本看到这次交互之前被插件
+自己撤销。所以 `locked icons` 在那里**不保护任何东西**——写它只改变 `if the icons of {_menu} are locked`
+的返回值，那份状态脚本可以读，但幽灵菜单用不上。这个开关是给 `static` 菜单的，插件也会这么说：给幽灵菜单写
+`with locked icons`、或者对它调 `lock the icons of %menu%`，都会收到一句"在那里不起作用"。
 
 要在**运行时**开关这个开关，用 `lock the icons of %menu%` / `unlock the icons of %menu%`，读它的状态用
 `if the icons of {_menu} are locked:`。它和创建时那个 `with locked icons` 是同一个开关，改完对**下一次**

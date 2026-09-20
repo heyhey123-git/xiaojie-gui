@@ -59,8 +59,8 @@ Spigot.
   to think about: keep one page and swap its contents with `override slot` / `map key` if that is all you
   want.
 
-`update title of page N …` is meant to retitle what the players looking at page N see. It currently
-retitles the window of every viewer of the menu, whichever page they are on — see Known issues.
+`update title of page N …` retitles what the players looking at page N see; a player on another page of the
+menu is left alone.
 
 ### Naming a menu in a syntax
 
@@ -133,8 +133,8 @@ anywhere else, but the addon registers the property for its own event, so the pl
 here.
 
 The addon's own event values are written the way a script says them, with no `event-` prefix — `the
-clicked slot`, `the clicked icon`, `the page`, `the pressed number key` — and the `event-` forms stay as
-aliases for scripts that already used them.
+clicked slot`, `the clicked icon`, `the page`, `the pressed number key` — and the `event-` forms that existed
+stay as aliases for scripts that already used them.
 
 One thing Skript's click type cannot carry is *which* number key was pressed: all nine of them arrive as
 the single `number key`. That is what the addon's nine `NUMBER_KEY_*` types are for, so the digit is
@@ -153,10 +153,11 @@ what a menu needs to use the keys as shortcuts.
 
 `enable-async-check` and `force-truecolor` are gone, and so is the `config.yml` they lived in. The plugin
 has no commands, no permission nodes and no options, so it writes no file into `plugins/xiaojie-gui/`:
-what is there is what a script put there. The main-thread check cannot be turned off, because a menu
-operation on an asynchronous thread is never legal, and the banner asks the console whether it can print
-colour instead of being told. Both are described in `docs/guide/how-it-works.md` now, and
-`docs/guide/not-supported-yet.md` lists the missing config file with everything else the plugin does not have.
+what is there is what a script or a server owner's language file put there. The main-thread check cannot
+be turned off, because a menu operation on an asynchronous thread is never legal, and the banner asks the
+console whether it can print colour instead of being told. Both are described in
+`docs/guide/how-it-works.md` now, and `docs/guide/not-supported-yet.md` lists the missing config file with
+everything else the plugin does not have.
 
 ### Behaviour that users can see
 
@@ -193,10 +194,10 @@ colour instead of being told. Both are described in `docs/guide/how-it-works.md`
 - Dragging works. A drag used to reach the addon only when it happened to touch a single slot, which the
   game itself delivers as a click; a real drag, the kind that spreads a stack over several slots, changed
   the window with `on menu interact` never running, so a shop could not refuse it and a backpack could not
-  see it. A drag is now one interaction, with every slot it reached in `the dragged slots` and the stack
-  the player carried in `the cursor item`, and `cancel event` refuses all of it at once — the protocol
-  cannot apply half a drag. Every detail, including why a drag can only put items and never take them, is
-  in the new wiki page *How drags work*.
+  see it. A drag is now one interaction, with every slot it reached in `the dragged slots` and — in a
+  `static` menu, the only one with a real cursor — the stack the player carried in `the cursor item`, and
+  `cancel event` refuses all of it at once — the protocol cannot apply half a drag. Every detail, including
+  why a drag can only put items and never take them, is in the new wiki page *How drags work*.
 - A click in the player's own half of a `static` window is reported with the window slot the client used.
   The old number was relative to that half, so it named a container slot the player never touched and ran
   a callback for it.
@@ -211,7 +212,8 @@ colour instead of being told. Both are described in `docs/guide/how-it-works.md`
   is the only one that changed.
 - `with locked icons` (and `locked icons: true` in `build a menu`) makes the slots a layout gives an icon
   to the menu's own: no click, shift click, number key, offhand swap, drop or double-click collect can take
-  from them or put anything into them, and a drag that touches one is refused as a whole. The empty slots
+  from them or put anything into them, and a drag that touches one is refused as a whole. It is a `static`
+  menu's switch: a `phantom` window cannot move anything anyway. The empty slots
   stay the player's, so a shop and a backpack are the same mechanism, and a lock does not stop a slot
   callback: a shop's "buy" callback still fires while the goods stay exactly where they are. `override
   slot` counts as the menu's furniture and `set icon in slot N of {_session}` as that player's own content,
@@ -238,7 +240,7 @@ colour instead of being told. Both are described in `docs/guide/how-it-works.md`
   two things a browser still cannot do (a page count that shrinks, and typing inside a window) are written
   down in the guide instead.
 - What a player has open is called a **window** in everything a script reads: `the menu window of player`,
-  and `the event-menu window` inside a menu event. `the menu session of player` and `session` still parse and mean the
+  and `the event-menu window` inside a menu event. `the menu session of player` still parses and means the
   same thing, so no script has to change, and the type's own description no longer reads like a database
   manual. The guide's page on it now opens by saying what a window is -- and that most scripts never name
   one, with a table of the things that need it and the many that do not.
@@ -274,6 +276,10 @@ colour instead of being told. Both are described in `docs/guide/how-it-works.md`
   world -- and it fires while the container is still there. Those three paths used to drop the window in
   silence, so a backpack that saves on close lost everything a player was carrying when he left; a unit test
   now pins that order for all four paths.
+- Two switches that can do nothing where they are written now say so. `with locked icons` on a `phantom` menu
+  warns that nothing in that window can move, so there is nothing to lock, and `hide player inventory of
+  %menu%` on a static menu warns the way the creation-time keyword already did. Both still store the value --
+  a script may read it back -- and what the warning stops is a script believing the window changed.
 
 ### Known issues
 
@@ -288,8 +294,9 @@ colour instead of being told. Both are described in `docs/guide/how-it-works.md`
   be: Minecraft has no menu for them (Bukkit's inventory types for them have no menu type and cannot be
   created), so there is no window to draw. `create menu` reports `Unsupported inventory type` rather than
   guessing a menu shape.
-- `insert page` and `with page` are the only ways to create a page; there is no declarative page block.
-  A page is a layout plus a title, and that is deliberate.
+- `insert page` is the only way to add a page, and the layout given to `create menu` is shorthand for the
+  first one; `with page` only chooses which page `open menu` shows first. There is no third way to describe a
+  page: it is a layout plus a title, and that is deliberate.
 
 ### Reliability
 

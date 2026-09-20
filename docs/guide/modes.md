@@ -96,7 +96,14 @@ that comes too early is **silently dropped** (the event does not fire and the sl
 run) — when you are chasing "I clicked and nothing happened", look at this value first.
 
 ```skript
-create a static menu with hopper inventory titled "StaticSelftest" with layout "AAAAA" with id "static_selftest" with 250 ms click delay without hide player inventory:
+build a menu {_menu}:
+    mode: static
+    inventory type: hopper inventory
+    title: "StaticSelftest"
+    layout: "AAAAA"
+    id: "static_selftest"
+    click delay: 250
+    hide player inventory: false
 ```
 
 Reading it back: `the minimum click delay of {_menu}`.

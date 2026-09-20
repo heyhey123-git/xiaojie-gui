@@ -111,16 +111,21 @@ return player-owned items explicitly before closing a storage menu.
 
 ```skript
 on load:
-    create a phantom menu with chest inventory titled "&6Shop" with layout "#########" and "#AAAAAAA#" and "#########" with id "shop":
-        insert page 2 with layout "#########" and "#BBBBBBB#" and "#########" with title "&6Second Page"
-        map key "A" to icon diamond named "&bPage one item" for {_menu}
-        map key "B" to icon emerald named "&aPage two item" for {_menu}
-        map key ">" to icon arrow named "&eNext page" for {_menu} and when clicked:
-            if the page is less than the page number of {_menu}:
-                turn to page (the page + 1) for player
-        map key "<" to icon arrow named "&ePrevious page" for {_menu} and when clicked:
-            if the page is greater than 1:
-                turn to page (the page - 1) for player
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6Shop"
+        layout: "#########", "#AAAAAAA#", "#########"
+        id: "shop"
+        edit:
+            insert page 2 with layout "#########", "#BBBBBBB#", "#########" with title "&6Second Page"
+            map key "A" to icon diamond named "&bPage one item" for {_menu}
+            map key "B" to icon emerald named "&aPage two item" for {_menu}
+            map key ">" to icon arrow named "&eNext page" for {_menu} and when clicked:
+                if the page is less than the page number of {_menu}:
+                    turn to page (the page + 1) for player
+            map key "<" to icon arrow named "&ePrevious page" for {_menu} and when clicked:
+                if the page is greater than 1:
+                    turn to page (the page - 1) for player
 
 command /shop:
     trigger:
@@ -162,8 +167,14 @@ its own icons there and a click on one of them arrives like any other click; a m
 showing the player's own items.
 
 ```skript
-create a phantom menu with chest inventory titled "&6Backpack" with layout "AAA      " and "AAA      " and "AAA      " with player layout "B        " and "         " and "         " and "         " with id "backpack":
-    map key "B" to icon chest named "&eYour bag" for menu with id "backpack"
+build a menu {_menu}:
+    inventory type: chest inventory
+    title: "&6Backpack"
+    layout: "AAA      ", "AAA      ", "AAA      "
+    player layout: "B        ", "         ", "         ", "         "
+    id: "backpack"
+    edit:
+        map key "B" to icon chest named "&eYour bag" for {_menu}
 ```
 
 The half belongs to the menu rather than to a page — the player's inventory is either there or it is not —

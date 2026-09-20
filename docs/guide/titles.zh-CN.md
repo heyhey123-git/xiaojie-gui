@@ -81,7 +81,8 @@ create a phantom menu with chest inventory titled {_title} with layout "########
 | 直接改值 | `set the title of page 1 in {_menu} to "…"` | 只改模型，不主动推送 |
 
 `update title of page N …` **只会**给正在看第 N 页的玩家换标题；在第 2 页的人看到的一直是第 2 页的标题，
-不会被别人的页标题覆盖。想立刻看到效果就加 `and refresh`，否则要等下一次刷新或翻页。
+不会被别人的页标题覆盖。想立刻看到效果就加 `and refresh`；不加的话新标题要等下一次翻页，因为 `refresh`
+重发的是窗口的内容，不是它的标题。
 
 `on page turn` 里还有一个 `the title`：那是"即将翻到的那一页的标题"，在事件里**可以设置**，只对这一次
 翻页生效：

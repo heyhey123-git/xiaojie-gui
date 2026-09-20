@@ -19,11 +19,16 @@ load** the plugin outright, rather than loading it and then failing with strange
 
 ```skript
 on load:
-    create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########" and "#  A  B #" and "#########" with id "main":
-        map key "A" to icon diamond named "&bSay hello" for menu with id "main" and when clicked:
-            send "Hello!" to player
-        map key "B" to icon clock named "&eClose" for menu with id "main" and when clicked:
-            close the menu for player
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6Main Menu"
+        layout: "#########", "#  A  B #", "#########"
+        id: "main"
+        edit:
+            map key "A" to icon diamond named "&bSay hello" for {_menu} and when clicked:
+                send "Hello!" to player
+            map key "B" to icon clock named "&eClose" for {_menu} and when clicked:
+                close the menu for player
 
 command /menu:
     trigger:
@@ -33,10 +38,10 @@ command /menu:
 
 This script does four things:
 
-- `create a phantom menu … with layout …` creates a menu, and **every character in a layout string is
-  one slot**.
+- `build a menu {_menu}:` creates a menu, **stores it in `{_menu}`**, and **every character in a layout
+  string is one slot**.
 - `map key "A" to icon …` ties the character `A` in the layout to an item; `key` is that character.
-- The section under `for menu with id "main" and when clicked:` is the code that runs when this icon is
+- The section under `for {_menu} and when clicked:` is the code that runs when this icon is
   clicked.
 - `open menu {_menu} for player` sends the menu to the player.
 

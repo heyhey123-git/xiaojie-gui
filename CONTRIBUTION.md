@@ -104,7 +104,8 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
   before they want more than one.
 - A layout's `slotRange` is the set of slots the **client** draws for the window that layout opens, so it
   has to equal the size of the layout's `InventoryType`, with the player's 27 main slots and 9 hotbar
-  slots right after it. A range that is off by one does not raise anything: it moves everything in the
+  slots right after it — the lectern is the one client menu with no player inventory, so its layout carries
+  no player half. A range that is off by one does not raise anything: it moves everything in the
   player's inventory and every click in the window by a slot. `ViewLayoutTest` holds each layout to
   Bukkit's own size for its type, and a container type Minecraft has no menu for cannot become a layout.
 - Runtime diagnostics use `Skript.warning`/quiet no-ops, not the parse-time `Skript.error`.
@@ -123,10 +124,10 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
   script author reads about it.
 - User-facing words come from the game, not from this addon's model. What a player has open is a **window**
   (Bukkit's `InventoryView`), not a "session"; what is behind it is an inventory, not a "receptacle". The
-  type name `menusession` and the word `session` still parse and mean the same thing, and the guide teaches
-  `window`. When a concept can only be said with our own word, that is the signal it needed one: `the dragged
-  slots` earned its name that way, while `phantom` and `static` are the two things a script must choose
-  between, so they stay.
+  type name `menusession` and the word `session` in `the menu session of player` still parse and mean the
+  same thing, and the guide teaches `window`. When a concept can only be said with our own word, that is the
+  signal it needed one: `the dragged slots` earned its name that way, while `phantom` and `static` are the two
+  things a script must choose between, so they stay.
 - **A keyword has one meaning, and it does not become another one because of state.** If a keyword can only
   work while some other switch is set, then that switch is part of it and the keyword sets it: `player
   layout` names the rows below the container, and those rows are the menu's only while the player's

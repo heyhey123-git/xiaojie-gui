@@ -104,7 +104,8 @@ The details that matter:
   invention and there is no real stack in the player's hand.
 - **Slot numbers are window slots**: `0` is the top left of the container, and the player's 27 inventory
   slots and 9 hotbar slots follow it, in both modes. In `static` mode the player's half of the window is
-  not the menu's (it holds the player's own items), so putting icons there does nothing.
+  not the menu's (it holds the player's own items), so a script cannot put icons there: the write is
+  refused with a sentence saying so.
 
 ## What a drag means in phantom mode
 

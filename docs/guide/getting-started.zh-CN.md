@@ -18,11 +18,16 @@
 
 ```skript
 on load:
-    create a phantom menu with chest inventory titled "&6主菜单" with layout "#########" and "#  A  B #" and "#########" with id "main":
-        map key "A" to icon diamond named "&b打个招呼" for menu with id "main" and when clicked:
-            send "你好！" to player
-        map key "B" to icon clock named "&e关闭" for menu with id "main" and when clicked:
-            close the menu for player
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6主菜单"
+        layout: "#########", "#  A  B #", "#########"
+        id: "main"
+        edit:
+            map key "A" to icon diamond named "&b打个招呼" for {_menu} and when clicked:
+                send "你好！" to player
+            map key "B" to icon clock named "&e关闭" for {_menu} and when clicked:
+                close the menu for player
 
 command /menu:
     trigger:
@@ -32,9 +37,9 @@ command /menu:
 
 这段脚本做四件事：
 
-- `create a phantom menu … with layout …` 建出一个菜单，**布局字符串里的每个字符就是一个格子**。
+- `build a menu {_menu}:` 建出一个菜单、**把它存进 `{_menu}`**，并且**布局字符串里的每个字符就是一个格子**。
 - `map key "A" to icon …` 把布局里的字符 `A` 和一件物品绑起来，`key` 就是那个字符。
-- `for menu with id "main" and when clicked:` 里的段落是这个图标被点击时执行的代码。
+- `for {_menu} and when clicked:` 里的段落是这个图标被点击时执行的代码。
 - `open menu {_menu} for player` 把菜单发给玩家。
 
 `with id "main"` 给菜单起了一个名字，之后可以用 `the menu with id "main"` 找回来。**没有 id 的菜单

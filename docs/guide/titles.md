@@ -86,7 +86,8 @@ Without SkBee, anything other than a string is not a title: `titled {_someItem}`
 
 `update title of page N …` **only** retitles the players who are looking at page N; someone on page 2
 keeps seeing page 2's title and is not overwritten by another page's title. Add `and refresh` to see
-the effect immediately, otherwise it waits for the next refresh or page turn.
+the effect immediately; without it the new title waits for the next page turn, because a `refresh`
+re-sends the window's contents and not its title.
 
 There is also a `the title` in `on page turn`: it is "the title of the page being turned to", it **can
 be set** in the event, and it applies to this one turn only:

@@ -10,16 +10,18 @@ inventories. Before, these reported "Unsupported inventory type" because no layo
 [*]Dragging is handled. A drag used to reach the addon only when it happened to touch exactly one slot;
 a real drag changed the window with "on menu interact" never running, so a shop could not refuse it and a
 backpack could not see it. Now one drag is one interaction, with every slot it reached in "the dragged
-slots" and the carried stack in "the cursor item", and "cancel event" refuses all of it at once.
+slots" and -- in a static menu, the only one with a real cursor -- the carried stack in "the cursor
+item", and "cancel event" refuses all of it at once.
 [*]Locked icons: a layout's icon slots can be made the menu's own, so no click, shift click, number key,
 offhand swap, drop or double-click collect can take from them or put anything in, and a drag touching one
-is refused as a whole. A slot callback still fires, which is how a shop keeps its goods in place.
+is refused as a whole. It is a static menu's switch: a phantom window cannot move anything anyway. A slot
+callback still fires, which is how a shop keeps its goods in place.
 [*]A page can be a list. Map a list of items to one key and fill it for one player with a single call --
 extra items are dropped, leftover cells cleared, and the window updates once instead of once per cell.
 "the menu list index" tells you which result was clicked.
 [*]Menus that hide the player inventory can give those rows to the menu. "player layout" is what
-"player inventory layout" is called now, and writing it hides that half, so the layout can no longer
-quietly do nothing.
+"player inventory layout" is called now, and in a phantom menu writing it hides that half, so the layout
+can no longer quietly do nothing; on a static menu it warns once and changes nothing.
 [/LIST]
 
 [B]Changed[/B]
@@ -73,15 +75,16 @@ https://github.com/heyhey123-git/xiaojie-gui
 菜单了。以前它们会报 "Unsupported inventory type"，因为没有对应的布局。
 [*]拖拽被真正处理了。以前只有恰好扫过一格的拖拽能被插件看到；一次真正的拖拽会在没有任何
 "on menu interact" 的情况下改变窗口，商店拦不住，背包也看不到。现在一次拖拽就是一次交互，
-"the dragged slots" 是它扫过的所有格子，"the cursor item" 是玩家带进来的那一叠，
-"cancel event" 一次性拒绝整次拖拽。
+"the dragged slots" 是它扫过的所有格子，"the cursor item" 是玩家带进来的那一叠（只有 static 菜单
+有真正的光标，phantom 窗口没有），"cancel event" 一次性拒绝整次拖拽。
 [*]锁定图标：可以让布局里有图标的格子变成菜单自己的，点击、Shift 点击、数字键、副手交换、丢出、
-双击收集都拿不走也放不进，碰到这些格子的拖拽整次拒绝。格子回调照常触发，商店的商品因此可以
-原地不动。
+双击收集都拿不走也放不进，碰到这些格子的拖拽整次拒绝。这是 static 菜单的开关：phantom 窗口本来
+就什么都动不了。格子回调照常触发，商店的商品因此可以原地不动。
 [*]一页可以做成列表页。把一个列表映射给一个 key，然后为某个玩家一次填好：多余物品丢掉，
 没填满的格子清空，窗口只更新一次而不是每格一次。点到第几个结果用 "the menu list index" 读。
 [*]隐藏玩家背包的菜单可以把那几行收归菜单自己。原来的 "player inventory layout" 现在叫
-"player layout"，而且写上它就会隐藏那半场，所以布局不会再悄悄不生效。
+"player layout"，在 phantom 菜单里写上它就会隐藏那半场，所以布局不会再悄悄不生效；在 static
+菜单上写它则会警告一句、什么也不变。
 [/LIST]
 
 [B]变更[/B]

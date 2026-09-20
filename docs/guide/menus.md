@@ -88,7 +88,12 @@ buying shop: the player puts what they are selling into the container, with a ca
 the bottom row and a confirm button on the right:
 
 ```skript
-create a static menu with chest inventory titled "&6Sell" with layout "         " and "         " and "C       " and "        S" with locked icons:
+build a menu {_menu}:
+    mode: static
+    inventory type: chest inventory
+    title: "&6Sell"
+    layout: "         ", "         ", "C       ", "        S"
+    locked icons: true
 ```
 
 Only `C` and `S` are locked here. The empty slots in between are the buying area: the player clicks items
@@ -104,8 +109,12 @@ in, and **shift clicks** a whole stack in from their backpack, as usual. The dec
 - everything else (a plain click, a right click, a number key, a drop, ...) touches nothing in the
   container and is allowed.
 
-Phantom mode is a different story: that window is the server's own invention and nothing can move in it
-anyway, so `locked icons` there only says "these slots are not somewhere to put things".
+Phantom mode is a different story: that window is the server's own invention, and every click that could move
+an item in it is undone by the addon before a script sees the interaction. `locked icons` protects nothing
+there -- writing it changes only what `if the icons of {_menu} are locked` reports, which is state a script
+may read but a phantom menu has no use for. The flag is for `static` menus, and the addon says so: creating a
+phantom menu `with locked icons`, or calling `lock the icons of %menu%` on one, reports once that it does
+nothing there.
 
 To flip that switch **at runtime**, use `lock the icons of %menu%` / `unlock the icons of %menu%`, and read
 it with `if the icons of {_menu} are locked:`. It is the same switch the creation-time `with locked icons`

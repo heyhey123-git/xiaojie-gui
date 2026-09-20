@@ -35,7 +35,8 @@ map key "special_item" to item diamond named "Special Item" for menu {_menu} and
 - 不写 `for …` 时，菜单来自当前事件（`create menu` 段落体、`edit menu` 段落体、任何菜单事件）。
   事件之外必须写出来。
 - 不写 `on page …` 时，作用范围是**所有页**，包括之后用 `insert page` 加进来的页。
-- `and refresh` 立刻把改动推给正在看的玩家。不写的话，改动只在下次刷新/翻页时出现。
+- `and refresh` 立刻把改动推给正在看的玩家。不写的话，`phantom` 菜单要等下次刷新/翻页才会出现；`static`
+  菜单本来就会显示，因为改动落进了真实物品栏。
 - `and when clicked` 要求你**必须**跟一段段落，否则注册时就会报
   `You must provide a section to handle the click event when using 'and when clicked'.`
 
@@ -45,10 +46,15 @@ map key "special_item" to item diamond named "Special Item" for menu {_menu} and
 key 的格子就是这一页的列表格，按布局顺序：
 
 ```skript
-create a phantom menu with chest inventory titled "&6物品浏览器" with layout "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "  P   N  " with id "browser":
-    map key "L" to icon {results::*} for menu with id "browser"
-    map key "P" to icon arrow named "&e上一页" for menu with id "browser"
-    map key "N" to icon arrow named "&e下一页" for menu with id "browser"
+build a menu {_menu}:
+    inventory type: chest inventory
+    title: "&6物品浏览器"
+    layout: "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "  P   N  "
+    id: "browser"
+    edit:
+        map key "L" to icon {results::*} for {_menu}
+        map key "P" to icon arrow named "&e上一页" for {_menu}
+        map key "N" to icon arrow named "&e下一页" for {_menu}
 ```
 
 然后每个玩家各自填内容，**一次调用**：
@@ -108,11 +114,16 @@ override slot 10 in page 1 to diamond named "Clicked Item" for menu with id "mai
 回调跟着那条映射走，只在**那个字符的格子**或**那个格子**上触发：
 
 ```skript
-create a phantom menu with chest inventory titled "Main Menu" with layout "AAA" and "ABA" and "AAA" with id "main_menu":
-    map key "A" to icon stone for {_menu} and when clicked:
-        send "你点了 A 区域。" to player
-    override slot 4 in page 1 to diamond named "中间" for {_menu} and when clicked:
-        send "你点了中间。" to player
+build a menu {_menu}:
+    inventory type: chest inventory
+    title: "Main Menu"
+    layout: "AAA", "ABA", "AAA"
+    id: "main_menu"
+    edit:
+        map key "A" to icon stone for {_menu} and when clicked:
+            send "你点了 A 区域。" to player
+        override slot 4 in page 1 to diamond named "中间" for {_menu} and when clicked:
+            send "你点了中间。" to player
 ```
 
 ### 二、`when … clicked` 段落，单独给格子挂回调
@@ -145,8 +156,13 @@ define button "my_button":
         send "You clicked the button!" to player
 
 on load:
-    create a phantom menu with chest inventory titled "&6菜单" with layout "#####" and "# A #" and "#####" with id "main":
-        map key "A" to button "my_button" for {_menu}
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6菜单"
+        layout: "#####", "# A #", "#####"
+        id: "main"
+        edit:
+            map key "A" to button "my_button" for {_menu}
 ```
 
 `define button %string%` 的 `icon:` 是必需的，`when clicked:` 也是必需的。同 id 再定义一次会**覆盖**
@@ -181,8 +197,9 @@ on menu interact:
     override slot 4 in page 1 to (the clicked icon) for the menu and refresh
 ```
 
-不带 `and refresh` 时改动只进了模型，屏幕上还是旧的。**给别人看的**和**给自己看的**区别就在这个
-标志上：`and refresh` 会刷新**所有正在看这一页的玩家**的对应格子。
+`phantom` 菜单里，不带 `and refresh` 时改动只进了模型，屏幕上还是旧的；`static` 菜单里改动已经落在真实
+物品栏上，屏幕两种情况都会显示。**给别人看的**和**给自己看的**区别就在这个标志上：`and refresh` 会刷新
+**所有正在看这一页的玩家**的对应格子。
 
 如果只想改**某个玩家**的窗口（例如给他自己显示一个高亮），用**窗口**的图标，见
 [窗口](windows.zh-CN.md)：

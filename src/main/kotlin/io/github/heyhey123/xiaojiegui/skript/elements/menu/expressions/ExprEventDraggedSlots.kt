@@ -15,10 +15,11 @@ import org.skriptlang.skript.addon.SkriptAddon
 
 @Name("Dragged Slots")
 @Description(
-    "The slots a drag touched, in `on menu interact`, in ascending order.",
-    "It is empty for a click, and it is also empty for a drag that only touched one slot: the game hands",
-    "that one over as an ordinary click, so a script is never asked to tell the two apart. `on menu interact`",
-    "runs once per touched slot, so this is what says that those runs were one drag."
+    "The slots a drag touched, in `on menu interact`: ascending in a static menu, and in the order the drag",
+    "reached them in a phantom one. It is empty for a click, and it is also empty for a drag that only",
+    "touched one slot: the game hands that one over as an ordinary click, so a script is never asked to tell",
+    "the two apart. One interaction is one event however many slots it touched, so this is what says which",
+    "slots that one event was about; per-slot callbacks run once per slot."
 )
 @Examples(
     "on menu interact:",

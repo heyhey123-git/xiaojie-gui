@@ -166,16 +166,16 @@ anything:
 Everything after that happens in one fixed order, which is worth knowing because it explains two
 surprises:
 
-1. **the client's prediction is repaired** (see the previous section -- this runs even if the rest of the
-   interaction is going to be refused);
+1. **in `phantom`, the client's prediction is repaired** (see the previous section -- this runs even if the
+   rest of the interaction is going to be refused; in `static` there is nothing to put back);
 2. **the click cooldown is asked**. If the gap since this player's last accepted click is smaller than
    `click delay`, the interaction is **silently dropped**: no event, no slot callbacks, no message. The
    default is 50 ms for `create menu` and 5 ms for `build a menu`;
 3. **the slot callbacks run**, one per slot the interaction touched (for a drag, one per slot it reached);
 4. **`on menu interact` fires** -- after the callbacks, so a `cancel event` there refuses the interaction
    but cannot un-run a callback that has already fired;
-5. **`locked icons` is applied last**, which is why a shop's "buy" callback fires while the goods stay
-   exactly where they are.
+5. **`locked icons` is applied last**, which is why in a `static` menu a shop's "buy" callback fires while
+   the goods stay exactly where they are (a `phantom` window cannot move them either way).
 
 `the click type` is **Skript's own click type**, with Skript's words (`left mouse button`, `number key`,
 `drop key`, `swap offhand key`, …) and its literals; `the event-clicktype` is the same value. The one thing
@@ -218,11 +218,13 @@ which is why a layout whose slot range is one short does not fail but shifts eve
 lectern is the single exception: its client menu is one slot with no player half at all, so its layout
 carries none, and the content packet is exactly the length the client's menu accepts.)
 
-Within the container, the slots a page gives an icon to are the page's own -- the layout's keys plus what
-`override slot` wrote. That set is what `with locked icons` protects: no click, shift click, number key,
-offhand swap, drop or double-click collect can take from those slots or put anything into them, and a drag
-that touches one is refused as a whole. The slots a layout leaves **empty** stay free, which is what makes
-a shop (icons that are the menu's) and a backpack (empty slots that are the player's) the same mechanism.
+Within the container, the slots a page gives an icon to are the slots the page owns -- the layout's keys
+plus what `override slot` wrote. In a `static` menu, that set is what `with locked icons` protects: no
+click, shift click, number key, offhand swap, drop or double-click collect can take from those slots or put
+anything into them, and a drag that touches one is refused as a whole. In `phantom` the flag protects
+nothing, because nothing in that window can move in the first place. The slots a layout leaves **empty**
+stay free, which is what makes a shop (icons that are the menu's) and a backpack (empty slots that are the
+player's) the same mechanism.
 
 The lower half is decided by mode and by `hide player inventory`:
 

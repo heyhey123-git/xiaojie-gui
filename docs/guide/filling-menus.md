@@ -36,8 +36,9 @@ map key "special_item" to item diamond named "Special Item" for menu {_menu} and
 - Without `for …` the menu comes from the current event (a `create menu` section body, an `edit menu`
   section body, any menu event). Outside an event it has to be written out.
 - Without `on page …` the scope is **every page**, including pages added later with `insert page`.
-- `and refresh` pushes the change to the players who are watching right away. Without it, the change
-  only shows up on the next refresh or page turn.
+- `and refresh` pushes the change to the players who are watching right away. Without it, a `phantom` menu
+  only shows the change on the next refresh or page turn; a `static` menu shows it anyway, because the
+  change is a real item in the real inventory.
 - `and when clicked` **requires** a section body, otherwise registration reports
   `You must provide a section to handle the click event when using 'and when clicked'.`
 
@@ -48,10 +49,15 @@ do that is to **map a list of items to one key**: the cells of that key are the 
 order:
 
 ```skript
-create a phantom menu with chest inventory titled "&6Item browser" with layout "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "  P   N  " with id "browser":
-    map key "L" to icon {results::*} for menu with id "browser"
-    map key "P" to icon arrow named "&ePrevious" for menu with id "browser"
-    map key "N" to icon arrow named "&eNext" for menu with id "browser"
+build a menu {_menu}:
+    inventory type: chest inventory
+    title: "&6Item browser"
+    layout: "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "  P   N  "
+    id: "browser"
+    edit:
+        map key "L" to icon {results::*} for {_menu}
+        map key "P" to icon arrow named "&ePrevious" for {_menu}
+        map key "N" to icon arrow named "&eNext" for {_menu}
 ```
 
 Every player then fills their own page with **one call**:
@@ -115,11 +121,16 @@ override slot 10 in page 1 to diamond named "Clicked Item" for menu with id "mai
 The callback goes with that mapping and fires only on **the slots of that character** or **that slot**:
 
 ```skript
-create a phantom menu with chest inventory titled "Main Menu" with layout "AAA" and "ABA" and "AAA" with id "main_menu":
-    map key "A" to icon stone for {_menu} and when clicked:
-        send "You clicked an A slot." to player
-    override slot 4 in page 1 to diamond named "Middle" for {_menu} and when clicked:
-        send "You clicked the middle." to player
+build a menu {_menu}:
+    inventory type: chest inventory
+    title: "Main Menu"
+    layout: "AAA", "ABA", "AAA"
+    id: "main_menu"
+    edit:
+        map key "A" to icon stone for {_menu} and when clicked:
+            send "You clicked an A slot." to player
+        override slot 4 in page 1 to diamond named "Middle" for {_menu} and when clicked:
+            send "You clicked the middle." to player
 ```
 
 ### Two: a `when … clicked` section, attaching a callback to a slot on its own
@@ -153,8 +164,13 @@ define button "my_button":
         send "You clicked the button!" to player
 
 on load:
-    create a phantom menu with chest inventory titled "&6Menu" with layout "#####" and "# A #" and "#####" with id "main":
-        map key "A" to button "my_button" for {_menu}
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6Menu"
+        layout: "#####", "# A #", "#####"
+        id: "main"
+        edit:
+            map key "A" to button "my_button" for {_menu}
 ```
 
 In `define button %string%`, both `icon:` and `when clicked:` are required. Defining the same id again
@@ -192,9 +208,10 @@ on menu interact:
     override slot 4 in page 1 to (the clicked icon) for the menu and refresh
 ```
 
-Without `and refresh` the change only goes into the model, and the screen still shows the old contents.
-This flag is exactly the difference between **what others see** and **what you see**: `and refresh`
-refreshes the matching slots for **every player currently looking at that page**.
+In a `phantom` menu, without `and refresh` the change only goes into the model, and the screen still shows
+the old contents; in a `static` menu the change is already in the real inventory, so the screen shows it
+either way. This flag is exactly the difference between **what others see** and **what you see**:
+`and refresh` refreshes the matching slots for **every player currently looking at that page**.
 
 If you want to change **one player's** window only (showing him a highlight, say), use the **window's**
 icon, see [Windows](windows.md):

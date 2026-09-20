@@ -57,17 +57,22 @@ jar 里打包了 Kotlin 标准库和它带的 JetBrains 注解，并且都重定
 
 [B][SIZE=3]一段脚本长这样[/SIZE][/B]
 [CODE]on load:
-    create a phantom menu with chest inventory titled "&6商店" with layout "#########" and "#AAAAAAA#" and "<#######>" with id "shop":
-        insert page 2 with layout "#########" and "#BBBBBBB#" and "<#######>" with title "&6第二页"
-        map key "#" to icon red stained glass pane for menu with id "shop"
-        map key "A" to icon diamond named "&b第一页的东西" for menu with id "shop"
-        map key "B" to icon emerald named "&a第二页的东西" for menu with id "shop"
-        map key "<" to icon arrow named "&e上一页" for menu with id "shop" and when clicked:
-            if the page is greater than 1:
-                turn to page (the page - 1) for player
-        map key ">" to icon arrow named "&e下一页" for menu with id "shop" and when clicked:
-            if the page is less than the page number of the menu with id "shop":
-                turn to page (the page + 1) for player
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6商店"
+        layout: "#########", "#AAAAAAA#", "<#######>"
+        id: "shop"
+        edit:
+            insert page 2 with layout "#########" and "#BBBBBBB#" and "<#######>" with title "&6第二页"
+            map key "#" to icon red stained glass pane for {_menu}
+            map key "A" to icon diamond named "&b第一页的东西" for {_menu}
+            map key "B" to icon emerald named "&a第二页的东西" for {_menu}
+            map key "<" to icon arrow named "&e上一页" for {_menu} and when clicked:
+                if the page is greater than 1:
+                    turn to page (the page - 1) for player
+            map key ">" to icon arrow named "&e下一页" for {_menu} and when clicked:
+                if the page is less than the page number of the menu with id "shop":
+                    turn to page (the page + 1) for player
 
 command /shop:
     trigger:
@@ -86,7 +91,7 @@ command /shop:
 位置塞一个东西就用 [ICODE]override slot[/ICODE]，它认格子编号，不认字符。
 [*][B]两种模式，按需要选。[/B] 默认的 [ICODE]phantom[/ICODE]（虚拟）窗口由插件用数据包画出来，里面的
 物品玩家拿不走，适合按钮菜单；[ICODE]static[/ICODE]（真实）是服务端真正创建的一个物品栏，物品可以正常
-移动、交换、丢弃，适合自定义仓库和交易界面。一句话：[ICODE]phantom[/ICODE] 是按钮板，[ICODE]static[/ICODE]
+移动、交换、丢弃，适合自定义仓库。一句话：[ICODE]phantom[/ICODE] 是按钮板，[ICODE]static[/ICODE]
 是真箱子。
 [*][B]每个玩家一份窗口。[/B] 菜单是定义，窗口是某个玩家打开后看到的那一份：他可以停在第 3 页、有他自己的
 标题、有只给他看的图标，别人不受影响。[ICODE]the menu window of player[/ICODE] 就是它，
@@ -102,15 +107,18 @@ command /shop:
 [ICODE]the dragged slots[/ICODE] 是被扫过的所有格子，[ICODE]cancel event[/ICODE] 拒绝整次拖拽（协议上也
 没法只应用一半）。拖拽只能放、不能拿，所以记账时"谁拿了什么"只看点击，"谁放了什么"才看拖拽。
 [*][B][ICODE]locked icons[/ICODE] 让格子变成菜单自己的。[/B] 布局里有图标的格子拿不走、放不进、换不掉、
-丢不出，落在这些格子上的拖拽整次拒绝；空着的格子仍然属于玩家。所以"商店"（有图标）和"背包"（整页留空）是
-同一个机制，而且锁定不会拦住格子回调——商店的"购买"照常触发，商品原地不动。
+丢不出，落在这些格子上的拖拽整次拒绝。这是给 [ICODE]static[/ICODE] 菜单用的：[ICODE]phantom[/ICODE]
+窗口本来就什么都动不了。空着的格子仍然属于玩家，所以"商店"（有图标）和"背包"（整页留空）是同一个机制，
+而且锁定不会拦住格子回调——商店的"购买"照常触发，商品原地不动。
 [*][B]点击类型就是 Skript 自己的词。[/B] [ICODE]on menu interact[/ICODE] 里 [ICODE]the click type[/ICODE]
 和 [ICODE]the event-clicktype[/ICODE] 是同一个值，用 [ICODE]left mouse button[/ICODE]、
 [ICODE]left mouse button with shift[/ICODE]、[ICODE]double click[/ICODE] 这些 Skript 字面量来判断。
 Skript 的点击类型分不出按的是哪个数字键，所以插件另给了 [ICODE]the pressed number key[/ICODE]（1 到 9，
 其它点击没有值）。
-[*][B]点击太快的连点会被丢掉。[/B] [ICODE]with 500 ms click delay[/ICODE] 决定两次点击之间的最小间隔，
-默认 50 毫秒；没到时间的点击会被静默丢弃，事件不触发，格子回调也不跑。排查"点了没反应"时先看这个值。
+[*][B]点击太快的连点会被丢掉。[/B] [ICODE]click delay[/ICODE]（[ICODE]create menu[/ICODE] 里写
+[ICODE]with 500 ms click delay[/ICODE]，[ICODE]build a menu[/ICODE] 里写 [ICODE]click delay: 500[/ICODE]）
+决定两次点击之间的最小间隔：默认 [ICODE]create menu[/ICODE] 是 50 毫秒、[ICODE]build a menu[/ICODE] 是
+5 毫秒；没到时间的点击会被静默丢弃，事件不触发，格子回调也不跑。排查"点了没反应"时先看这个值。
 [*][B]出错给一句话，不给堆栈。[/B] 不支持的容器类型、越界的页码、在菜单事件之外使用事件值，得到的都是
 可读的报错或控制台里的一句说明，而不是 Skript 内部的异常。
 [/LIST]
@@ -128,7 +136,8 @@ Skript 的点击类型分不出按的是哪个数字键，所以插件另给了 
 为某个玩家一次填好整页，[ICODE]the menu list index[/ICODE] 读回点到第几个结果。于是"物品浏览器"＝一个布局
 加一次调用加一个下标。
 [*][B][ICODE]locked icons[/ICODE]。[/B] 让布局里有图标的格子属于菜单：点击、Shift 点击、数字键、副手交换、
-丢出、双击收集都动不了它们，落在这些格子上的拖拽整次拒绝。运行时可以用
+丢出、双击收集都动不了它们，落在这些格子上的拖拽整次拒绝。这是 [ICODE]static[/ICODE] 菜单的开关：
+[ICODE]phantom[/ICODE] 窗口本来就什么都动不了。运行时可以用
 [ICODE]lock the icons of %menu%[/ICODE] / [ICODE]unlock the icons of %menu%[/ICODE] 开关。
 [*][B]拖拽真的被处理了。[/B] 以前只有"恰好扫过一格"的拖拽能被看见（游戏会把它变成一次点击），真正的
 多格拖拽会在没有任何事件的情况下改变窗口：商店拦不住，背包也看不到。现在一次拖拽就是一次交互，

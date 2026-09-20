@@ -76,11 +76,16 @@ quietly stop working. It builds a one-page menu with two buttons and a command t
 
 ```skript
 on load:
-    create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########" and "#  A  B #" and "#########" with id "main":
-        map key "A" to icon diamond named "&bSay hello" for menu with id "main" and when clicked:
-            send "Hello!" to player
-        map key "B" to icon clock named "&eClose" for menu with id "main" and when clicked:
-            close the menu for player
+    build a menu {_menu}:
+        inventory type: chest inventory
+        title: "&6Main Menu"
+        layout: "#########", "#  A  B #", "#########"
+        id: "main"
+        edit:
+            map key "A" to icon diamond named "&bSay hello" for {_menu} and when clicked:
+                send "Hello!" to player
+            map key "B" to icon clock named "&eClose" for {_menu} and when clicked:
+                close the menu for player
 
 command /menu:
     trigger:
