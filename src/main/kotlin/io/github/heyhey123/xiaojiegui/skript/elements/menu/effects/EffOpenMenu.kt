@@ -9,7 +9,6 @@ import ch.njol.skript.lang.Effect
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
-import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
@@ -101,7 +100,7 @@ class EffOpenMenu : Effect() {
 
         val pageNum = pageExpr?.getSingle(event)?.toInt()
 
-        if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
+        if (!Bukkit.isPrimaryThread()) {
             error(
                 "Menu can only be opened from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +

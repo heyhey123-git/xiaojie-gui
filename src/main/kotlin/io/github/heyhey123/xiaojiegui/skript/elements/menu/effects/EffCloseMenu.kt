@@ -8,7 +8,6 @@ import ch.njol.skript.lang.Effect
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
-import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
@@ -52,7 +51,7 @@ class EffCloseMenu : Effect() {
     override fun execute(event: Event?) {
         val player = playerExpr.getSingle(event) ?: return
 
-        if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
+        if (!Bukkit.isPrimaryThread()) {
             error(
                 "Menu can only be closed from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +

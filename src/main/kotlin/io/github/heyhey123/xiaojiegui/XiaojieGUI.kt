@@ -16,11 +16,6 @@ import java.io.File
 class XiaojieGUI : JavaPlugin() {
     companion object {
         lateinit var instance: XiaojieGUI
-
-        val enableAsyncCheck: Boolean
-            by lazy { instance.config.getBoolean("enable-async-check", true) }
-        val forceTrueColor: Boolean
-            by lazy { instance.config.getBoolean("force-truecolor", true) }
     }
 
     @Suppress("Unused")
@@ -29,8 +24,9 @@ class XiaojieGUI : JavaPlugin() {
     }
 
     override fun onEnable() {
-        saveDefaultConfig()
-
+        // No `saveDefaultConfig()`: this plugin has nothing to configure, so it does not write a config
+        // file either. What used to be two options is now unconditional -- the main-thread check always
+        // runs, and the banner follows the console on its own (see `LogoPrinter`).
         ReceptaclePacketListener.register()
         BukkitInventoryListener.register()
         PlayerQuitListener.register()

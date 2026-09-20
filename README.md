@@ -45,8 +45,7 @@ plugins:
 
 1. Build the project or download a release jar.
 2. Copy the generated \*.jar from 'build/dist' to your server's 'plugins' folder.
-3. Configure 'src/main/resources/config.yml' as needed.
-4. Start/restart the server. The plugin is declared in 'src/main/resources/plugin.yml'.
+3. Start/restart the server. The plugin is declared in 'src/main/resources/plugin.yml'.
 
 ## Concepts
 

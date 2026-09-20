@@ -45,8 +45,7 @@
 
 1. 构建项目或下载一个发布版的 jar 文件。
 2. 将 `build/dist` 目录中生成的 \*.jar 文件复制到您服务器的 `plugins` 文件夹中。
-3. 根据需要配置 `src/main/resources/config.yml`。
-4. 启动/重启服务器。插件已在 `src/main/resources/plugin.yml` 中声明。
+3. 启动/重启服务器。插件已在 `src/main/resources/plugin.yml` 中声明。
 
 ## 概念
 

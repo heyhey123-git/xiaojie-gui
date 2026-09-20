@@ -8,7 +8,6 @@ import ch.njol.skript.lang.Effect
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
-import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
@@ -62,7 +61,7 @@ class EffRefreshSession : Effect() {
 
         val slot = slotExpr?.getSingle(event)?.toInt() ?: -1
 
-        if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
+        if (!Bukkit.isPrimaryThread()) {
             error(
                 "Menu session can only be refresh from the main server thread," +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +

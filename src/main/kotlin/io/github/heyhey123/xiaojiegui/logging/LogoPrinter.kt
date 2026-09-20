@@ -9,13 +9,14 @@ import kotlin.math.roundToInt
  * The colours are written into the text rather than offered to Paper. Paper decides for itself whether a
  * console can show colour and records that decision in the `net.kyori.ansi.colorLevel` system property,
  * so on a platform it reads wrong the banner arrives grey while the terminal could have shown it in full
- * colour. The banner is the one thing here that exists to be looked at, so it carries its own colours and
- * asks nobody. Paper's file appender drops them again on the way into `logs/latest.log`, which stays
- * readable as plain text.
+ * colour. The banner is the one thing here that exists to be looked at, so when the console can show
+ * colour it carries its own and asks nobody. That decision is read only to keep the sequences out of a
+ * console that would print them as text (`none`). Paper's file appender drops them again on the way into
+ * `logs/latest.log`, which stays readable as plain text.
  *
  * Writing the escapes by hand is also what keeps this file off Adventure's internals: the serializer that
  * would do it is not public API, and reaching into it can fail while the plugin is enabling -- which is a
- * bad way for a banner to behave. `force-truecolor: false` turns the colour off.
+ * bad way for a banner to behave.
  */
 internal object LogoPrinter {
 
@@ -34,6 +35,16 @@ internal object LogoPrinter {
     private const val GRAY = 0xAAAAAA
 
     private const val NAME = "xiaojie-gui"
+
+    /**
+     * Whether the escape sequences are written at all.
+     *
+     * `none` in `net.kyori.ansi.colorLevel` is Paper saying the console would print them as text, and
+     * then the banner is written without them. Any other value keeps the colours, and so does an absent
+     * property, which is a platform that never made the decision.
+     */
+    private val consoleShowsColour: Boolean =
+        System.getProperty("net.kyori.ansi.colorLevel") != "none"
 
     /**
      * The wordmark, in the figlet face this author's plugins share.
@@ -72,7 +83,7 @@ internal object LogoPrinter {
     private data class Span(val text: String, val colour: Int)
 
     /**
-     * Sends one line to the console, colours and all.
+     * Sends one line to the console, with whatever [ansi] made of it.
      *
      * The logger is what gets the escape sequences past Paper's own rendering, and past its file
      * appender, which drops them again for the log.
@@ -82,14 +93,14 @@ internal object LogoPrinter {
     }
 
     /**
-     * The spans as true-colour escape sequences, or as plain text when `force-truecolor` is off.
+     * The spans as true-colour escape sequences, or as plain text on a console that cannot show them.
      *
      * `38;2;r;g;b` picks a foreground colour, and the reset at the end keeps it out of everything that
-     * follows the line. Doing this by hand is what makes the colours survive a console Paper has decided
-     * cannot show them.
+     * follows the line. Writing them here rather than leaving the text to Paper is what keeps the
+     * gradient intact on a console Paper would have rendered in one colour.
      */
     private fun ansi(spans: List<Span>): String {
-        if (!XiaojieGUI.forceTrueColor) return spans.joinToString("") { it.text }
+        if (!consoleShowsColour) return spans.joinToString("") { it.text }
 
         return buildString {
             spans.forEach { span ->

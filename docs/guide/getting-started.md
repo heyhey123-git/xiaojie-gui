@@ -10,7 +10,7 @@ This page gets you a working menu in five minutes. The other pages take each par
 2. The server needs **Paper 26.2** (or a compatible fork) and **Java 25**.
 3. Dependencies: **Skript 2.16.2** and **PacketEvents 2.13.0**. Optional: **SkBee** (only to use text
    components in titles).
-4. Start the server. The first start generates `plugins/xiaojie-gui/config.yml`.
+4. Start the server. There is nothing to configure, so the plugin writes no config file.
 
 The requirements are hard: `plugin.yml` declares `api-version: 26.2`, and an older server **refuses to
 load** the plugin outright, rather than loading it and then failing with strange errors at runtime.
