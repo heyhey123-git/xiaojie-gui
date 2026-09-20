@@ -168,9 +168,10 @@ of their own simply leave those 36 slots empty; page 1 keeps what its own patter
 A menu that wants the lower half hidden but empty asks for that alone, with `with hide player inventory`:
 the 36 slots are the menu's then, and `set icon in slot N of {_window}` fills one at runtime.
 
-Showing the inventory again afterwards (`show player inventory of {_menu}`) undoes that, and the addon warns
-each time it is asked for: the rows below the container go back to the player, and the icons the page lays
-out for them land on the player's own items.
+The half is one thing or the other, never both: `show player inventory of {_menu}` on a menu whose page
+lays those rows out is **refused** (with a line saying so), because the page's icons for them would land on
+the player's own items. To give the player that half back, destroy the menu and build it again without a
+player layout.
 
 `static` mode has no player layout: that window *is* the player's real inventory, so a player layout there
 is reported with a warning when the menu is created and changes nothing.

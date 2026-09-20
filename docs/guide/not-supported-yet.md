@@ -146,11 +146,13 @@ more than "the window title changed":
   with the phase in the button, which mineflayer cannot build, so the bot writes them raw), and the bot
   reads its own window back to check that a refused drag left every slot alone, that an accepted one filled
   the slots it reached, and that `locked icons` refuses a click, a shift click and a number key by itself.
-- **The rows below the container**: `11-client.sk` has a menu of its own for that, hiding the player's
-  inventory and giving it a `player layout`. The player's main inventory holds a diamond, and the window
-  cell it maps to (the first one below a three-row chest, slot 27) is read out of the client as the page's
-  own bread — a difference only a client can see, since from the server both answers are "a menu slot with
-  an item in it". A click on that cell arrives with slot 27 too.
+- **The rows below the container**, from both sides. `11-client.sk` has a menu that hides its inventory and
+  gives it a `player layout`: the player's main inventory holds a diamond, and the window cell it maps to
+  (the first one below a three-row chest, slot 27) is read out of the client as the page's own bread — a
+  difference only a client can see, since from the server both answers are "a menu slot with an item in it".
+  A click on that cell arrives with slot 27 too. The other side of the same rule is the first page's menu,
+  which shows the player's inventory and has an item laid out for slot 27: the bot reads that cell back and
+  expects its own (empty) one, so a page's icon reaching a player's cell fails here.
 
 **But this is not the same as "a real 26.2 client saw these packets".** The client's
 mineflayer/minecraft-data only goes up to 26.1 (protocol 775), while the server is 26.2 (protocol 776),

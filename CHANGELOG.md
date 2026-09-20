@@ -251,9 +251,11 @@ which is created on first start. No keys were renamed.
   the player's rows, which the player's own items were drawn over -- that half was neither the player's nor
   the menu's. `with hide player inventory` on its own still means "that half is hidden and empty", and on a
   `static` menu a player layout warns once and changes nothing. A layout belongs to a page and the half
-  belongs to the menu, so writing one on any page hides it for the whole menu, and `show player inventory of
-  %menu%` on such a menu warns each time it is asked for: it takes the half back for the player while the
-  page still lays icons out for it.
+  belongs to the menu, so writing one on any page hides it for the whole menu. The half is one thing or the
+  other and never both: `show player inventory of %menu%` on such a menu is refused (with a line saying what
+  to do instead), and with the inventory shown the rows below the container are the player's items and
+  nothing else -- an icon a page laid out for them is cleared before the window is sent, so it can no longer
+  appear in a cell the player happens to leave empty.
 - A `phantom` window reads the player's own half live instead of copying their whole inventory on every
   read, which was the one hot spot the performance pass found.
 - Two runnable examples now ship in `server-test/`: a list-page browser (`14-browser-list.sk`) and a backpack

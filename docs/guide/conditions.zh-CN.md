@@ -28,9 +28,9 @@ hide player inventory of {_menu}
 show player inventory of {_menu}
 ```
 
-对一个页面写了容器下方那几行布局的菜单调用 `show player inventory`，每次都会给一句警告：从那以后那几行
-又是玩家的，而那一页为它们摆的图标会压在玩家自己的物品上。"有 player layout" 和"显示玩家背包"这两个状态
-不能同时成立。
+对一个页面写了容器下方那几行布局（`player layout`）的菜单调用 `show player inventory` 会被**拒绝**，并在
+控制台给一句说明：那几行是那一页自己的空间，两个状态不能同时成立，而"一半是页面图标、一半是玩家物品"的
+窗口正是本插件不做的那一个。要把那半场还给玩家，就销毁这个菜单、在不写 player layout 的情况下重建它。
 
 否定只有两种写法：`isn't` 和 `is not`（pattern 就是 `(isn't|is not)`），别的写法（`isnt`、
 `isn't not`）都不认。要判断"显示了"，写 `if player inventory of {_menu} is not hidden:`。

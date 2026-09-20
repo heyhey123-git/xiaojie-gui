@@ -131,11 +131,15 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
   work while some other switch is set, then that switch is part of it and the keyword sets it: `player
   layout` names the rows below the container, and those rows are the menu's only while the player's
   inventory is hidden, so giving one hides it. `with hide player inventory` stays as the way to ask for
-  "hidden but empty". The reason to write this down: the first version of that keyword described a display
-  copy of the player's rows *while they were shown*, with the player's own items drawn over the layout's
-  icons. That half was then neither the player's nor the menu's, and the trap was invisible from the script
-  -- which is why a keyword that quietly does nothing, or something conditional, is treated as a bug in the
-  keyword rather than as a documented caveat.
+  "hidden but empty". The same rule has a second half: **a state the model rejects must be unreachable, not
+  merely warned about.** The one syntax that could put a page's icons and the player's items in one window --
+  `show player inventory of %menu%` on a menu whose page lays those rows out -- is refused with a line that
+  says what to do instead, and the window layer clears those rows before sending them, so the mixing cannot
+  happen even if some later path sets that flag. The reason to write this down: the first version of that
+  keyword described a display copy of the player's rows *while they were shown*, with the player's own items
+  drawn over the layout's icons. That half was then neither the player's nor the menu's, and the trap was
+  invisible from the script -- which is why a keyword that quietly does nothing, or something conditional,
+  is treated as a bug in the keyword rather than as a documented caveat.
 
 ## 4. Tests
 
@@ -154,7 +158,10 @@ Four layers, each catching what the one below it cannot:
   `command /...:` is written out as it stands, everything else is wrapped in a command trigger.
 - **The client test** (`./gradlew clientTest`) connects a real client to the same prepared server, so what
   only a client can see — the window it is shown, the items in its slots, the title after a page turn —
-  is asserted rather than assumed.
+  is asserted rather than assumed. It starts from a **fresh player**: the run directory is shared with the
+  server test, Paper saves the bot's inventory under `world/players`, and the bot logs in as the same
+  offline account every run, so the task clears that data before it boots (a check that reads a cell of the
+  player's own half would otherwise be reading whatever the run before left there).
 - **The manual pass** (`docs/manual-acceptance.zh-CN.md`) covers what no layer here can: a real 26.2
   client rather than the 26.1 one the client test connects through Via, dragging, ghost items, two clients
   side by side, and whether a window looks right at all. It is deliberately short, and anything on it that

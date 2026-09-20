@@ -28,9 +28,11 @@ hide player inventory of {_menu}
 show player inventory of {_menu}
 ```
 
-Showing it again on a menu whose page lays the rows below the container out warns each time it is asked
-for: from then on those rows are the player's, and the icons the page lays out for them land on the
-player's own items. A player layout and a shown inventory are the two states that cannot both be had.
+Showing it again on a menu whose page lays the rows below the container out (`player layout`) is **refused**,
+with a line in the console saying so: those rows are the page's own space there, so the two states cannot
+both be had, and a window that was half the page's icons and half the player's items is the one window this
+addon does not build. Destroy the menu and build it again without a player layout to give the player that
+half back.
 
 Only two spellings are accepted: `isn't` and `is not` (the pattern is `(isn't|is not)`); anything else
 (`isnt`, `isn't not`) means nothing. To test for "shown", write

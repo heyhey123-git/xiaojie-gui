@@ -155,8 +155,9 @@ create a phantom menu with chest inventory titled "&6背包" with layout "AAA   
 只想要"下半场隐藏但空着"，就只写 `with hide player inventory`：那 36 格属于菜单，运行时可以用
 `set icon in slot N of {_window}` 填一格。
 
-事后又用 `show player inventory of {_menu}` 把它显示出来，就等于取消它：容器下方那几行又回到玩家手里，
-而这一页为它们摆的图标会压在玩家自己的物品上——每次这么调用都会给一句警告。
+这半场只能是其中一边，不会两边都是：对这种页面调用 `show player inventory of {_menu}` 会被**拒绝**（并给
+一句说明），因为那一页为它们摆的图标会压在玩家自己的物品上。要把这半场还给玩家，就销毁菜单、在不写
+player layout 的情况下重建它。
 
 `static` 模式没有玩家布局：那个窗口**就是**玩家真实的背包，所以在那里写 player layout 会在创建菜单时
 给一句警告，并且什么也不会变。
