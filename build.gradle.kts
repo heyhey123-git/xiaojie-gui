@@ -260,6 +260,8 @@ val serverTestExpectedDetails = mapOf(
     "create menu hiding the player inventory" to "default title HideSelftest, type chest inventory",
     // "not hidden" contains "hidden", so the native assertion also checks the actual flag.
     "hide flag took effect" to "hidden",
+    // The flag has nothing to hide on a static menu; the warning that says so is required further down.
+    "static hide flag is a no-op" to "created",
     // `player layout` hides the inventory by itself, and its keys land below the container, starting where
     // that page's own container ends: 27 under the three row page, 9 under the one row page next to it.
     "player layout hides the player inventory" to "hidden",
@@ -502,6 +504,7 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         }
 
         requireLine("The plugin never announced that it enabled.", "XiaojieGUI has been enabled!")
+        requireLine("The plugin never announced that it disabled.", "XiaojieGUI has been disabled!")
         requireLine("The self-test stopped early: it never reached its last line.", "XIAOJIE_SELFTEST=STOPPED")
         // Two different failures, reported as two different things: a name nothing logged is a missing
         // check, and a name that logged the wrong message is a check that ran and found something else.
@@ -568,6 +571,12 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         requireLine(
             "The addon's runtime messages never reached Skript's runtime channel.",
             "encountered an error while executing the 'Page Title' expression"
+        )
+        // The one refusal only a line can carry: a static window shows the player's own inventory, so the
+        // keyword has nothing to hide there and the menu is created anyway.
+        requireLine(
+            "The addon no longer says that the flag does nothing on a static menu.",
+            "\"with hide player inventory\" does nothing on a static menu"
         )
 
         val undeclared = undeclaredDetails.get()

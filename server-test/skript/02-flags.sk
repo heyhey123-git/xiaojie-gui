@@ -20,3 +20,13 @@ on load:
     assert player inventory of {_menu} is hidden with "hide flag must take effect"
     log "XIAOJIE_SELFTEST detail: hide flag took effect -> hidden"
     destroy the menu {_menu}
+
+# A static window always shows the player's own inventory, so `with hide player inventory` has nothing to
+# change there: the addon says so instead of ignoring the keyword in silence, and the gate pins that
+# warning, so this block only has to create the menu and check that the keyword did not break creation.
+on load:
+    create a static menu with chest inventory titled "StaticHide" with layout "A" with id "static_hide" with hide player inventory:
+        set {_unused} to 1
+    assert the menu with id "static_hide" is set with "static menu with the hide flag must still be created"
+    log "XIAOJIE_SELFTEST detail: static hide flag is a no-op -> created"
+    destroy the menu with id "static_hide"
