@@ -18,7 +18,7 @@ import org.skriptlang.skript.addon.SkriptAddon
 @Description("The default layout of a menu.")
 @Examples(
     "set {_layout::*} to the default layout of menu {_menu}",
-    "set the default layout of menu {_menu} to \"#########\", \"#.......#\", \"#..###..#\", \"#..###..#\", \"#.......#\", \"#########\""
+    "set the default layout of menu {_menu} to \"#########\" and \"#.......#\" and \"#..###..#\" and \"#..###..#\" and \"#.......#\" and \"#########\""
 )
 @Since("1.0.0")
 class ExprDefaultLayout : SimpleExpression<String>() {

@@ -34,14 +34,18 @@ import org.skriptlang.skript.addon.SkriptAddon
     "If you create a menu with a id that already exists, the old one will be destroyed."
 )
 @Examples(
-    "create a static menu with chest inventory titled \"Main Menu\" with id \"main_menu\" with layout \"AAA\", \"ABA\", \"AAA\" with 100 ms click delay with hide player inventory:",
-    "create a static menu with chest inventory titled \"Shop\" with layout \"SSS      \", \"PPP      \" with locked icons:",
+    // No colon on the first one: a colon with nothing indented under it is an empty section, which
+    // Skript warns about at load time. `create menu` is an effect as well as a section, so the same
+    // line without a body is complete on its own. The flag that used to be here hid the player's
+    // inventory on a *static* menu, where this addon's own warning says it does nothing.
+    "create a static menu with chest inventory titled \"Main Menu\" with id \"main_menu\" with layout \"AAA\" and \"ABA\" and \"AAA\" with 100 ms click delay",
+    "create a static menu with chest inventory titled \"Shop\" with layout \"SSS      \" and \"PPP      \" with locked icons:",
     // Filling a slot is `override slot ... for menu ...`; `set slot 4 in page 1 of menu with id ...`
     // is not this addon's syntax and parses as neither an effect nor a condition.
     "    override slot 4 in page 1 to diamond named \"Special Item\" for menu with id \"main_menu\"",
     // A player layout is the rows below the container, and asking for one is asking for that half to be
     // the menu's: the inventory is hidden without a second keyword.
-    "create a phantom menu with chest inventory titled \"Backpack\" with layout \"BBB\", \"B B\", \"BBB\" with player layout \"B        \", \"         \", \"         \", \"         \" with id \"backpack\":",
+    "create a phantom menu with chest inventory titled \"Backpack\" with layout \"BBB\" and \"B B\" and \"BBB\" with player layout \"B        \" and \"         \" and \"         \" and \"         \" with id \"backpack\":",
     "    map key \"B\" to icon chest named \"Your bag\" for menu with id \"backpack\""
 )
 @Since("1.0.0")

@@ -30,8 +30,8 @@ import org.skriptlang.skript.addon.SkriptAddon
 @Examples(
     // The menu has to be named outside a menu event, and the layout is one string per row: a single
     // comma-joined string is one row to the menu, not three.
-    "insert page 1 to {_menu} with layout \"xxxxxxxxx\", \"xooooooxx\", \"xxxxxxxox\" " +
-        "with player layout \"ooooooooo\", \"oooooooox\", \"xxxxxxxxx\" with title \"New Page\""
+    "insert page 1 to {_menu} with layout \"xxxxxxxxx\" and \"xooooooxx\" and \"xxxxxxxox\" " +
+        "with player layout \"ooooooooo\" and \"oooooooox\" and \"xxxxxxxxx\" with title \"New Page\""
 )
 @Since("1.0.0")
 class EffInsertPage : Effect() {
