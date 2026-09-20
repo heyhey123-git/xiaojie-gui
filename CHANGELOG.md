@@ -243,8 +243,17 @@ which is created on first start. No keys were renamed.
   space**, not the player's: nothing is mirrored into them, a script can put icons there and clicks on them
   arrive like any other slot's. That was already true of what a script wrote into them, and it is now also
   true of what a script reads back out: `a phantom window reads the player's own half live` must not read
-  the player's inventory there. `player inventory layout` still describes the display copy of the rows
-  while they are shown, and does nothing while they are hidden.
+  the player's inventory there.
+- `player inventory layout` is now **`player layout`**, and it is the layout of the rows below the
+  container rather than of a display copy of the player's inventory. Those rows are the menu's own only
+  while the player's inventory is hidden, so **giving a player layout hides it**: one keyword says "this
+  half is mine", and the layout can no longer quietly do nothing. Under the old rule it described a copy of
+  the player's rows, which the player's own items were drawn over -- that half was neither the player's nor
+  the menu's. `with hide player inventory` on its own still means "that half is hidden and empty", and on a
+  `static` menu a player layout warns once and changes nothing. A layout belongs to a page and the half
+  belongs to the menu, so writing one on any page hides it for the whole menu, and `show player inventory of
+  %menu%` on such a menu warns each time it is asked for: it takes the half back for the player while the
+  page still lays icons out for it.
 - A `phantom` window reads the player's own half live instead of copying their whole inventory on every
   read, which was the one hot spot the performance pass found.
 - Two runnable examples now ship in `server-test/`: a list-page browser (`14-browser-list.sk`) and a backpack
@@ -263,8 +272,9 @@ which is created on first start. No keys were renamed.
   a Minecraft client joins the test server, reads the window the server opens for it, clicks in it, and the
   item in each slot is checked by *type*. The client is a 26.1 client and the test server runs
   ViaVersion + ViaBackwards for it, so what that proves is that the packets this addon emits survive a real
-  translation layer to a real client — not that a 26.2 client sees the same bytes. Client-side ghost items
-  and dragging stay uncovered.
+  translation layer to a real client — not that a 26.2 client sees the same bytes. Drags and `locked icons`
+  are covered there as of this version (the bot writes raw drag packets, which mineflayer cannot build), so
+  what stays uncovered is client-side ghost items and two clients side by side.
 - `composter`, `chiseled bookshelf`, `decorated pot`, `shelf` and `jukebox` are not supported, and cannot
   be: Minecraft has no menu for them (Bukkit's inventory types for them have no menu type and cannot be
   created), so there is no window to draw. `create menu` reports `Unsupported inventory type` rather than

@@ -38,6 +38,7 @@ create [a] [phantom|static] menu
     with %inventorytype%
     titled <title>
     with layout %strings%
+    [with player layout %strings%]
     [with id %string%]
     [with page %number%]
     [with %number% ms click delay]
@@ -45,14 +46,15 @@ create [a] [phantom|static] menu
     [with|without locked icons]
 ```
 
-The order is fixed: `with id` comes **after** `with layout`, and `with page` comes after `with id`. If
-you do not write `phantom` / `static`, it is `phantom`.
+The order is fixed: `with player layout` comes **after** `with layout`, `with id` comes after it, and
+`with page` comes after `with id`. If you do not write `phantom` / `static`, it is `phantom`.
 
 | Part | Required | Notes |
 |---|---|---|
 | `with %inventorytype%` | yes | the container type, see the next section |
 | `titled …` | yes | the title, see [Titles](titles.md) |
 | `with layout %strings%` | yes | the layout, see the next section |
+| `with player layout %strings%` | no | the 4 rows below the container; giving one **hides the player's inventory**, see [Pages](pages.md#player-layout) |
 | `with id %string%` | no | names the menu; **a menu with an id that already exists destroys the old one** |
 | `with page %number%` | no | only decides which page `open menu` shows first, see [Pages](pages.md) |
 | `with %number% ms click delay` | no | the minimum interval between two clicks, 50 milliseconds by default |
@@ -62,6 +64,11 @@ you do not write `phantom` / `static`, it is `phantom`.
 `without hide player inventory` is the default; writing it out is for readability. It **only means anything in
 a `phantom` menu**: a `static` window shows the player's real inventory, so there is nothing to hide, and
 writing it on a static menu warns once instead of producing a menu that quietly looks wrong.
+
+`with player layout` is the layout of the rows below the container, and writing it **turns the hide flag on
+by itself**: those rows are the menu's own space only while the player's inventory is hidden, so asking for
+the layout is asking for the half. `with hide player inventory` on its own is still the way to get that half
+hidden but empty, and on a `static` menu a player layout warns once and changes nothing.
 
 `with locked icons` makes **the slots the layout gives an icon to** the menu's own: no click, shift click,
 number key, offhand swap, drop or double-click collect can take from them or put anything in, and a

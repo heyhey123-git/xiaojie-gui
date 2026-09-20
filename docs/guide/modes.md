@@ -50,7 +50,7 @@ mechanism, which is why the mode is text. The same trap applies to the old `rece
 | what is underneath | a window the plugin draws itself with packets | an inventory the server really creates |
 | the items inside | **fixed**: cannot be picked up, dragged or put in | **can be moved, swapped and dropped normally** |
 | the player's mouse | only "a click"; the item always stays where it is | ordinary behaviour in a chest |
-| the player inventory area | described by `player inventory layout`, a **read-only mirror** | the player sees his own real inventory |
+| the rows below the container | `player layout` when they are hidden, otherwise a copy of the player's own items | the player sees his own real inventory |
 | refreshing one slot on its own | supported | not supported (`refresh` does nothing) |
 | changing an icon for one player | supported | supported (session icons live on the window layer) |
 
@@ -68,14 +68,17 @@ sorts and stores items in (a custom vault, a trade window).
   cursor, takes it to craft), the plugin resends the affected slot, and it looks like "it was just
   picked up and snapped back" — that is how "it does not move" is implemented, and it is where
   `phantom` costs a little more performance than `static`.
-- The player inventory below is a **display copy** laid out with `player inventory layout`, and what
-  the player does there does not really change his inventory. So a `phantom` menu is not suited to
-  interactions that carry items around.
-- `hide player inventory` only affects "whether those 4 rows below are there"; it does not affect the
-  container part above. **With them hidden those 36 slots are not the player's, they are the menu's own
-  space**: nothing is mirrored into them, a script can put icons there with
-  `set icon in slot N of {_window}`, and clicks on them arrive like any other slot's. `player inventory
-  layout` describes the **display copy when it is shown**, so it does nothing while they are hidden.
+- **With the player's inventory shown, those 4 rows hold the player's own items**: the window copies what
+  he really carries, and because the window is the server's own invention, what he does there does not
+  really change his inventory -- a `phantom` menu is the container's half then. A menu that wants the other
+  half to be its own hides it, which is the next point.
+- `hide player inventory` decides whether those 4 rows below are the player's or the menu's; it does not
+  affect the container part above. **With them hidden those 36 slots are not the player's, they are the
+  menu's own space**: nothing is mirrored into them, a script can put icons there with
+  `set icon in slot N of {_window}`, and clicks on them arrive like any other slot's. That is also what a
+  **`player layout`** describes -- the layout of those rows -- so giving one hides them, and the two
+  keywords are one statement rather than two switches. With the rows shown they are a copy of the player's
+  own items, and a player layout has nothing to say about them (see [Pages](pages.md#player-layout)).
 
 **`static`**
 

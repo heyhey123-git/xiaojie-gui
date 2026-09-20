@@ -127,6 +127,15 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
   `window`. When a concept can only be said with our own word, that is the signal it needed one: `the dragged
   slots` earned its name that way, while `phantom` and `static` are the two things a script must choose
   between, so they stay.
+- **A keyword has one meaning, and it does not become another one because of state.** If a keyword can only
+  work while some other switch is set, then that switch is part of it and the keyword sets it: `player
+  layout` names the rows below the container, and those rows are the menu's only while the player's
+  inventory is hidden, so giving one hides it. `with hide player inventory` stays as the way to ask for
+  "hidden but empty". The reason to write this down: the first version of that keyword described a display
+  copy of the player's rows *while they were shown*, with the player's own items drawn over the layout's
+  icons. That half was then neither the player's nor the menu's, and the trap was invisible from the script
+  -- which is why a keyword that quietly does nothing, or something conditional, is treated as a bug in the
+  keyword rather than as a documented caveat.
 
 ## 4. Tests
 

@@ -42,21 +42,21 @@ To read this value: `the default page of {_menu}`; to change it:
 ```
 insert page [%-numbers%] [to %-menu%]
     [with layout %-strings%]
-    [with player inv[entory] layout %-strings%]
+    [with player layout %-strings%]
     [with [new] title <title>]
 ```
 
 ```skript
-insert page 1 to {_menu} with layout "xxxxxxxxx", "xooooooxx", "xxxxxxxox" with player inventory layout "ooooooooo", "oooooooox", "xxxxxxxxx" with title "New Page"
+insert page 1 to {_menu} with layout "xxxxxxxxx", "xooooooxx", "xxxxxxxox" with player layout "ooooooooo", "oooooooox", "xxxxxxxxx" with title "New Page"
 ```
 
-**The section form** (the three entries `layout:` / `player inventory layout:` / `title:`, all
+**The section form** (the three entries `layout:` / `player layout:` / `title:`, all
 optional):
 
 ```skript
 insert page 1 into menu {_menu}:
     layout: "xxxxxxxxx", "xooooooxx", "xxxxxxxox"
-    player inventory layout: "ooooooooo", "oooooooox", "xxxxxxxxx"
+    player layout: "ooooooooo", "oooooooox", "xxxxxxxxx"
     title: "New Page"
 ```
 
@@ -142,11 +142,35 @@ interfering with each other.
 `the page number of {_menu}` is the number of pages, not "the current page". `the page` inside a menu
 event is the page the event happened on.
 
-## `player inventory layout`
+## `player layout`
 
-This layout only has any effect in `phantom` mode with the player inventory not hidden, and it
-describes the **4 rows of the player inventory** below the window (3 main inventory rows + 1 hotbar
-row). Up to 4 strings are used, and missing rows are filled with empty ones. It follows the same rules
-as the main layout: one character per slot, a space stays empty.
+This is the layout of the **4 rows below the container** (3 main inventory rows + 1 hotbar row), which
+are the player's half of the window. Up to 4 strings are used, and missing rows are filled with empty
+ones. It follows the same rules as the main layout: one character per slot, a space stays empty. Slot 27
+is the first cell of the lower half of a three-row chest, so a key above the container's rows is 0 to 26
+and a key below them starts at 27.
 
-`static` mode has no such layout — there the player sees his own real inventory.
+**Asking for a player layout hides the player's inventory**, and that is not a second switch to remember
+but the same statement: those rows are the menu's own space only while the player's inventory is hidden,
+because the client draws that half from the last content packet either way. A menu that hides it can put
+its own icons there and a click on one of them arrives like any other click; a menu that shows it is
+showing the player's own items.
+
+```skript
+create a phantom menu with chest inventory titled "&6Backpack" with layout "AAA      ", "AAA      ", "AAA      " with player layout "B        ", "         ", "         ", "         " with id "backpack":
+    map key "B" to icon chest named "&eYour bag" for menu with id "backpack"
+```
+
+The half belongs to the menu rather than to a page — the player's inventory is either there or it is not —
+so a player layout written on **any** page hides it for the whole menu. Pages that have no player layout
+of their own simply leave those 36 slots empty; page 1 keeps what its own pattern gave it.
+
+A menu that wants the lower half hidden but empty asks for that alone, with `with hide player inventory`:
+the 36 slots are the menu's then, and `set icon in slot N of {_window}` fills one at runtime.
+
+Showing the inventory again afterwards (`show player inventory of {_menu}`) undoes that, and the addon warns
+each time it is asked for: the rows below the container go back to the player, and the icons the page lays
+out for them land on the player's own items.
+
+`static` mode has no player layout: that window *is* the player's real inventory, so a player layout there
+is reported with a warning when the menu is created and changes nothing.

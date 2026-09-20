@@ -39,20 +39,20 @@ create a phantom menu with chest inventory titled "Paged" with layout "AAAAAAAAA
 ```
 insert page [%-numbers%] [to %-menu%]
     [with layout %-strings%]
-    [with player inv[entory] layout %-strings%]
+    [with player layout %-strings%]
     [with [new] title <标题>]
 ```
 
 ```skript
-insert page 1 to {_menu} with layout "xxxxxxxxx", "xooooooxx", "xxxxxxxox" with player inventory layout "ooooooooo", "oooooooox", "xxxxxxxxx" with title "New Page"
+insert page 1 to {_menu} with layout "xxxxxxxxx", "xooooooxx", "xxxxxxxox" with player layout "ooooooooo", "oooooooox", "xxxxxxxxx" with title "New Page"
 ```
 
-**段落写法**（`layout:` / `player inventory layout:` / `title:` 三个条目，全是可选的）：
+**段落写法**（`layout:` / `player layout:` / `title:` 三个条目，全是可选的）：
 
 ```skript
 insert page 1 into menu {_menu}:
     layout: "xxxxxxxxx", "xooooooxx", "xxxxxxxox"
-    player inventory layout: "ooooooooo", "oooooooox", "xxxxxxxxx"
+    player layout: "ooooooooo", "oooooooox", "xxxxxxxxx"
     title: "New Page"
 ```
 
@@ -133,10 +133,30 @@ command /shop:
 
 `the page number of {_menu}` 就是页数，不是"当前页"。菜单事件里的 `the page` 是事件发生的页。
 
-## `player inventory layout`
+## `player layout`
 
-只有 `phantom` 模式、且没有隐藏玩家背包时，这个布局才起作用，它描述的是窗口下方**玩家背包的 4 行**
-（主背包 3 行 + 快捷栏 1 行）。不多于 4 条就被采用，不够的补成空行。它和主布局用的是同一套规则：
-一个字符一个格子，空格留空。
+它描述**容器下方那 4 行**（主背包 3 行 + 快捷栏 1 行），也就是窗口里玩家那一半。不多于 4 条就被采用，
+不够的补成空行。它和主布局用的是同一套规则：一个字符一个格子，空格留空。3 行箱子的下半场从第 27 格
+开始，所以容器里写的 key 落在 0~26，下方写的 key 从 27 起。
 
-`static` 模式没有这个布局 —— 那里玩家看到的就是他自己的真实背包。
+**写了 `player layout` 就自动隐藏玩家背包**，这不是另一个要记的开关，而是同一句话：那 4 行只有"玩家背包
+被隐藏"时才是菜单自己的空间——客户端无论哪种情况都是照最后一份内容包画这半场的。隐藏之后菜单可以把自己
+的图标放在那里，点上去和点别处一样；没隐藏时那半场显示的就是玩家自己的物品。
+
+```skript
+create a phantom menu with chest inventory titled "&6背包" with layout "AAA      ", "AAA      ", "AAA      " with player layout "B        ", "         ", "         ", "         " with id "backpack":
+    map key "B" to icon chest named "&e你的背包" for menu with id "backpack"
+```
+
+这半场是**菜单**的属性而不是某一页的——玩家的背包要么在要么不在——所以在**任意一页**写 `player layout`
+都会隐藏整个菜单的这半场。自己没写 player layout 的页面，这 36 格就是空的；第 1 页保留自己 layout 给的
+内容。
+
+只想要"下半场隐藏但空着"，就只写 `with hide player inventory`：那 36 格属于菜单，运行时可以用
+`set icon in slot N of {_window}` 填一格。
+
+事后又用 `show player inventory of {_menu}` 把它显示出来，就等于取消它：容器下方那几行又回到玩家手里，
+而这一页为它们摆的图标会压在玩家自己的物品上——每次这么调用都会给一句警告。
+
+`static` 模式没有玩家布局：那个窗口**就是**玩家真实的背包，所以在那里写 player layout 会在创建菜单时
+给一句警告，并且什么也不会变。

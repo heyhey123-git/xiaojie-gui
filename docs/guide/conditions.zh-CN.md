@@ -18,6 +18,8 @@ else:
 
 它读的就是 `hide player inventory` 那个标志：`create menu … with hide player inventory`、
 `build a menu` 的 `hide player inventory: true`、`hide player inventory of {_menu}` 都会改它。
+**`player layout` 也会**，因为它就是把这个标志打开：给容器下方那 4 行写了布局，就是要那半场属于菜单
+（见[页面](pages.zh-CN.md#player-layout)）。
 
 要改就用效果，两种写法：
 
@@ -25,6 +27,10 @@ else:
 hide player inventory of {_menu}
 show player inventory of {_menu}
 ```
+
+对一个页面写了容器下方那几行布局的菜单调用 `show player inventory`，每次都会给一句警告：从那以后那几行
+又是玩家的，而那一页为它们摆的图标会压在玩家自己的物品上。"有 player layout" 和"显示玩家背包"这两个状态
+不能同时成立。
 
 否定只有两种写法：`isn't` 和 `is not`（pattern 就是 `(isn't|is not)`），别的写法（`isnt`、
 `isn't not`）都不认。要判断"显示了"，写 `if player inventory of {_menu} is not hidden:`。

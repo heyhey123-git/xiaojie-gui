@@ -36,6 +36,7 @@ create [a] [phantom|static] menu
     with %inventorytype%
     titled <标题>
     with layout %strings%
+    [with player layout %strings%]
     [with id %string%]
     [with page %number%]
     [with %number% ms click delay]
@@ -43,7 +44,7 @@ create [a] [phantom|static] menu
     [with|without locked icons]
 ```
 
-顺序是固定的：`with id` 在 `with layout` **之后**，`with page` 又在 `with id` 之后。
+顺序是固定的：`with player layout` 在 `with layout` **之后**，`with id` 又在它之后，`with page` 再往后。
 `phantom` / `static` 不写就是 `phantom`。
 
 | 部分 | 必填 | 说明 |
@@ -51,6 +52,7 @@ create [a] [phantom|static] menu
 | `with %inventorytype%` | 是 | 容器类型，见下一节 |
 | `titled …` | 是 | 标题，见[标题](titles.zh-CN.md) |
 | `with layout %strings%` | 是 | 布局，见下一节 |
+| `with player layout %strings%` | 否 | 容器下方那 4 行；写了它**就会隐藏玩家背包**，见[页面](pages.zh-CN.md#player-layout) |
 | `with id %string%` | 否 | 给菜单起名字；**重名的菜单会把旧的销毁** |
 | `with page %number%` | 否 | 只决定 `open menu` 先显示第几页，见[页面](pages.zh-CN.md) |
 | `with %number% ms click delay` | 否 | 两次点击之间的最小间隔，默认 50 毫秒 |
@@ -60,6 +62,10 @@ create [a] [phantom|static] menu
 `without hide player inventory` 是默认值，写出来是为了可读性。它**只在 `phantom` 菜单里有意义**：`static`
 菜单显示的就是玩家真实的背包，没有东西可以"隐藏"，所以在 `static` 菜单上写它会收到一句警告（而不是得到一个
 看起来怎么都不对的菜单）。
+
+`with player layout` 是容器下方那 4 行的布局，写它**会自己把隐藏开关打开**：那些格子只有玩家背包被隐藏时
+才是菜单自己的空间，所以"要这份布局"就是"要这半场"。只想要下半场隐藏但空着，仍然只写
+`with hide player inventory`；在 `static` 菜单上写 player layout 会收到一句警告，并且什么也不会变。
 
 `with locked icons` 把**布局里有图标的格子**变成菜单自己的：点击、Shift 点击、数字键、副手交换、丢出、
 双击收集全都拿不走也放不进，而碰到这些格子的**拖拽会被整次拒绝**（协议上也没法只应用一半）。布局里空着的

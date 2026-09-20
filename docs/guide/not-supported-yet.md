@@ -142,6 +142,15 @@ more than "the window title changed":
 - **Slot alignment, page numbers and titles**: the slot number the client sees and the clicked slot
   `11-client.sk` reports have to agree, and the title and the items after a page turn are asserted on
   the client side too.
+- **Dragging and `locked icons`**: `12-client-drag.sk` sends real drag packets (a drag is a run of clicks
+  with the phase in the button, which mineflayer cannot build, so the bot writes them raw), and the bot
+  reads its own window back to check that a refused drag left every slot alone, that an accepted one filled
+  the slots it reached, and that `locked icons` refuses a click, a shift click and a number key by itself.
+- **The rows below the container**: `11-client.sk` has a menu of its own for that, hiding the player's
+  inventory and giving it a `player layout`. The player's main inventory holds a diamond, and the window
+  cell it maps to (the first one below a three-row chest, slot 27) is read out of the client as the page's
+  own bread — a difference only a client can see, since from the server both answers are "a menu slot with
+  an item in it". A click on that cell arrives with slot 27 too.
 
 **But this is not the same as "a real 26.2 client saw these packets".** The client's
 mineflayer/minecraft-data only goes up to 26.1 (protocol 775), while the server is 26.2 (protocol 776),
@@ -164,9 +173,8 @@ Client behaviour that is not covered yet:
 
 - **"Ghost items" that exist only on the client** (in `static` mode, where the server did not change a
   slot but the client moved it itself).
-- **Dragging**: `clientTest` only does single clicks, Shift clicks, number keys and page turns; there
-  is no drag across slots.
 - **A 26.2 client itself**, see above.
+- **Several clients at once**: two players looking at one menu, and what each of them is shown.
 
 When you find a mismatch, report it; do not say "it probably works".
 

@@ -18,6 +18,8 @@ else:
 
 It reads exactly the `hide player inventory` flag: `create menu … with hide player inventory`,
 `hide player inventory: true` in `build a menu`, and `hide player inventory of {_menu}` all change it.
+A **player layout** changes it too, because it sets that flag: a page laid out for the rows below the
+container is a page that needs them hidden (see [Pages](pages.md#player-layout)).
 
 To change it, use the effects, in either of two forms:
 
@@ -25,6 +27,10 @@ To change it, use the effects, in either of two forms:
 hide player inventory of {_menu}
 show player inventory of {_menu}
 ```
+
+Showing it again on a menu whose page lays the rows below the container out warns each time it is asked
+for: from then on those rows are the player's, and the icons the page lays out for them land on the
+player's own items. A player layout and a shown inventory are the two states that cannot both be had.
 
 Only two spellings are accepted: `isn't` and `is not` (the pattern is `(isn't|is not)`); anything else
 (`isnt`, `isn't not`) means nothing. To test for "shown", write
