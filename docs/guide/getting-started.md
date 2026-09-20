@@ -65,8 +65,10 @@ title, and since 2.0.0 that is reported as an explicit error.
 
 ## Which page to read next
 
+- To find out how a menu and a window actually run: [How a window actually works](how-it-works.md) lays
+  out the model, and every page after it is easier to read.
 - To see what each piece of syntax looks like: start at [Creating Menus](menus.md) and follow the
-  sidebar down.
+  sidebar down; decide [the two modes](modes.md) before you build the first one.
 - To copy a multi-page menu outright: see [Pages](pages.md) and [Filling Menus](filling-menus.md).
 - Something behaves strangely: check [Not Supported Yet](not-supported-yet.md) first, which lists the
   known boundaries.

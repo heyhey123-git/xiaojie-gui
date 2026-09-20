@@ -5,6 +5,10 @@
 # space. Order here is the order the sidebar lists the pages in; the sidebar itself is wiki-sidebar.md,
 # and both files have to agree, which the publishing script checks before it writes anything.
 #
+# The order is the reading order, not the order the pages were written in: what a menu and a window are,
+# and which of the two modes a menu is built in, come before the syntax that writes them, so that the
+# pages after them can be read without guessing at the model behind them.
+#
 # Both languages: a guide page is a pair, `<name>.zh-CN.md` and `<name>.md`, and each half carries the
 # switch to the other on its first line. Chinese came first and keeps the plain page names; the English
 # half takes the `-English` suffix, because the wiki is a single namespace.
@@ -14,6 +18,8 @@
 # instead. The README is the Home page and the entry point that points at them.
 docs/README-zh.md	Home
 docs/guide/getting-started.zh-CN.md	Getting-Started
+docs/guide/how-it-works.zh-CN.md	How-It-Works
+docs/guide/modes.zh-CN.md	Modes
 docs/guide/menus.zh-CN.md	Menus
 docs/guide/pages.zh-CN.md	Pages
 docs/guide/naming-menus.zh-CN.md	Naming-Menus
@@ -23,10 +29,11 @@ docs/guide/events.zh-CN.md	Events
 docs/guide/dragging.zh-CN.md	Dragging
 docs/guide/windows.zh-CN.md	Windows
 docs/guide/conditions.zh-CN.md	Conditions
-docs/guide/modes.zh-CN.md	Modes
 docs/guide/configuration.zh-CN.md	Configuration
 docs/guide/not-supported-yet.zh-CN.md	Not-Supported-Yet
 docs/guide/getting-started.md	Getting-Started-English
+docs/guide/how-it-works.md	How-It-Works-English
+docs/guide/modes.md	Modes-English
 docs/guide/menus.md	Menus-English
 docs/guide/pages.md	Pages-English
 docs/guide/naming-menus.md	Naming-Menus-English
@@ -36,7 +43,6 @@ docs/guide/events.md	Events-English
 docs/guide/dragging.md	Dragging-English
 docs/guide/windows.md	Windows-English
 docs/guide/conditions.md	Conditions-English
-docs/guide/modes.md	Modes-English
 docs/guide/configuration.md	Configuration-English
 docs/guide/not-supported-yet.md	Not-Supported-Yet-English
 README.md	Home-English

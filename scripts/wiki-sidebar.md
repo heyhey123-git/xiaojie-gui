@@ -3,6 +3,11 @@
 - [首页](Home)
 - [快速上手](Getting-Started)
 
+**先弄懂它怎么跑**
+
+- [窗口到底是怎么工作的](How-It-Works)
+- [两种模式](Modes)
+
 **开始写菜单**
 
 - [创建菜单](Menus)
@@ -14,13 +19,12 @@
 **交互**
 
 - [事件与事件值](Events)
-- [拖拽是怎么工作的](Dragging)
+- [拖拽到底是怎么工作的](Dragging)
 - [窗口](Windows)
 - [条件](Conditions)
 
 **参考**
 
-- [两种模式](Modes)
 - [配置](Configuration)
 - [尚未支持](Not-Supported-Yet)
 
@@ -28,6 +32,11 @@
 
 - [Home](Home-English)
 - [Getting Started](Getting-Started-English)
+
+**How it works**
+
+- [How a window actually works](How-It-Works-English)
+- [The Two Modes](Modes-English)
 
 **Writing Menus**
 
@@ -46,7 +55,6 @@
 
 **Reference**
 
-- [The Two Modes](Modes-English)
 - [Configuration](Configuration-English)
 - [Not Supported Yet](Not-Supported-Yet-English)
 

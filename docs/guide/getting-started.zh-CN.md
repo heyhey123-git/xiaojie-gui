@@ -60,6 +60,9 @@ override slot 2 in page 1 to diamond for {_menu}
 
 ## 接下来读哪一页
 
-- 想知道每个语法长什么样：从[创建菜单](menus.zh-CN.md)开始，顺着侧栏往下看。
+- 想知道菜单和窗口到底是怎么跑起来的：[窗口到底是怎么工作的](how-it-works.zh-CN.md) 把模型讲清楚，
+  之后每一页都更好读。
+- 想知道每个语法长什么样：从[创建菜单](menus.zh-CN.md)开始，顺着侧栏往下看；建第一个菜单之前先定下
+  [两种模式](modes.zh-CN.md)。
 - 想直接抄一个多页菜单：看[页面](pages.zh-CN.md)和[填充菜单](filling-menus.zh-CN.md)。
 - 遇到了奇怪的现象：先看[尚未支持](not-supported-yet.zh-CN.md)，那里列了已知的边界。
