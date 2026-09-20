@@ -158,7 +158,7 @@ the loop.
 | the player closes the window | `on menu close` fires and the window ends |
 | `close the menu …` / `destroy the menu …` | the same; `destroy` closes everyone who is looking at this menu |
 | the player switches to another menu | the old menu fires `on menu close` once, and he is no longer in the old menu's `viewers` |
-| the player leaves the server | the window is cleared |
+| the player leaves the server | `on menu close` fires first, and then the window is cleared |
 | the plugin is disabled / Skript reloads scripts | **every menu is destroyed** and every player is thrown out of his window |
 
 The last one matters: a menu holds callbacks from the script that built it, and after a script reload

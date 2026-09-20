@@ -155,7 +155,8 @@ what a menu needs to use the keys as shortcuts.
 has no commands, no permission nodes and no options, so it writes no file into `plugins/xiaojie-gui/`:
 what is there is what a script put there. The main-thread check cannot be turned off, because a menu
 operation on an asynchronous thread is never legal, and the banner asks the console whether it can print
-colour instead of being told. `docs/guide/configuration.md` is where both are described now.
+colour instead of being told. Both are described in `docs/guide/how-it-works.md` now, and
+`docs/guide/not-supported-yet.md` lists the missing config file with everything else the plugin does not have.
 
 ### Behaviour that users can see
 

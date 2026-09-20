@@ -144,7 +144,7 @@ broadcast "当前有 %size of the menu viewers of {_menu}% 人在看这个菜单
 | 玩家关掉窗口 | `on menu close` 触发，窗口结束 |
 | `close the menu …` / `destroy the menu …` | 同上；`destroy` 会关掉所有正在看这个菜单的人 |
 | 玩家换到另一个菜单 | 旧菜单触发一次 `on menu close`，旧菜单的 `viewers` 里不再有他 |
-| 玩家退出服务器 | 窗口被清掉 |
+| 玩家退出服务器 | 先触发 `on menu close`，然后窗口被清掉 |
 | 插件禁用 / Skript 重载脚本 | **所有菜单都被销毁**，玩家全员被弹出 |
 
 最后一条很重要：菜单持有构建它的脚本里的回调，脚本重载之后那些回调就指向了不存在的触发器。

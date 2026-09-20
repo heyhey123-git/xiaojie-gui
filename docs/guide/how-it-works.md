@@ -193,6 +193,22 @@ collected and reported once, at the end, with every slot it reached in `the drag
 that collected a single slot is delivered as a plain click. The mechanism, the three outcomes and what a
 script should do with it are all in [How drags work](dragging.md).
 
+## Every menu operation runs on the main thread
+
+A menu changes real inventories and real windows, so every menu operation has to run on the server's main
+thread. That line is invisible while a script is written, and the ways to cross it are indirect: a
+`run task later` inside an asynchronous `execute`, another plugin's asynchronous callback, a custom event
+declared `on … async`.
+
+What the plugin checks is the moment of execution, not the syntax: a call from another thread is **given up**
+with a line that names the operation -- opening, closing, turning a page, retitling, refreshing, filling a
+list and writing an icon each say their own thing, for example
+`Menu can only be opened from the main server thread, …`.
+
+That check has no switch, because a call it stops is never legal. The plugin has no options at all: it writes
+no config file, and the colour of the startup banner is decided by asking the console
+(`net.kyori.ansi.colorLevel`) rather than by a setting -- see [Not Supported Yet](not-supported-yet.md).
+
 ## Which slots belong to whom
 
 Slot numbers are **window slots**: `0` is the top left of the container, and the player's half follows it --
@@ -256,7 +272,7 @@ back to the page. The syntax and the page-number rules are in [Pages](pages.md).
 | `close the menu …` / `close the menu window …` | the plugin closes it: the close packet is sent and the window is dropped |
 | `destroy the menu …` | every player looking at that menu is closed out of it; the menu itself can no longer be opened or interacted with |
 | the player switches to another menu | the old menu fires `on menu close` once, and he stops being counted among its `menu viewers` |
-| the player quits, dies or changes world | his window is dropped, and a `static` menu's real inventory is **cleared** with it rather than kept -- otherwise it would sit in memory with the player's items for the rest of the server's life |
+| the player quits, dies or changes world | `on menu close` fires first, while the container is still there, so a script can save what it holds; then the window is dropped and a `static` menu's real inventory is **cleared** with it rather than kept -- otherwise it would sit in memory with the player's items for the rest of the server's life |
 | a script reload (`/skript reload`) | **every menu is destroyed** before the new scripts are parsed |
 
 The last row is the one to remember while writing scripts: a menu holds the **callbacks of the script that

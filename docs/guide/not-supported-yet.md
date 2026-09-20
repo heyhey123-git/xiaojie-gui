@@ -68,14 +68,17 @@ typing stays in the chat bar and the menu only shows results, which keeps both s
 
 ## There is no shared inventory
 
-Two players looking at one menu **do not see the same chest**: a `static` menu's inventory is per window
-(each player's own real inventory), and that is deliberate.
+Two players looking at one menu **do not see the same chest**: a `static` menu's inventory is per window (each
+player's own real inventory). It is **cleared** when that window ends and the next window is a new one, so
+what a player leaves in a slot cannot reach the next person to open the menu -- and the same player reopening
+it starts empty as well. Keeping what a player left means reading it out in `on menu close`; the backpack
+recipe in the [Cookbook](cookbook.md) does exactly that.
 
 A "shared shelf" is expressed with **icons**: what is on the shelf comes from the page's layout and from
-`override slot`, and `override slot` and `updateIconForKey` push a change to **every** player looking at
-that page. A shop is therefore a shared shelf of icons plus each player's own storage in the empty slots.
-Letting several players operate one real inventory would collide head-on with "one inventory per window,
-one page per window", so it is not planned.
+`override slot`, and those change the **page** -- the copy everyone sees -- so a shop is a shared shelf of
+icons plus each player's own storage in the empty slots (write `and refresh` to put the change on screen at
+once). Letting several players operate one real inventory would collide head-on with "one inventory per
+window, one page per window", so it is not planned.
 
 ## There is no `set slot N of {_menu}` and the like
 
@@ -115,10 +118,14 @@ The player's own 2×2 crafting grid (`crafting table inventory`) is the same sto
 draws for it is a crafting table, with a different slot count, so it is not supported either — use
 `workbench inventory` for a crafting-table window.
 
-## No commands, and no permissions
+## No commands, no permissions, nothing to configure
 
-The plugin registers no commands and no permission nodes. Every entry point is Skript syntax, and the
-script itself decides how menus are opened and closed, and what the buttons do.
+The plugin registers no commands and no permission nodes, and it has no options at all, so it writes no config
+file: `plugins/xiaojie-gui/` holds only what a script puts there. Every entry point is Skript syntax, and the
+script itself decides how menus are opened and closed and what the buttons do.
+
+The main-thread check and the banner's colour are fixed as well, with nothing to switch --
+[How a window actually works](how-it-works.md#every-menu-operation-runs-on-the-main-thread) has both.
 
 ## The dependencies are hard
 

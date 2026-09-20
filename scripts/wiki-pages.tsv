@@ -29,7 +29,6 @@ docs/guide/events.zh-CN.md	Events
 docs/guide/dragging.zh-CN.md	Dragging
 docs/guide/windows.zh-CN.md	Windows
 docs/guide/conditions.zh-CN.md	Conditions
-docs/guide/configuration.zh-CN.md	Configuration
 docs/guide/cookbook.zh-CN.md	Cookbook
 docs/guide/not-supported-yet.zh-CN.md	Not-Supported-Yet
 docs/guide/getting-started.md	Getting-Started-English
@@ -44,7 +43,6 @@ docs/guide/events.md	Events-English
 docs/guide/dragging.md	Dragging-English
 docs/guide/windows.md	Windows-English
 docs/guide/conditions.md	Conditions-English
-docs/guide/configuration.md	Configuration-English
 docs/guide/cookbook.md	Cookbook-English
 docs/guide/not-supported-yet.md	Not-Supported-Yet-English
 README.md	Home-English

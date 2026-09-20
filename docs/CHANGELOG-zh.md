@@ -137,7 +137,8 @@ on menu interact:
 `enable-async-check` 和 `force-truecolor` 都已删除，它们所在的 `config.yml` 也一并去掉：插件没有命令、
 没有权限节点、没有任何选项，所以不会往 `plugins/xiaojie-gui/` 里写任何文件，那里只有脚本自己放的东西。
 主线程检查不能关闭，因为异步线程上的菜单操作永远不合法；横幅改为直接问控制台能不能显示颜色，而不是由
-配置告诉它。两件事现在都写在 `docs/guide/configuration.zh-CN.md` 里。
+配置告诉它。两件事现在都写在 `docs/guide/how-it-works.zh-CN.md` 里，而"没有配置文件"这一条归在
+`docs/guide/not-supported-yet.zh-CN.md` 的"尚未支持"里。
 
 ### 玩家能感觉到的行为变化
 

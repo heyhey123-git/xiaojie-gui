@@ -29,7 +29,6 @@
 
 **参考**
 
-- [配置](Configuration)
 - [尚未支持](Not-Supported-Yet)
 
 **xiaojie-gui (English)**
@@ -63,7 +62,6 @@
 
 **Reference**
 
-- [Configuration](Configuration-English)
 - [Not Supported Yet](Not-Supported-Yet-English)
 
 ---
