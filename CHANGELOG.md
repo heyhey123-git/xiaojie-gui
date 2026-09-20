@@ -149,11 +149,13 @@ on menu interact:
 `the pressed number key` is 1 to 9 for a `number key` click and nothing for every other click, which is
 what a menu needs to use the keys as shortcuts.
 
-### Configuration actually applies
+### There is no configuration
 
-`enable-async-check` and `force-truecolor` were read from Spigot's own configuration, so the values in
-this plugin's `config.yml` had no effect at all. They are read from `plugins/xiaojie-gui/config.yml` now,
-which is created on first start. No keys were renamed.
+`enable-async-check` and `force-truecolor` are gone, and so is the `config.yml` they lived in. The plugin
+has no commands, no permission nodes and no options, so it writes no file into `plugins/xiaojie-gui/`:
+what is there is what a script put there. The main-thread check cannot be turned off, because a menu
+operation on an asynchronous thread is never legal, and the banner asks the console whether it can print
+colour instead of being told. `docs/guide/configuration.md` is where both are described now.
 
 ### Behaviour that users can see
 
@@ -304,5 +306,5 @@ Two pieces of the console output no longer go through Skript's or Adventure's in
   registration no longer depends on calls that are on their way out.
 - The banner writes its own colour codes instead of reaching into Adventure's ANSI serializer through
   reflection. That reflection could fail while the plugin was enabling — a bad moment for a banner — and
-  a console Paper had judged colourless showed the banner grey. `force-truecolor: false` still prints it
-  without colour.
+  a console Paper had judged colourless showed the banner grey. The banner now asks the console itself --
+  the `net.kyori.ansi.colorLevel` system property -- and prints without colour when the answer is `none`.

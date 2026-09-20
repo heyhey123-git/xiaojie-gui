@@ -132,10 +132,12 @@ on menu interact:
 
 `the pressed number key` 在 `number key` 点击时是 1 到 9，其它点击什么都不是 —— 想用数字键当快捷键就需要它。
 
-### 配置终于生效了
+### 没有配置文件了
 
-`enable-async-check` 和 `force-truecolor` 以前读的是 Spigot 自己的配置文件，所以插件 `config.yml` 里
-写的值**完全没用**。现在读的是 `plugins/xiaojie-gui/config.yml`（首次启动生成）。键名没变。
+`enable-async-check` 和 `force-truecolor` 都已删除，它们所在的 `config.yml` 也一并去掉：插件没有命令、
+没有权限节点、没有任何选项，所以不会往 `plugins/xiaojie-gui/` 里写任何文件，那里只有脚本自己放的东西。
+主线程检查不能关闭，因为异步线程上的菜单操作永远不合法；横幅改为直接问控制台能不能显示颜色，而不是由
+配置告诉它。两件事现在都写在 `docs/guide/configuration.zh-CN.md` 里。
 
 ### 玩家能感觉到的行为变化
 
@@ -253,5 +255,5 @@ Skript 用散文报告、服务端照常启动的那类失败，正是构建必�
 - 语法注册改用 Skript 的 addon API，不再用 Skript 2.16 已标记为"将要移除"的静态 `Skript.register…`。
   脚本写法没有任何变化，变的是注册不再依赖那批正在退场的调用。
 - 横幅自己写颜色转义序列，不再用反射去摸 Adventure 的 ANSI serializer。那段反射**可能在插件启用时失败**
-  —— 对一个横幅来说是最糟的时机；而且 Paper 判定控制台不支持颜色时，横幅会变成灰色。`force-truecolor:
-  false` 仍然会打印无颜色的版本。
+  —— 对一个横幅来说是最糟的时机；而且 Paper 判定控制台不支持颜色时，横幅会变成灰色。现在横幅直接看控制台
+  自己报的能力（`net.kyori.ansi.colorLevel` 系统属性），判定为无颜色时打印不带颜色的版本。
