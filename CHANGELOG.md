@@ -227,6 +227,13 @@ which is created on first start. No keys were renamed.
 - `hide player inventory` on a `static` menu now warns once when the menu is created. That window is the
   player's real inventory, so the flag cannot hide anything, and a menu that silently looks wrong is worse
   than a line in the console.
+- A page can be a **list**: map a list of items to one key (`map key "L" to icon {results::*}`) and the cells
+  of that key become the page's result cells. `set the menu list of %menusession% to %itemstacks%` fills them
+  for one player -- extra items dropped, leftover cells cleared, the window updated **once** instead of once
+  per cell -- and `the menu list index` is which result was clicked, 1-based, empty for a slot that is not
+  one of them. That is what makes an item browser a layout plus one call plus one index, and it is why the
+  two things a browser still cannot do (a page count that shrinks, and typing inside a window) are written
+  down in the guide instead.
 - `the occupied slots of %menusession%` and `the menu contents of %menusession%` read a window back: the
   slots that hold something, and those items in slot order. Together with `icon in slot N of {_session}`
   they are how a menu that keeps things in its free slots is saved and put back.

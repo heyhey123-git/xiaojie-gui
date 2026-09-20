@@ -32,6 +32,51 @@ on load:
 `insert page N` can change the page order (inserting at position N, with the rest shifting along), but
 **moving a page away** cannot be done.
 
+### What that means for an item browser
+
+A thousand items at 45 per page is 23 pages, and it **can be built** (see the list page in
+[Filling Menus](filling-menus.md)). Two things are worth knowing up front:
+
+- **The page count is fixed when the menu is created and cannot shrink.** So "the search found three
+  items" leaves the other pages empty (or you encode the position into the content instead of into the page
+  number). Making the menu genuinely shorter means destroying and rebuilding it.
+- **Each page's content is written per player** (`set the menu list of {_session} to …`), but **how many
+  pages there are** is shared by the whole menu: A on page 3 and B on page 5 each see their own results,
+  while the number of pages is the same for both.
+
+## There is no text input
+
+A window cannot contain a text field: vanilla containers have no such control, what a player types never
+travels in a click packet, and this addon's whole model is built on click packets.
+
+**An anvil could do it, and we are not doing it.** An anvil (and a smithing table) does have a client-side
+text field, and the server can read what was typed through the **rename packet**
+(`ServerboundRenameItemPacket`), so "type to search inside a menu" is technically possible. The reasons not
+to:
+
+- it needs a **second protocol path**: the rename packet is not a click packet, so it needs its own packet
+  listener, its own "which player is typing into which menu" state, and the text has to be kept in step
+  between client and server (`ClientboundContainerSetDataPacket`). That is not a menu any more, it is
+  another subsystem;
+- **an anvil looks like an anvil**: three slots, a hammer, experience levels. To make it look like a search
+  field you accept that, and to make it look like anything else you are back to phantom mode;
+- it is **one-shot**: an anvil window allows one rename, so "filter as you type" is not something it can do.
+
+**What we recommend instead**: take the input through chat (`on chat`, with a per-player "this player is
+searching menu X" flag), recompute the list from the keyword, and push it with `set the menu list`. The
+typing stays in the chat bar and the menu only shows results, which keeps both sides simple.
+
+## There is no shared inventory
+
+Two players looking at one menu **do not see the same chest**: a `static` menu's inventory is per session
+(each player's own real inventory), and that is deliberate.
+
+A "shared shelf" is expressed with **icons**: what is on the shelf comes from the page's layout and from
+`override slot`, and `override slot` and `updateIconForKey` push a change to **every** player looking at
+that page. A shop is therefore a shared shelf of icons plus each player's own storage in the empty slots.
+Letting several players operate one real inventory would collide head-on with "one inventory per session,
+one page per session", so it is not planned.
+
 ## There is no `set slot N of {_menu}` and the like
 
 Only two pieces of syntax change a slot's contents:

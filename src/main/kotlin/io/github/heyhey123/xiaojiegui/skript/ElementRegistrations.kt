@@ -32,6 +32,7 @@ import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprEvent
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprKey2Slot
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprMenuById
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprMenuClickType
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprMenuListIndex
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions.ExprSlot2Key
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.properties.ExprDefaultLayout
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.properties.ExprDefaultPage
@@ -53,6 +54,7 @@ import io.github.heyhey123.xiaojiegui.skript.elements.menu.sections.SecInsertPag
 import io.github.heyhey123.xiaojiegui.skript.elements.session.effects.EffClearSession
 import io.github.heyhey123.xiaojiegui.skript.elements.session.effects.EffCloseSession
 import io.github.heyhey123.xiaojiegui.skript.elements.session.effects.EffRefreshSession
+import io.github.heyhey123.xiaojiegui.skript.elements.session.effects.EffSetMenuList
 import io.github.heyhey123.xiaojiegui.skript.elements.session.effects.EffUpdateSessionTitle
 import io.github.heyhey123.xiaojiegui.skript.elements.session.expressions.ExprGetPlayerSession
 import io.github.heyhey123.xiaojiegui.skript.elements.session.properties.ExprSessionContents
@@ -112,6 +114,7 @@ internal fun registerElements(addon: SkriptAddon) {
     ExprDefaultTitle.register(addon)
     ExprInventoryType.register(addon)
     ExprMenuId.register(addon)
+    ExprMenuListIndex.register(addon)
     ExprMenuMode.register(addon)
     ExprMenuViewers.register(addon)
     ExprMinClickDelay.register(addon)
@@ -127,6 +130,7 @@ internal fun registerElements(addon: SkriptAddon) {
     EffClearSession.register(addon)
     EffCloseSession.register(addon)
     EffRefreshSession.register(addon)
+    EffSetMenuList.register(addon)
     EffUpdateSessionTitle.register(addon)
     ExprGetPlayerSession.register(addon)
     ExprSessionContents.register(addon)

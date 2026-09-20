@@ -39,6 +39,42 @@ map key "special_item" to item diamond named "Special Item" for menu {_menu} and
 - `and when clicked` 要求你**必须**跟一段段落，否则注册时就会报
   `You must provide a section to handle the click event when using 'and when clicked'.`
 
+## 列表页：把一页填成一列物品
+
+浏览器要的是"这一页显示这 N 个结果，点了第几个就是第几个"。做法是**把一个列表映射给一个 key**——那个
+key 的格子就是这一页的列表格，按布局顺序：
+
+```skript
+create a phantom menu with chest inventory titled "&6物品浏览器" with layout "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "  P   N  " with id "browser":
+    map key "L" to icon {results::*} for menu with id "browser"
+    map key "P" to icon arrow named "&e上一页" for menu with id "browser"
+    map key "N" to icon arrow named "&e下一页" for menu with id "browser"
+```
+
+然后每个玩家各自填内容，**一次调用**：
+
+```skript
+set the menu list of the menu session of player to {results::*}
+```
+
+- 多出来的物品会被丢掉，没填满的格子会被清空——所以"只剩 3 条结果"就是 3 个图标加 42 个空格，不需要额外处理。
+- **整个窗口只更新一次**：45 个格子一次调用加一次刷新，而不是 45 次。
+
+点到了第几个结果，用 `the menu list index`（1 基，和其他所有编号一致）：
+
+```skript
+on menu interact:
+    set {_picked} to {results::%the menu list index%}
+    if {_picked} is set:
+        send "&a你选了 %{_picked}%" to player
+        stop
+    # 不是列表格：那按到的就是上一页/下一页之类的按钮
+```
+
+`the menu list index` 在点到的不是列表格时**没有值**，所以"点按钮"和"点结果"用同一个事件就能分开。
+
+浏览器剩下的两件事——页数在创建时固定、窗口里没有文字输入——写在[尚未支持](not-supported-yet.zh-CN.md)。
+
 ## `override slot … to … for …`
 
 ```

@@ -41,6 +41,46 @@ map key "special_item" to item diamond named "Special Item" for menu {_menu} and
 - `and when clicked` **requires** a section body, otherwise registration reports
   `You must provide a section to handle the click event when using 'and when clicked'.`
 
+## List pages: filling a page with a column of items
+
+A browser wants "this page shows these N results, and clicking the third one is the third one". The way to
+do that is to **map a list of items to one key**: the cells of that key are the page's list cells, in layout
+order:
+
+```skript
+create a phantom menu with chest inventory titled "&6Item browser" with layout "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "  P   N  " with id "browser":
+    map key "L" to icon {results::*} for menu with id "browser"
+    map key "P" to icon arrow named "&ePrevious" for menu with id "browser"
+    map key "N" to icon arrow named "&eNext" for menu with id "browser"
+```
+
+Every player then fills their own page with **one call**:
+
+```skript
+set the menu list of the menu session of player to {results::*}
+```
+
+- Extra items are dropped and slots with nothing left are cleared, so "only three results" is three icons
+  and 42 empty cells without any extra handling;
+- **the window is updated once**: one call and one refresh for 45 cells, not 45 of each.
+
+Which result was clicked is `the menu list index` (1-based, like every other number here):
+
+```skript
+on menu interact:
+    set {_picked} to {results::%the menu list index%}
+    if {_picked} is set:
+        send "&aYou picked %{_picked}%" to player
+        stop
+    # not a list cell, so this is the previous/next button
+```
+
+`the menu list index` is **empty** when the clicked slot is not one of the list cells, which is what lets one
+event handler tell a button from a result.
+
+The two things a browser still cannot do -- a page count that shrinks, and typing inside the window -- are in
+[Not Supported Yet](not-supported-yet.md).
+
 ## `override slot … to … for …`
 
 ```

@@ -190,6 +190,44 @@ class Page(
     }
 
     /**
+     * The slots this page fills from a list, in the order a list is written into them.
+     *
+     * A page declares them by mapping a whole *list* of items to one key -- `map key "L" to icon {_items::*}`
+     * -- which is what makes a page a list page without any extra syntax: the key that was given several
+     * items is the key a list goes into. Its slots are in layout order, the same order the layout itself
+     * fills them in.
+     */
+    fun listSlots(): List<Int> {
+        for ((key, slots) in keyToSlots) {
+            if (iconMapper[key]?.first is IconProducer.MultipleIconProducer) return slots.sorted()
+        }
+        return emptyList()
+    }
+
+    /**
+     * The 1-based position of a slot in this page's list, or null when the slot is not one of them.
+     *
+     * @param slot the slot to look for
+     */
+    fun listIndex(slot: Int): Int? = listSlots().indexOf(slot).takeIf { it >= 0 }?.plus(1)
+
+    /**
+     * Write items into this page's list slots, in order.
+     *
+     * The window is refreshed once for the whole page rather than once per slot, which is the difference
+     * between a browser turning a page in one packet and in forty-five.
+     *
+     * @param session the session to write them in
+     * @param items the items to write; a slot with no item left is cleared
+     */
+    fun setList(session: MenuSession, items: List<ItemStack?>) {
+        val slots = listSlots()
+        if (slots.isEmpty()) return
+        slots.forEachIndexed { index, slot -> session.setIcon(slot, items.getOrNull(index), false) }
+        session.refresh()
+    }
+
+    /**
      * Whether `locked icons` refuses this interaction.
      *
      * An interaction that touches one of the page's own slots is refused: that slot is the menu's, so
