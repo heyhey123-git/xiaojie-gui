@@ -1,0 +1,269 @@
+# 人工验收用的脚本，配合 docs/manual-acceptance.zh-CN.md 使用。
+#
+# 用法：把这个文件复制到服务器的 plugins/Skript/scripts/，执行 /skript reload scripts，
+# 然后在游戏里输入 /acc 看命令列表。每条命令都会把要做的事发到聊天栏。
+#
+# 它与 server-test/skript/ 下的脚本是两回事：那些要用 Skript 的测试模式（原版 assert）才能跑，
+# 不能复制到普通服务器；这份只用普通语法，任何 Paper 26.2 + Skript 2.16.2 的服务器都能跑。
+#
+# 它没有任何 on load，也没有会在别人的菜单上生效的监听：菜单只在命令里创建，交互监听只报告
+# acc_* 这几个菜单，别的菜单一律 stop。所以 serverTest 顺带把它当普通脚本解析时，不会影响
+# 自动测试，也不会在玩家进服时自作主张地开窗口。
+#
+# 布局里的字符与 map key 里的字符串必须完全一致（区分大小写）；"空格"也是格子，只是不映射。
+
+# ---------------------------------------------------------------------------------------------
+# /acc 的帮助与命令列表
+# ---------------------------------------------------------------------------------------------
+command /acc [<text>]:
+    trigger:
+        if {_text} is not set:
+            send "&6===== 人工验收命令 =====" to player
+            send "&e/acc phantom &7幽灵模式：拖出/拖入、Shift 点击、点自己背包的格子、关掉重开" to player
+            send "&e/acc static &7静态模式：物品能真的拿走" to player
+            send "&e/acc statichide &7static 菜单写 hide 关键字：看控制台的警告" to player
+            send "&e/acc drag &7拖拽：受保护的 0/1 格、自由格、光标里的物品" to player
+            send "&e/acc locked &7locked icons：点击/Shift/数字键/副手/丢出/双击/拖上去" to player
+            send "&e/acc pages &7翻页与边界" to player
+            send "&e/acc delay &71000ms 点击延迟：快速连点只应被接受一次" to player
+            send "&e/acc titles &7标题：颜色、十六进制、翻页换标题" to player
+            send "&e/acc rename2 &7只改第 2 页标题（两个客户端对照）" to player
+            send "&e/acc tagged &7string: 形式的标题会被拒绝" to player
+            send "&e/acc lower &7player layout：下半部分是页面自己的格子" to player
+            send "&e/acc skbee &7SkBee 文本组件标题（需要装 SkBee）" to player
+            send "&e/acctype <类型> &7逐个容器类型，例如 /acctype workbench" to player
+            send "&7（SkBee 的文本组件标题要自己加一段脚本：`a new text component from` 是 SkBee 语法，" to player
+            send "&7没装 SkBee 的服务器连解析都过不去，所以不放在这个文件里。）" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # 幽灵模式：README 里的那个菜单
+        # -----------------------------------------------------------------------------------------
+        if {_text} is "phantom":
+            create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########" and "#  A  B #" and "#########" with id "acc_phantom" with 0 ms click delay:
+                map key "A" to icon diamond named "&bSay hello" for menu with id "acc_phantom" and when clicked:
+                    send "&aA 的格子回调触发了。" to player
+                map key "B" to icon clock named "&eClose" for menu with id "acc_phantom" and when clicked:
+                    close the menu for player
+            set {_menu} to the menu with id "acc_phantom"
+            open menu {_menu} for player
+            send "&e要做的：把窗口里的钻石往外拖、把自己的物品往里拖（都不该成功）、Shift 点击按钮、" to player
+            send "&e点击自己背包那半（聊天栏不该出现「点击」那一行）、关掉再 /acc phantom 重开。" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # 静态模式：这里的物品是真的
+        # -----------------------------------------------------------------------------------------
+        if {_text} is "static":
+            create a static menu with chest inventory titled "&6Static 27" with layout "AAAAAAAAA" and "         " and "         " with id "acc_static" with 0 ms click delay:
+                map key "A" to icon stone named "&b拿得走" for menu with id "acc_static"
+            set {_menu} to the menu with id "acc_static"
+            open menu {_menu} for player
+            send "&e要做的：把第一行的石头拿进背包（应该真的拿到），再放回去。" to player
+            stop
+
+        # static 菜单上的 hide 关键字什么也不做：插件会在控制台警告一句
+        if {_text} is "statichide":
+            create a static menu with chest inventory titled "&6Static + hide" with layout "A        " and "         " and "         " with id "acc_statichide" with 0 ms click delay with hide player inventory:
+                map key "A" to icon stone named "A" for menu with id "acc_statichide"
+            set {_menu} to the menu with id "acc_statichide"
+            open menu {_menu} for player
+            send "&e要做的：看控制台应有一句 &fdoes nothing on a static menu&e 的警告；窗口下半部分仍应是你的背包。" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # 拖拽：0/1 格受保护，C 是 2 个圆石，D 是单个苹果
+        # -----------------------------------------------------------------------------------------
+        if {_text} is "drag":
+            create a static menu with chest inventory titled "&6Drag test" with layout "ABCD     " and "         " and "         " with id "acc_drag" with 0 ms click delay:
+                map key "A" to icon diamond named "&bdrag-a" for menu with id "acc_drag"
+                map key "B" to icon emerald named "&bdrag-b" for menu with id "acc_drag"
+                map key "C" to icon 2 stone named "&bdrag-two" for menu with id "acc_drag"
+                map key "D" to icon apple named "&bdrag-one" for menu with id "acc_drag"
+            set {_menu} to the menu with id "acc_drag"
+            open menu {_menu} for player
+            send "&e要做的：① 拿一叠物品按住左键扫过中间几行空格，每格都该拿到自己那份；" to player
+            send "&e② 扫过 A/B（0、1 格）：聊天栏会说整次被拒绝，所有格子都不动；" to player
+            send "&e③ 只拿 1 件拖过 2 格：效果同一次点击；④ 光标为空时拖：什么都不发生。A/B 也试着直接点击。" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # locked icons：脚本里不写任何 cancel event
+        # -----------------------------------------------------------------------------------------
+        if {_text} is "locked":
+            create a static menu with chest inventory titled "&6Locked icons" with layout "SS       " and "         " and "         " with id "acc_locked" with 0 ms click delay with locked icons:
+                map key "S" to icon diamond named "&b商品" for menu with id "acc_locked" and when clicked:
+                    send "&a商品格子的回调照常触发。" to player
+            set {_menu} to the menu with id "acc_locked"
+            open menu {_menu} for player
+            send "&e要做的：先往背包里准备一组方块（shift 拿东西时用）。对商品依次尝试：" to player
+            send "&e左键、Shift 左键、数字键 1-9 交换、副手交换（F）、丢出（Q）、双击收集、把物品拖到商品上。" to player
+            send "&e商品应每次都原地不动，回调消息照常出现；布局里空着的格子仍可正常存取。" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # 翻页与边界
+        # -----------------------------------------------------------------------------------------
+        if {_text} is "pages":
+            create a phantom menu with chest inventory titled "&6Page one" with layout "P       N" with id "acc_pages" with 0 ms click delay:
+                insert page with layout "P       N" with title "&6Page two"
+                map key "P" to icon arrow named "&e上一页" for menu with id "acc_pages" on pages 1 and 2 and when clicked:
+                    if the page is 1:
+                        send "&e已经在第一页：这里应该什么都不发生，或给一句人话。" to player
+                    else:
+                        turn to page 1 for player
+                map key "N" to icon arrow named "&e下一页" for menu with id "acc_pages" on pages 1 and 2 and when clicked:
+                    if the page is 1:
+                        turn to page 2 for player
+                    else:
+                        send "&e已经在最后一页：这里应该什么都不发生，或给一句人话。" to player
+            set {_menu} to the menu with id "acc_pages"
+            open menu {_menu} for player
+            send "&e要做的：点下一页翻到第 2 页，再点下一页；回到第 1 页后再点上一页。" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # 点击延迟：同一格 1000ms 内的第二次点击应被静默丢弃
+        # -----------------------------------------------------------------------------------------
+        if {_text} is "delay":
+            create a phantom menu with chest inventory titled "&6Click delay 1000ms" with layout "A        " with id "acc_delay" with 1000 ms click delay:
+                map key "A" to icon diamond named "&b点我" for menu with id "acc_delay" and when clicked:
+                    add 1 to {acc_delay_clicks}
+                    send "&a第 %{acc_delay_clicks}% 次点击被接受。" to player
+            set {_menu} to the menu with id "acc_delay"
+            open menu {_menu} for player
+            send "&e要做的：快速连点左上角几下：只应出现一条「点击被接受」，控制台没有报错。" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # 标题：颜色、十六进制，以及翻页换标题
+        # -----------------------------------------------------------------------------------------
+        if {_text} is "titles":
+            create a phantom menu with chest inventory titled "&6金色标题" with layout "X        " with id "acc_titles" with 0 ms click delay:
+                insert page with layout "X        " with title "&x&f&f&5&5&0&0橙色标题"
+                map key "X" to icon paper named "&e翻页" for menu with id "acc_titles" on pages 1 and 2 and when clicked:
+                    if the page is 1:
+                        turn to page 2 for player
+                    else:
+                        turn to page 1 for player
+            set {_menu} to the menu with id "acc_titles"
+            open menu {_menu} for player
+            send "&e要做的：确认第 1 页标题是金色、第 2 页是橙色（十六进制）；点纸张来回翻页。" to player
+            stop
+
+        if {_text} is "rename2":
+            set {_menu} to the menu with id "acc_titles"
+            update title of page 2 in {_menu} to "&a改过的第 2 页" and refresh
+            send "&e要做的：两个客户端同时打开这个菜单，一个停在第 1 页、一个停在第 2 页；" to player
+            send "&e执行这条命令后，只有停在第 2 页的那个客户端标题应该变。" to player
+            stop
+
+        if {_text} is "tagged":
+            set {_menu} to the menu with id "acc_titles"
+            update title of page 1 in {_menu} to string:"Tagged"
+            send "&e要做的：看控制台应有一句可读的错误（string: 是语法标签，不是给脚本写的），标题不变。" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # player layout：下半部分是页面自己的格子
+        # -----------------------------------------------------------------------------------------
+        if {_text} is "lower":
+            create a phantom menu with chest inventory titled "&6Lower half" with layout "AAAAAAAAA" and "         " and "         " with player layout "B        " and "         " and "         " and "         " with id "acc_lower" with 0 ms click delay:
+                map key "A" to icon stone named "&bupper" for menu with id "acc_lower"
+                map key "B" to icon bread named "&blower" for menu with id "acc_lower"
+            set {_menu} to the menu with id "acc_lower"
+            open menu {_menu} for player
+            send "&e要做的：下半部分（第 27 格）应该是面包而不是你的背包物品，点它也会触发一次点击。" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # SkBee 的文本组件标题不在这里：`a new text component from` 是 SkBee 自己的语法，没装 SkBee
+        # 的服务器连这一段都解析不过去。清单里给了要临时加进服务器的两行代码。
+        # -----------------------------------------------------------------------------------------
+
+        send "&c没有这个命令：直接输入 &f/acc&c 看列表。" to player
+
+# ---------------------------------------------------------------------------------------------
+# 逐个容器类型：类型必须字面写在 create 里，所以一种类型一条命令
+# ---------------------------------------------------------------------------------------------
+command /acctype <text>:
+    trigger:
+        if {_text} is "chest":
+            create a phantom menu with chest inventory titled "&6chest inventory (3 行)" with layout "#########" and "#  A  B #" and "#########" with id "acc_type" with 0 ms click delay:
+                map key "A" to icon stone named "A" for menu with id "acc_type"
+                map key "B" to icon bread named "B" for menu with id "acc_type"
+        else if {_text} is "workbench":
+            create a phantom menu with workbench inventory titled "&6workbench (10 格)" with layout "AAAAAAAAA" and "AAAAAAAAA" and "AAAAAAAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "beacon":
+            create a phantom menu with beacon inventory titled "&6beacon (1 格)" with layout "A" with id "acc_type" with 0 ms click delay
+        else if {_text} is "enchanting":
+            create a phantom menu with enchanting table inventory titled "&6enchanting (2 格)" with layout "AA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "smithing":
+            create a phantom menu with smithing inventory titled "&6smithing (4 格)" with layout "AAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "cartography":
+            create a phantom menu with cartography table inventory titled "&6cartography (3 格)" with layout "AAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "lectern":
+            create a phantom menu with lectern inventory titled "&6lectern (1 格)" with layout "A" with id "acc_type" with 0 ms click delay
+        else if {_text} is "stonecutter":
+            create a phantom menu with stonecutter inventory titled "&6stonecutter (2 格)" with layout "AA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "anvil":
+            create a phantom menu with anvil inventory titled "&6anvil (3 格)" with layout "AAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "furnace":
+            create a phantom menu with furnace inventory titled "&6furnace (3 格)" with layout "AAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "blastfurnace":
+            create a phantom menu with blast furnace inventory titled "&6blast furnace (3 格)" with layout "AAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "smoker":
+            create a phantom menu with smoker inventory titled "&6smoker (3 格)" with layout "AAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "grindstone":
+            create a phantom menu with grindstone inventory titled "&6grindstone (3 格)" with layout "AAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "merchant":
+            create a phantom menu with merchant inventory titled "&6merchant (3 格，仅 phantom)" with layout "AAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "loom":
+            create a phantom menu with loom inventory titled "&6loom (4 格)" with layout "AAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "brewing":
+            create a phantom menu with brewing stand inventory titled "&6brewing stand (5 格)" with layout "AAAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "hopper":
+            create a phantom menu with hopper inventory titled "&6hopper (5 格)" with layout "AAAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "dropper":
+            create a phantom menu with dropper inventory titled "&6dropper (9 格)" with layout "AAAAAAAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "dispenser":
+            create a phantom menu with dispenser inventory titled "&6dispenser (9 格)" with layout "AAAAAAAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "crafter":
+            create a phantom menu with crafter inventory titled "&6crafter (9 格)" with layout "AAAAAAAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "barrel":
+            create a phantom menu with barrel inventory titled "&6barrel (27 格)" with layout "AAAAAAAAA" and "A       A" and "AAAAAAAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "enderchest":
+            create a phantom menu with ender chest inventory titled "&6ender chest (27 格)" with layout "AAAAAAAAA" and "A       A" and "AAAAAAAAA" with id "acc_type" with 0 ms click delay
+        else if {_text} is "shulker":
+            create a phantom menu with shulker box inventory titled "&6shulker box (27 格)" with layout "AAAAAAAAA" and "A       A" and "AAAAAAAAA" with id "acc_type" with 0 ms click delay
+        else:
+            send "&c未知类型 &f%{_text}%&c。可用：chest workbench beacon enchanting smithing cartography lectern stonecutter anvil furnace blastfurnace smoker grindstone merchant loom brewing hopper dropper dispenser crafter barrel enderchest shulker" to player
+            stop
+        set {_menu} to the menu with id "acc_type"
+        open menu {_menu} for player
+        send "&e要做的：确认这就是那个方块的界面、格子数与清单一致、你的背包没有被挤歪。" to player
+
+# ---------------------------------------------------------------------------------------------
+# 交互报告：只对 acc_* 菜单说话，别的菜单一律 stop
+#
+# 这一块是"能不能看见"的关键：菜单格子上的一次交互会在这里打印一行，玩家自己背包那半不会，
+# 所以幽灵模式、拖拽、下半部分是页面自己的格子这三项都能靠聊天栏判断结果。
+# ---------------------------------------------------------------------------------------------
+on menu interact:
+    set {_menu} to the event-menu
+    set {_id} to the id of {_menu}
+    if {_id} is "acc_phantom" or "acc_drag" or "acc_lower" or "acc_locked":
+        set {_dragged::*} to the dragged slots
+        if {_dragged::*} is set:
+            send "&7[菜单事件] 拖拽命中格子 %{_dragged::*}%，光标 %the amount of the cursor item% 件。" to player
+        else:
+            send "&7[菜单事件] 点击第 %the clicked slot% 格，类型 %the click type%。" to player
+    if {_id} is "acc_drag":
+        loop {_dragged::*}:
+            if loop-value is 0 or 1:
+                cancel event
+                send "&c[菜单事件] 命中受保护的 0/1 格：整次拖拽都被拒绝。" to player
+                stop
+        if the clicked slot is 0 or 1:
+            cancel event
+            send "&c[菜单事件] 受保护的 0/1 格：点击被拒绝。" to player
