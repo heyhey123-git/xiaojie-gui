@@ -112,6 +112,37 @@ may retain only the last failure for that suite; it is not an assertion-count re
 The client scripts' assertions describe the fixed bot scenarios, not arbitrary manual
 interactions; when extending the bot, update the corresponding script expectations too.
 
+## Skript's own messages in the server log
+
+`serverTest` starts Skript with `-Dskript.testing.enabled=true`, and test mode makes `Skript.debug()`
+true whatever `verbosity` says. Some lines that look like failures are therefore artefacts of the
+test server, and one category was ours to fix:
+
+- `Missing entry 'types.x' in the default/english language file` is printed only under
+  `Skript.debug()`. A stock server with `verbosity: normal` prints none of them — the log left by
+  the non-test-mode docs server has zero such lines. It appeared for `types.menu` and
+  `types.menusession` because this addon registers two Skript classes and shipped no language file,
+  which also made Skript name them `types.menu` in its own error messages. Fixed by
+  `src/main/resources/lang/default.lang` plus `localizer().setSourceDirectories("lang", …)` in
+  `onEnable`: an addon that never scopes a language directory has its `lang/` folder ignored, and the
+  entries must be in place before the classes are registered. The entries still in the log belong to
+  others: `types.geyser`/`types.geyserbase` (SkBee's own gap) and `types.testgui`/`types.exemplus`/
+  `types.aardwolf`/`types.hoof` (Skript's test runner).
+- `List is missing 'and' or 'or', defaulting to 'and'` is a parse-time warning aimed at the script
+  author: a comma-separated list with no conjunction (`%strings%` parameters). `"A" and "B"` means the
+  same thing and does not warn, so the examples, the guides and the test scripts join layout rows with
+  `and`. There is no per-syntax way to silence it; the alternatives are `suppress missing conjunction
+  warnings` before the line or `disable variable missing and/or warnings: true` in Skript's config.
+- `Empty configuration section!` is a colon with nothing indented under it. One generated `@Example`
+  and one test script had one; both are gone.
+- The refusal messages (`Player cannot be null.`, `Menu session cannot be null …`, `At least one item
+  must be provided …`, `"show player inventory" cannot undo …`) come from `04-pages-keys.sk`,
+  `05-titles.sk`, `14-browser-list.sk` and `16-player-layout.sk` doing the refused thing on purpose.
+  A production script sees them only by making the same mistake. They go through `Skript.error`, which
+  at runtime has no script/line attribution and no rate limiting; moving those call sites to the
+  `error(…)` an `Effect`/`Condition` inherits from `RuntimeErrorProducer` is a recorded follow-up, not
+  a behaviour change.
+
 ## Validation boundary
 
 Local validation: both workflows parsed with `js-yaml`; an automated comparison checked
