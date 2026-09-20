@@ -2,6 +2,8 @@ package io.github.heyhey123.xiaojiegui.gui.menu.component
 
 import io.github.heyhey123.xiaojiegui.gui.event.MenuCloseEvent
 import io.github.heyhey123.xiaojiegui.gui.event.MenuInteractEvent
+import io.github.heyhey123.xiaojiegui.gui.event.ReceptacleInteractEvent
+import io.github.heyhey123.xiaojiegui.gui.interact.ClickType
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuProperties
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession.Companion.querySession
@@ -160,6 +162,49 @@ class Page(
     val iconMapper: MutableMap<String, Pair<IconProducer, ((MenuInteractEvent) -> Unit)?>> = mutableMapOf()
 
     /**
+     * The slots this page puts an icon in: the ones its layout maps a key to, plus the ones overridden
+     * with an item.
+     *
+     * These are the page's own slots. They are what `locked icons` protects, and they are the only slots
+     * a page turn clears, so a slot the layout left empty keeps whatever the player put there -- which is
+     * what a paging backpack is.
+     */
+    fun iconSlots(): Set<Int> {
+        val slots = mutableSetOf<Int>()
+        for ((key, mapped) in keyToSlots) {
+            if (iconMapper[key]?.first != null) slots.addAll(mapped)
+        }
+        for ((slot, item) in slotOverrides) {
+            if (!item.isEmpty) slots.add(slot)
+        }
+        return slots
+    }
+
+    /**
+     * Clear the slots this page owns and leave every other slot alone.
+     *
+     * @param session the session to clear them in
+     */
+    fun clearIcons(session: MenuSession) {
+        iconSlots().forEach { session.setIcon(it, null, false) }
+    }
+
+    /**
+     * Whether `locked icons` refuses this interaction.
+     *
+     * Anything that touches one of the page's own slots is refused. So is an interaction in the player's
+     * own half of a static window that can reach into the container -- a shift click, or a double click
+     * that collects -- because which slot it would reach cannot be known before it happens and a
+     * half-applied interaction is not something this addon can offer. Everything else in that half is the
+     * player's own business.
+     */
+    private fun refusesInteraction(event: ReceptacleInteractEvent, iconSlots: Set<Int>): Boolean {
+        if (event.slots.any { it in iconSlots }) return true
+        val inPlayerHalf = properties.mode == Receptacle.Mode.STATIC && event.slots.all { it >= size }
+        return inPlayerHalf && (event.clickType.isShiftClick() || event.clickType == ClickType.DOUBLE_CLICK)
+    }
+
+    /**
      * Load in the page into the given menu session.
      *
      * @param session The menu session to load the page into.
@@ -168,6 +213,10 @@ class Page(
         val (_, menu, receptacle) = session
         menu ?: return
         receptacle ?: return
+
+        // A page's own slots do not change while it is loaded, so they are worked out once per load.
+        val iconSlots = iconSlots()
+        val lockedIcons = menu.properties.lockedIcons
 
         receptacle.title(title, false)
 
@@ -246,6 +295,13 @@ class Page(
             }
 
             if (!menuEvent.callEvent()) {
+                doCancel()
+            }
+
+            // `locked icons`: an interaction that touches a slot this page gave an icon to changes
+            // nothing. The callbacks above have already run by now, which is the point -- a shop's "buy"
+            // callback fires and the goods stay exactly where they are.
+            if (lockedIcons && refusesInteraction(event, iconSlots)) {
                 doCancel()
             }
         }

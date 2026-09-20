@@ -333,6 +333,9 @@ async function scenario (bot, windows) {
   // 4. The drag half, in a menu of its own, opened by a command rather than on join so that it cannot
   //    put a second window in front of the first half of the run.
   await dragScenario(bot, windows)
+
+  // 5. And the menu that refuses for itself (`locked icons`), where the script says nothing at all.
+  await lockedScenario(bot, windows)
 }
 
 /**
@@ -458,6 +461,50 @@ async function dragScenario (bot, windows) {
   checkEqual('the item in slot 12 after the one-item drag', null, window.slots[12])
 
   log('the drag scenario passed: refused drags leave every slot alone, and accepted ones fill every slot they reached')
+}
+
+/**
+ * `locked icons`, from the client's side: the script writes no cancellation at all, so what the bot reads
+ * back out of its own window is the whole check. Every way of taking an item out of a slot in one go is
+ * tried on the goods -- a plain click, a shift click and a number key swap -- and after each of them the
+ * icon has to still be there, with its name.
+ */
+async function lockedScenario (bot, windows) {
+  const before = windows.length
+  bot.chat('/locktest')
+  const window = await waitFor('the locked test window', () =>
+    windows.slice(before).find((opened) => titleOf(opened).includes('Locked Test'))
+  )
+  log(`the locked menu arrived with title ${JSON.stringify(titleOf(window))}`)
+  log(`  first row: ${describeFirstRow(window)}`)
+
+  async function settle (what) {
+    await sleep(400)
+    await bot._syncWindow(window)
+    log(`  after ${what}: ${describeFirstRow(window)}`)
+  }
+
+  function checkGoods (what) {
+    checkEqual(`the type of the goods ${what}`, 'minecraft:diamond', typeOf(window.slots[0]))
+    checkEqual(`the label of the goods ${what}`, 'locked-goods', labelOf(window.slots[0]))
+    checkEqual(`the type of the goods in slot 1 ${what}`, 'minecraft:diamond', typeOf(window.slots[1]))
+  }
+
+  checkGoods('at open')
+
+  await bot.clickWindow(0, 0, 0)
+  await settle('clicking the locked icon')
+  checkGoods('after a click on it')
+
+  await bot.clickWindow(0, 0, 1)
+  await settle('shift clicking the locked icon')
+  checkGoods('after a shift click on it')
+
+  await bot.clickWindow(1, 3, 2)
+  await settle('swapping the locked icon with hotbar slot 4')
+  checkGoods('after a number key swap')
+
+  log('the locked icons scenario passed: the menu refused every way of taking its goods without the script saying anything')
 }
 
 /** Clicks one slot and reports it, naming the mode and button the protocol carries for that click. */

@@ -53,8 +53,10 @@ import io.github.heyhey123.xiaojiegui.skript.elements.session.effects.EffCloseSe
 import io.github.heyhey123.xiaojiegui.skript.elements.session.effects.EffRefreshSession
 import io.github.heyhey123.xiaojiegui.skript.elements.session.effects.EffUpdateSessionTitle
 import io.github.heyhey123.xiaojiegui.skript.elements.session.expressions.ExprGetPlayerSession
+import io.github.heyhey123.xiaojiegui.skript.elements.session.properties.ExprSessionContents
 import io.github.heyhey123.xiaojiegui.skript.elements.session.properties.ExprSessionIcon
 import io.github.heyhey123.xiaojiegui.skript.elements.session.properties.ExprSessionMenu
+import io.github.heyhey123.xiaojiegui.skript.elements.session.properties.ExprSessionOccupiedSlots
 import io.github.heyhey123.xiaojiegui.skript.elements.session.properties.ExprSessionPage
 import io.github.heyhey123.xiaojiegui.skript.elements.session.properties.ExprSessionTitle
 import io.github.heyhey123.xiaojiegui.skript.elements.session.properties.ExprSessionViewer
@@ -123,8 +125,10 @@ internal fun registerElements(addon: SkriptAddon) {
     EffRefreshSession.register(addon)
     EffUpdateSessionTitle.register(addon)
     ExprGetPlayerSession.register(addon)
+    ExprSessionContents.register(addon)
     ExprSessionIcon.register(addon)
     ExprSessionMenu.register(addon)
+    ExprSessionOccupiedSlots.register(addon)
     ExprSessionPage.register(addon)
     ExprSessionTitle.register(addon)
     ExprSessionViewer.register(addon)

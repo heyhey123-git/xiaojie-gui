@@ -178,11 +178,14 @@ class Menu(
 
         titleToSet = event.title
 
-        receptacle!!.clear(render = false)
+        // Only the slots the page being left owns. A slot its layout left empty belongs to the player, and
+        // keeping what is in those slots across a page turn is what a paging backpack is; clearing the
+        // whole window here is what used to make one impossible.
+        pages[session.page].clearIcons(session)
         session.page = page
 
         session.updatePlayerSlots()
-        val shouldUpdateTitle: Boolean = titleToSet != receptacle.title
+        val shouldUpdateTitle: Boolean = titleToSet != receptacle!!.title
 
         pages[page].loadInPage(session)
 

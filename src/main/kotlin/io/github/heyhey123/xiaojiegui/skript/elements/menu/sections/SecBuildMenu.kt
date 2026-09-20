@@ -34,7 +34,7 @@ import kotlin.jvm.java
 @Name("Build Menu")
 @Description(
     "Build a menu with specified properties.",
-    "You can specify the menu type (phantom or static), inventory type, title, layout, id, default page, click delay, and whether to hide the player inventory.",
+    "You can specify the menu type (phantom or static), inventory type, title, layout, id, default page, click delay, whether to hide the player inventory, and whether the slots the layout gives an icon to are the menu's rather than the player's.",
     "You can also provide an edit section to define additional properties or behaviors for the menu.",
     "The created menu is stored in the specified variable."
 )
@@ -49,6 +49,7 @@ import kotlin.jvm.java
     "    id: \"main_menu\"",
     "    click delay: 100",
     "    hide player inventory: true",
+    "    locked icons: true",
     "    edit:",
     "        override slot 4 in page 1 to diamond named \"Special Item\" for {_menu}"
 )
@@ -83,6 +84,8 @@ class SecBuildMenu : Section() {
 
     private var hidePlayerInventoryFlag: Boolean = false
 
+    private var lockedIconsFlag: Boolean = false
+
     private var trigger: TriggerItem? = null
 
     @Suppress("UNCHECKED_CAST")
@@ -111,6 +114,7 @@ class SecBuildMenu : Section() {
             .addEntryData(ExpressionEntryData("default page", null, true, Number::class.java))
             .addEntryData(ExpressionEntryData("click delay", null, true, Number::class.java))
             .addEntryData(LiteralEntryData("hide player inventory", false, true, Boolean::class.javaObjectType))
+            .addEntryData(LiteralEntryData("locked icons", false, true, Boolean::class.javaObjectType))
             .addSection("edit", true)
             .build()
 
@@ -163,6 +167,7 @@ class SecBuildMenu : Section() {
         clickDelayExpr = container.getOptional("click delay", false) as? Expression<Number>
 
         hidePlayerInventoryFlag = container.getOptional("hide player inventory", true) as? Boolean ?: false
+        lockedIconsFlag = container.getOptional("locked icons", true) as? Boolean ?: false
 
         // edit section
         var triggerNode: SectionNode? = null
@@ -233,7 +238,8 @@ class SecBuildMenu : Section() {
             mode,
             minClickDelay = clickDelay ?: 5,
             defaultPage ?: 1,
-            defaultLayout = layout.toList()
+            defaultLayout = layout.toList(),
+            lockedIcons = lockedIconsFlag
         )
 
         val menu = Menu(id, properties, inventoryType)

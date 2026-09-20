@@ -27,13 +27,14 @@ import org.skriptlang.skript.addon.SkriptAddon
 @Name("Create Menu")
 @Description(
     "Create a menu.",
-    "You can define the menu's properties, such as its inventory type, title, id, layout, page, click delay, and whether to hide the player's inventory.",
+    "You can define the menu's properties, such as its inventory type, title, id, layout, page, click delay, whether to hide the player's inventory, and whether the slots the layout gives an icon to are the menu's rather than the player's.",
     "You can also define the menu's contents and behavior in the section below this effect.",
     "Tips: The layout always becomes the first page. `with page N` only decides which page `open menu` shows.",
     "If you create a menu with a id that already exists, the old one will be destroyed."
 )
 @Examples(
     "create a static menu with chest inventory titled \"Main Menu\" with id \"main_menu\" with layout \"AAA\", \"ABA\", \"AAA\" with 100 ms click delay with hide player inventory:",
+    "create a static menu with chest inventory titled \"Shop\" with layout \"SSS      \", \"PPP      \" with locked icons:",
     // Filling a slot is `override slot ... for menu ...`; `set slot 4 in page 1 of menu with id ...`
     // is not this addon's syntax and parses as neither an effect nor a condition.
     "    override slot 4 in page 1 to diamond named \"Special Item\" for menu with id \"main_menu\""
@@ -57,7 +58,8 @@ class EffSecCreateMenu : EffectSection() {
                     "[with id %-string%] " +
                     "[with page %-number%] " +
                     "[with %-number% ms click delay] " +
-                    "[(hide:with|without) hide player inventory]",
+                    "[(hide:with|without) hide player inventory] " +
+                    "[(lock:with|without) locked icons]",
                 "create [a] [:phantom|:static] menu " +
                     "with %inventorytype% " +
                     "titled %-object% " +
@@ -65,7 +67,8 @@ class EffSecCreateMenu : EffectSection() {
                     "[with id %-string%] " +
                     "[with page %-number%] " +
                     "[with %-number% ms click delay] " +
-                    "[(hide:with|without) hide player inventory]"
+                    "[(hide:with|without) hide player inventory] " +
+                    "[(lock:with|without) locked icons]"
             )
         }
     }
@@ -88,6 +91,8 @@ class EffSecCreateMenu : EffectSection() {
 
     private var hidePlayerInventoryFlag: Boolean = false
 
+    private var lockedIconsFlag: Boolean = false
+
     @Suppress("UNCHECKED_CAST")
     override fun init(
         expressions: Array<out Expression<*>?>?,
@@ -105,6 +110,7 @@ class EffSecCreateMenu : EffectSection() {
         pageExpr = expressions[4] as Expression<Number>?
         minClickDelayExpr = expressions[5] as Expression<Number>?
         hidePlayerInventoryFlag = parseResult.hasTag("hide")
+        lockedIconsFlag = parseResult.hasTag("lock")
 
         if (hasSection()) {
             val trigger = SectionUtils.loadLinkedCode(
@@ -150,7 +156,8 @@ class EffSecCreateMenu : EffectSection() {
             mode,
             minClickDelay ?: 50,
             defaultPage ?: 1,
-            defaultLayout ?: listOf()
+            defaultLayout ?: listOf(),
+            lockedIconsFlag
         )
 
         val menu = Menu(id, properties, inventoryType)
@@ -200,6 +207,8 @@ class EffSecCreateMenu : EffectSection() {
             .append(" ms click delay ")
             .append(if (hidePlayerInventoryFlag) "with" else "without")
             .append(" hide player inventory")
+            .append(if (lockedIconsFlag) " with" else " without")
+            .append(" locked icons")
 
         return str.toString()
     }

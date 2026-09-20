@@ -689,7 +689,11 @@ val clientTestExpectedDetails = mapOf(
     "client drag menu opened" to "A at 0",
     "client one slot drag came in as a click" to "slot 11, type left mouse button",
     "client multi slot drag" to "slots 13 and 14, type left mouse button",
-    "client drag onto protected slots" to "cancelled for slots 5 and 6, cursor 2"
+    "client drag onto protected slots" to "cancelled for slots 5 and 6, cursor 2",
+    // `locked icons`: the script writes no cancellation at all, and the bot reads its own window back to
+    // check that the icon is still there after a click and a shift click. That last line reads a window
+    // with the two expressions a menu which keeps things in its free slots is saved with.
+    "locked menu read" to "slots 0 and 1, 2 item(s)"
 )
 
 // The names the client scenario's scripts report that the map above does not declare.

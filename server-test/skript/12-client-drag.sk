@@ -35,6 +35,23 @@ command /dragtest:
         set {_slots::*} to the slots of key "A" in page 1 of {_menu}
         log "XIAOJIE_SELFTEST detail: client drag menu opened -> A at %{_slots::*}%"
 
+# The other half of the protection story: `locked icons` refuses by itself, so the script below writes no
+# cancellation at all. The bot clicks and shift clicks the icon and reads its own window back: the icon has
+# to still be there both times.
+on load:
+    create a static menu with chest inventory titled "Locked Test" with layout "SS       ", "         ", "         " with id "lockedtest" with 0 ms click delay with locked icons:
+        map key "S" to icon diamond named "locked-goods" for menu with id "lockedtest"
+
+command /locktest:
+    trigger:
+        set {_menu} to the menu with id "lockedtest"
+        open menu {_menu} for player
+        # The two reads a menu that keeps things in its free slots is saved with, against a real window:
+        # which slots hold something, and what they hold.
+        set {_occupied::*} to the occupied slots of the menu session of player
+        set {_contents::*} to the menu contents of the menu session of player
+        log "XIAOJIE_SELFTEST detail: locked menu read -> slots %{_occupied::*}%, %size of {_contents::*}% item(s)"
+
 on menu interact:
     set {_menu} to the event-menu
     if {_menu} is not the menu with id "dragtest":
