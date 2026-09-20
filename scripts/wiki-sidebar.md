@@ -23,6 +23,10 @@
 - [窗口](Windows)
 - [条件](Conditions)
 
+**示例**
+
+- [菜谱](Cookbook)
+
 **参考**
 
 - [配置](Configuration)
@@ -52,6 +56,10 @@
 - [How Drags Work](Dragging-English)
 - [Windows](Windows-English)
 - [Conditions](Conditions-English)
+
+**Recipes**
+
+- [Cookbook](Cookbook-English)
 
 **Reference**
 

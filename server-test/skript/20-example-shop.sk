@@ -1,0 +1,59 @@
+# The shop from `docs/guide/cookbook.md`, kept here as a script so the recipe cannot rot: `serverTest`
+# parses every file in this directory on each run, and the native assertions below check the definition
+# the recipe describes.
+#
+# A chest menu with the goods in one row and a price button directly under each one. The goods are the
+# menu's own slots -- `with locked icons` is what keeps a player from taking them out -- and the price row
+# is a single list key, so a click on it says which good it is by `the menu list index`.
+#
+# This layer has no player, so nothing here clicks anything. What a click does is written out in the
+# recipe; what can be checked without one is the shape of the menu: which slots each key owns, that the
+# price buttons own the slots under the goods, that the mode is phantom and that the icons are locked.
+
+on load:
+    # One price button per good, named with the good's number. Five items under one key is what makes the
+    # price row a *list*: its slots are the page's list slots, so `set the menu list` fills them and
+    # `the menu list index` names the position a price click landed on.
+    set {shop::prices::1} to stone named "&eBuy 1"
+    set {shop::prices::2} to stone named "&eBuy 2"
+    set {shop::prices::3} to stone named "&eBuy 3"
+    set {shop::prices::4} to stone named "&eBuy 4"
+    set {shop::prices::5} to stone named "&eBuy 5"
+
+    create a phantom menu with chest inventory titled "&6Shop" with layout "12345    " and "ppppp    " and "         " with id "example_shop" with 0 ms click delay with locked icons:
+        # Five goods, one key each, so every good owns its own slot. A key mapped to a single item is not a
+        # list key, which leaves the price row below as the page's only list.
+        map key "1" to icon diamond named "&bDiamond" for menu with id "example_shop"
+        map key "2" to icon emerald named "&aEmerald" for menu with id "example_shop"
+        map key "3" to icon gold ingot named "&6Gold ingot" for menu with id "example_shop"
+        map key "4" to icon iron ingot named "&7Iron ingot" for menu with id "example_shop"
+        map key "5" to icon redstone named "&cRedstone" for menu with id "example_shop"
+        # The list key: the five buttons, in the layout order of the five `p` cells.
+        map key "p" to icon {shop::prices::*} for menu with id "example_shop"
+
+    set {_menu} to the menu with id "example_shop"
+    assert {_menu} is set with "shop example must be created"
+    assert the mode of {_menu} is "phantom" with "shop example must be a phantom menu"
+
+    # The goods line up one per slot in the first row, which is what puts a price button under each of them
+    # in the second.
+    loop 5 times:
+        set {_slots::*} to the slots of key "%loop-number%" in page 1 of {_menu}
+        assert size of {_slots::*} is 1 with "shop example: each good must own exactly one slot"
+        assert {_slots::1} is loop-number - 1 with "shop example: good %loop-number% must sit in the first row"
+        assert the key of slot (loop-number - 1) in page 1 of {_menu} is "%loop-number%" with "shop example: the goods slot must belong to its own key"
+
+    # The price row is one key and therefore one list, which is what makes `the menu list index` name the
+    # good a clicked price button belongs to.
+    set {_priceSlots::*} to the slots of key "p" in page 1 of {_menu}
+    assert size of {_priceSlots::*} is 5 with "shop example: the price key must cover the five price buttons"
+    assert {_priceSlots::1} is 9 with "shop example: the first price button must sit at slot 9"
+    assert {_priceSlots::5} is 13 with "shop example: the fifth price button must sit at slot 13"
+    loop 5 times:
+        assert the key of slot (loop-number + 8) in page 1 of {_menu} is "p" with "shop example: every price slot must belong to the price key"
+
+    assert the icons of {_menu} are locked with "shop example: the goods must be locked, or they can be taken out"
+    assert the page number of {_menu} is 1 with "shop example: the layout must be page 1"
+
+    # The recipe leaves the menu in place, so the assertions have to run against the menu itself rather
+    # than against a copy: nothing below this line may destroy it.

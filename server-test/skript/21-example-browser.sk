@@ -1,0 +1,74 @@
+# The item browser from `docs/guide/cookbook.md`, kept here as a script so the recipe cannot rot:
+# `serverTest` parses every file in this directory on each run, and the native assertions below check the
+# arithmetic the recipe claims -- which page number shows which slice of the source list.
+#
+# The shape is the one `14-browser-list.sk` uses: a layout whose result cells share one key, one
+# `set the menu list` call to fill a page, and `the menu list index` to tell a result click from an arrow
+# click. The one difference is that computing the slice and writing it into a window are two steps here,
+# because this layer has no player and therefore no window to write into.
+#
+# The recipe on the page talks about a thousand items, and so does this file: the interesting part is the
+# last, partial page, and 1000 items is what makes page 23 a real case rather than an empty one.
+
+# Copy the 45 items of page {_page} out of the source list into `{browser::slice::*}`. It writes a variable
+# rather than returning a value because a Skript function returns one value, while a page is a list; the
+# caller decides what to do with it, and in a real menu that is
+# `set the menu list of {_window} to {browser::slice::*}`.
+function browserSlice(page: number):
+    delete {browser::slice::*}
+    set {_first} to ({_page} - 1) * 45
+    loop 45 times:
+        set {_one} to {browser::all::%{_first} + loop-number%}
+        if {_one} is set:
+            set {browser::slice::%loop-number%} to {_one}
+
+on load:
+    # 45 result cells over five rows, and the two arrows on the sixth: `P` at slot 45 and `N` at slot 53.
+    create a phantom menu with chest inventory titled "&6Browser" with layout "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "P       N" with id "example_browser" with 0 ms click delay:
+        map key "L" to icon stone named "&7Result" for menu with id "example_browser"
+        map key "P" to icon arrow named "&ePrevious" for menu with id "example_browser" and when clicked:
+            set {_page} to the page of the menu window of player
+            if {_page} is greater than 1:
+                turn to page {_page} - 1 for player
+        map key "N" to icon arrow named "&eNext" for menu with id "example_browser" and when clicked:
+            set {_page} to the page of the menu window of player
+            if {_page} is less than the page number of the menu with id "example_browser":
+                turn to page {_page} + 1 for player
+
+    # The result cells are one key, so they are the page's list, and clicking either arrow is not a list
+    # click -- `the menu list index` is empty for those.
+    set {_menu} to the menu with id "example_browser"
+    assert {_menu} is set with "browser example must be created"
+    set {_listSlots::*} to the slots of key "L" in page 1 of {_menu}
+    set {_previousSlots::*} to the slots of key "P" in page 1 of {_menu}
+    set {_nextSlots::*} to the slots of key "N" in page 1 of {_menu}
+    assert size of {_listSlots::*} is 45 with "browser example: the result key must cover 45 slots"
+    assert {_listSlots::1} is 0 with "browser example: the result cells must start at the top left"
+    assert {_listSlots::45} is 44 with "browser example: the result cells must fill five rows"
+    assert size of {_previousSlots::*} is 1 with "browser example: there must be one previous arrow"
+    assert size of {_nextSlots::*} is 1 with "browser example: there must be one next arrow"
+    assert {_previousSlots::1} is 45 with "browser example: the previous arrow must sit at slot 45"
+    assert {_nextSlots::1} is 53 with "browser example: the next arrow must sit at slot 53"
+
+    # What the recipe claims about page numbers, checked against a real source list of a thousand items.
+    delete {browser::all::*}
+    loop 1000 times:
+        set {browser::all::%loop-number%} to stone named "&7Item %loop-number%"
+
+    browserSlice(1)
+    assert size of {browser::slice::*} is 45 with "browser example: page 1 must show 45 items"
+    assert {browser::slice::1} is {browser::all::1} with "browser example: page 1 must start at item 1"
+    assert {browser::slice::45} is {browser::all::45} with "browser example: page 1 must end at item 45"
+
+    browserSlice(2)
+    assert size of {browser::slice::*} is 45 with "browser example: page 2 must show 45 items"
+    assert {browser::slice::1} is {browser::all::46} with "browser example: page 2 must start at item 46"
+    assert {browser::slice::45} is {browser::all::90} with "browser example: page 2 must end at item 90"
+
+    # A thousand items are 23 pages of 45, so the twenty-third page is a partial one: 10 items, and every
+    # slot past them stays empty -- `set the menu list` clears the slots the page has nothing left for.
+    browserSlice(23)
+    assert size of {browser::slice::*} is 10 with "browser example: the twenty-third page must show 10 items"
+    assert {browser::slice::1} is {browser::all::991} with "browser example: page 23 must start at item 991"
+    assert {browser::slice::10} is {browser::all::1000} with "browser example: page 23 must end at item 1000"
+    assert {browser::slice::11} is not set with "browser example: a partial page must not invent items"
