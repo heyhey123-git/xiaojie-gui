@@ -14,7 +14,7 @@
 | 服务端 | Paper 26.2 |
 | 插件 | Skript 2.16.2、PacketEvents 2.13.0；SkBee 可选，只影响文本组件标题 |
 | 客户端 | **真实 26.2 客户端**。`clientTest` 用的是 26.1 客户端加 ViaVersion + ViaBackwards 翻译层，它证明的是"本插件发的包能穿过真实翻译层"，不是"26.2 客户端看到的就是这些字节" |
-| 脚本 | `server-test/skript/` 里的脚本可以复制过去，它们在 `on load` 里自己打 `XIAOJIE_SELFTEST` 日志；**别复制 `99-finish.sk`**，那个是测试服用来停服的 |
+| 脚本 | 人工验收优先使用 README/指南里的示例。`server-test/skript/` 是自动测试输入，其中的原版 `assert` 需要专用 Skript 测试模式，不能整目录复制到普通服务器；**尤其别复制 `99-finish.sk`**，它会自动停服 |
 
 启动后看控制台：横幅是彩色的（除非 `force-truecolor: false`）、出现 `XiaojieGUI has been enabled!`、
 没有 `[Skript] Severe Error`，也没有 `can't understand` 这类解析报错。
@@ -121,6 +121,6 @@
 | 层 | 命令 | 覆盖 |
 |---|---|---|
 | 单元测试 | `./gradlew test` | 点击类型、点击冷却、页面计算、每个布局的格子数（对齐 Bukkit 自己的库存大小）、`locked icons` 的每种拒绝情形 |
-| 真实服务端 | `./gradlew serverTest` | 元素能否注册、脚本能否解析、49 条行为断言、每个 `@Examples` 的解析 |
+| 真实服务端 | `./gradlew serverTest` | 元素能否注册、脚本能否解析、原版 `assert` 与 49 条行为完成记录、每个 `@Examples` 的解析 |
 | 真实客户端 | `./gradlew clientTest` | 26.1 客户端穿过 Via 翻译层：窗口、标题、物品**类型**、四种点击、翻页、拖拽（含被拒绝的拖拽）、`locked icons` 下点击/Shift/数字键都拿不走商品、隐藏玩家背包时下方那几行显示的是页面自己的图标（点它也算一次普通点击），而显示玩家背包时页面为那些格子摆的东西一个也不会出现 |
 | 文档导出 | `./gradlew gendocs` | SkriptHub 用的 JSON（58 个元素；事件不在导出里） |

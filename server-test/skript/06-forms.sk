@@ -5,33 +5,39 @@
 # has already consumed the word `menu` cannot let the menu expression start at `with id`.
 #
 # The layout given to `create menu` always becomes page 1; `with page N` only decides which page
-# `open menu` shows. A wrong result logs nothing: the messages are asserted in `build.gradle.kts`, so a
-# branch that logged the same name with another value would fail there.
+# `open menu` shows. Native assertions check that contract before emitting the detail markers.
 
 on load:
     create a phantom menu with chest inventory titled "Forms" with layout "AAAAAAAAA" with id "forms":
         # The line reports what the menu kept, not that the body ran: `created` would be true of a body
         # that ran for a menu the id could not find.
         set {_menu} to the menu with id "forms"
+        assert "%the default title of {_menu}%" is "Forms" with "forms menu must retain its title"
+        assert the inventory type of {_menu} is chest inventory with "forms menu must use chest inventory"
         log "XIAOJIE_SELFTEST detail: create forms menu -> default title %the default title of {_menu}%, type %the inventory type of {_menu}%"
     set {_menu} to the menu with id "forms"
     map key "A" to icon stone for {_menu}
     override slot 2 in page 1 to diamond for {_menu}
     set {_slots::*} to the slots of key "A" in page 1 of {_menu}
     set {_key} to the key of slot 1 in page 1 of {_menu}
+    assert size of {_slots::*} is 9 with "natural menu forms: key A must cover nine slots"
+    assert {_key} is "A" with "natural menu forms: slot 1 must retain key A"
     log "XIAOJIE_SELFTEST detail: natural menu forms -> %size of {_slots::*}% slot(s), key %{_key}%"
     destroy the menu with id "forms"
+    assert {_menu} is destroyed with "destroy by id must destroy the menu"
     log "XIAOJIE_SELFTEST detail: destroy menu by id -> done"
 
 on load:
     create a phantom menu with chest inventory titled "Paged" with layout "AAAAAAAAA" with id "paged" with page 2:
         set {_menu} to the menu with id "paged"
+        assert "%the default title of {_menu}%" is "Paged" with "paged menu must retain its title"
+        assert the inventory type of {_menu} is chest inventory with "paged menu must use chest inventory"
         log "XIAOJIE_SELFTEST detail: create paged menu -> default title %the default title of {_menu}%, type %the inventory type of {_menu}%"
     set {_menu} to the menu with id "paged"
     set {_count} to the page number of {_menu}
     set {_default} to the default page of {_menu}
-    if {_count} is 1:
-        log "XIAOJIE_SELFTEST detail: page contract -> the layout became page 1"
-    if {_default} is 2:
-        log "XIAOJIE_SELFTEST detail: page contract default page -> 2"
+    assert {_count} is 1 with "page contract: layout must become page 1"
+    log "XIAOJIE_SELFTEST detail: page contract -> the layout became page 1"
+    assert {_default} is 2 with "page contract: default page must be 2"
+    log "XIAOJIE_SELFTEST detail: page contract default page -> 2"
     destroy the menu {_menu}

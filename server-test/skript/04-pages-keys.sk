@@ -9,27 +9,35 @@ on load:
         # The line reports what the menu kept, not that the body ran: `created` would be true of a body
         # that ran for a menu the id could not find.
         set {_menu} to the menu with id "pages"
+        assert "%the default title of {_menu}%" is "Pages" with "pages menu must retain its title"
+        assert the inventory type of {_menu} is chest inventory with "pages menu must use chest inventory"
         log "XIAOJIE_SELFTEST detail: create pages menu -> default title %the default title of {_menu}%, type %the inventory type of {_menu}%"
         insert page with layout "BBBBBBBBB"
         insert page 1 with layout "CCCCCCCCC"
         set {_count} to the page number of the menu with id "pages"
+        assert {_count} is 3 with "inserting two pages must produce three pages"
         log "XIAOJIE_SELFTEST detail: insert pages -> %{_count}% page(s)"
 
 on load:
     create a phantom menu with chest inventory titled "Keys" with layout "AAAAAAAAA" with id "keys":
         set {_menu} to the menu with id "keys"
+        assert "%the default title of {_menu}%" is "Keys" with "keys menu must retain its title"
+        assert the inventory type of {_menu} is chest inventory with "keys menu must use chest inventory"
         log "XIAOJIE_SELFTEST detail: create keys menu -> default title %the default title of {_menu}%, type %the inventory type of {_menu}%"
     set {_menu} to the menu with id "keys"
     map key "A" to icon stone for {_menu}
     override slot 1 in page 1 to diamond for menu {_menu}
     set {_slots::*} to the slots of key "A" in page 1 of the menu {_menu}
     set {_key} to the key of slot 1 in page 1 of the menu {_menu}
+    assert size of {_slots::*} is 9 with "key A must cover nine slots after override"
+    assert {_key} is "A" with "override must retain slot key A"
     log "XIAOJIE_SELFTEST detail: keys and overrides -> %size of {_slots::*}% slot(s), key %{_key}%"
 
 on load:
     set {_menu} to the menu with id "keys"
     set the title of page 1 in {_menu} to "Page One"
     set {_title} to the title of page 1 in {_menu}
+    assert "%{_title}%" is "Page One" with "page title must round-trip"
     log "XIAOJIE_SELFTEST detail: page title -> %{_title}%"
 
 on load:
@@ -45,4 +53,6 @@ on load:
     destroy the menu {_pagesMenu}
     set {_keysMenu} to the menu with id "keys"
     destroy the menu {_keysMenu}
+    assert {_pagesMenu} is destroyed with "pages menu must be destroyed"
+    assert {_keysMenu} is destroyed with "keys menu must be destroyed"
     log "XIAOJIE_SELFTEST detail: destroy both menus -> done"

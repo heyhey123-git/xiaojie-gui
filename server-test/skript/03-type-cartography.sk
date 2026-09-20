@@ -3,6 +3,7 @@
 on load:
     create a phantom menu with cartography table inventory titled "Cartography" with layout "AAAA" with id "type_cartography":
         set {_pages} to the page number of the menu with id "type_cartography"
+        assert {_pages} is 1 with "cartography inventory must create one page"
         log "XIAOJIE_SELFTEST detail: inventory type cartography -> %{_pages}% page(s)"
     set {_menu} to the menu with id "type_cartography"
     destroy the menu {_menu}

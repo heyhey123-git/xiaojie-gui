@@ -1,41 +1,27 @@
-# The script side of the server test.
-#
-# Every script logs one detail line per thing that has to hold, in the form
-# `XIAOJIE_SELFTEST detail: <name> -> <message>`. The assertions live in the `serverTest` task, next to
-# the log they read.
-#
-# The *name* carries the outcome, not the message: a branch that found the wrong thing logs a name the
-# task does not expect, so a test cannot pass on a line that merely exists.
-#
-# No player is involved anywhere here, so this covers registration, parsing and the menu model. The
-# packet layer and actual clicks are a separate layer on top of it.
+# Native Skript EffAssert checks run before the existing detail markers. Gradle checks completion
+# and diagnostics; a failed assertion stops its trigger without stopping the independent 99-finish timer.
+# No player is involved here: this covers registration, parsing and the menu model.
 
 on load:
     create a phantom menu with chest inventory titled "Selftest" with layout "AAAAAAAAA", "A       A", "AAAAAAAAA" with id "selftest":
         set {_pages} to the page number of the menu with id "selftest"
+        assert {_pages} is 1 with "create phantom chest menu: expected one page"
         log "XIAOJIE_SELFTEST detail: create phantom chest menu -> %{_pages}% page(s)"
 
 on load:
     set {_menu} to the menu with id "selftest"
-    if {_menu} is not set:
-        log "XIAOJIE_SELFTEST detail: lookup menu by id FAILED -> no menu with that id"
-        stop
-    if {_menu} is destroyed:
-        log "XIAOJIE_SELFTEST detail: destroyed condition FAILED -> a fresh menu reports destroyed"
-        stop
-    # The id is read from a menu-typed expression on purpose: with SkBee installed, `the id of {_menu}`
-    # is answered by SkBee's `[bound] id of %bounds%` instead, because an untyped variable fits that
-    # pattern too. A `%menu%` expression can only be a menu, so it reaches this addon's element.
+    assert {_menu} is set with "lookup menu by id: menu must exist"
+    assert {_menu} is not destroyed with "fresh menu must not be destroyed"
+    # Keep the menu-typed id expression: SkBee's bound-id expression can capture an untyped variable.
     set {_id} to the id of the menu with id "selftest"
     set {_mode} to the mode of {_menu}
     set {_type} to the inventory type of {_menu}
+    assert {_id} is "selftest" with "lookup menu by id: expected selftest"
+    assert {_mode} is "phantom" with "lookup menu by id: expected phantom mode"
+    assert {_type} is chest inventory with "lookup menu by id: expected chest inventory"
     log "XIAOJIE_SELFTEST detail: lookup menu by id -> id %{_id}%, mode %{_mode}%, type %{_type}%"
-    # The mode is text, compared with the same two words `build a menu` takes in `mode:`. It used to be
-    # an enum value, and no script could name one: Skript parses an addon's enum literals from its
-    # language files, which this addon does not ship, so `is phantom` was taken by Minecraft's phantom
-    # entity and the generated fallback literal was `phantom receptacle mode`.
-    if the mode of {_menu} is "phantom":
-        log "XIAOJIE_SELFTEST detail: menu mode is text -> %{_mode}%"
+    assert the mode of {_menu} is "phantom" with "menu mode must be text"
+    log "XIAOJIE_SELFTEST detail: menu mode is text -> %{_mode}%"
 
 on load:
     set {_menu} to the menu with id "selftest"
@@ -43,24 +29,26 @@ on load:
     set the default page of {_menu} to 1
     set {_delay} to the minimum click delay of {_menu}
     set {_viewers::*} to the menu viewers of {_menu}
+    assert {_default} is 1 with "menu defaults: expected page 1"
+    assert the default page of {_menu} is 1 with "default page setter must retain page 1"
+    assert {_delay} is 50 with "menu defaults: expected delay 50"
+    assert size of {_viewers::*} is 0 with "menu defaults: expected no viewers"
     log "XIAOJIE_SELFTEST detail: menu defaults -> page %{_default}%, delay %{_delay}%, %size of {_viewers::*}% viewer(s)"
 
 on load:
     set {_ids::*} to all menu ids
     set {_menus::*} to all menus
+    assert size of {_ids::*} is 1 with "enumerate menus: expected one id"
+    assert size of {_menus::*} is 1 with "enumerate menus: expected one menu"
     log "XIAOJIE_SELFTEST detail: enumerate menus -> %size of {_ids::*}% id(s), %size of {_menus::*}% menu(s)"
 
 on load:
     set {_menu} to the menu with id "selftest"
-    if player inventory of {_menu} is hidden:
-        log "XIAOJIE_SELFTEST detail: player inventory condition FAILED -> a menu that does not hide it reports hidden"
-        stop
+    assert player inventory of {_menu} is not hidden with "default player inventory must be shown"
     log "XIAOJIE_SELFTEST detail: player inventory condition -> shown"
 
 on load:
     set {_menu} to the menu with id "selftest"
     destroy the menu {_menu}
-    # A failed destroy logs nothing, which the expected message `destroyed` in `build.gradle.kts` turns
-    # into a missing line: the `... FAILED ...` branch that used to sit here only repeated that check.
-    if {_menu} is destroyed:
-        log "XIAOJIE_SELFTEST detail: destroy menu -> destroyed"
+    assert {_menu} is destroyed with "destroy menu must mark it destroyed"
+    log "XIAOJIE_SELFTEST detail: destroy menu -> destroyed"

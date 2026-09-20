@@ -52,12 +52,19 @@ on join:
     set {_n::*} to the slots of key "N" in page 1 of {_menu}
     # The addon's side of the slot contract the bot asserts from the protocol's side: A at slot 0, which
     # is the client slot the bot has to see it in, and the same for the three clicks and the page button.
+    assert "%{_a::*}%" is "0" with "client layout: A must be at slot 0 only"
+    assert "%{_b::*}%" is "1" with "client layout: B must be at slot 1 only"
+    assert "%{_c::*}%" is "2" with "client layout: C must be at slot 2 only"
+    assert "%{_n::*}%" is "3" with "client layout: N must be at slot 3 only"
     log "XIAOJIE_SELFTEST detail: client menu layout -> A at %{_a::*}%, B at %{_b::*}%, C at %{_c::*}%, N at %{_n::*}%"
     open menu {_menu} for player
     set {_page} to the page of the menu session of player
     # No viewer count here: at `on join` the player is not yet resolvable through Bukkit, so `viewers of`
     # answers nothing even though the menu was just opened for them. The count is asserted on the clicks
     # below, where it has to be 1, and the caveat is written down in the wiki's boundary list.
+    assert "%the default title of {_menu}%" is "Client Page One" with "client menu must retain its opening title"
+    assert {_page} is 1 with "client menu must open at page 1"
+    assert the page number of {_menu} is 2 with "client menu must have two pages"
     log "XIAOJIE_SELFTEST detail: client menu opened -> title %the default title of {_menu}%, page %{_page}% of %the page number of {_menu}%"
 
 on menu interact:
@@ -69,10 +76,9 @@ on menu interact:
     # The menu whose button sits *below* its container, which only exists because that menu hides the
     # player's inventory: the bot reads slot 27 out of its own window and clicks it.
     if {_menu} is the menu with id "client_lower":
-        if the clicked slot is 27:
-            log "XIAOJIE_SELFTEST detail: client lower half click -> slot %the clicked slot%, type %the click type%"
-        else:
-            log "XIAOJIE_SELFTEST detail: client lower half click on an unknown slot FAILED -> %the clicked slot%"
+        assert the clicked slot is 27 with "client lower half click must be at slot 27"
+        assert "%the click type%" is "left mouse button" with "client lower half click must be a left click"
+        log "XIAOJIE_SELFTEST detail: client lower half click -> slot %the clicked slot%, type %the click type%"
         stop
     # The drag scenario opens a menu of its own, and its clicks arrive here too: this handler answers only
     # for the menu below, or it would report that menu's slots as unknown ones.
@@ -83,24 +89,36 @@ on menu interact:
     # `the menu viewers of`, not `the viewers of`: Skript 2.16 registers a `viewer[s]` property of its own
     # over any object, so the shorter form is answered by Skript and returns nothing at all.
     set {_message} to "slot %the clicked slot% on page %the page%, type %the click type%, key %{_key}%, %size of {_viewers::*}% viewer(s)"
+    assert the clicked slot is between 0 and 3 with "client click must target a known scenario slot"
+    assert the page is 1 with "client click must report page 1"
+    assert size of {_viewers::*} is 1 with "client click must report one viewer"
     if the clicked slot is 0:
+        assert "%the click type%" is "left mouse button" with "plain click must report left mouse button"
+        assert {_key} is not set with "plain click must not report a number key"
         log "XIAOJIE_SELFTEST detail: client plain click -> %{_message}%"
     else if the clicked slot is 1:
+        assert "%the click type%" is "left mouse button with shift" with "shift click must report shift"
+        assert {_key} is not set with "shift click must not report a number key"
         log "XIAOJIE_SELFTEST detail: client shift click -> %{_message}%"
     else if the clicked slot is 2:
+        assert "%the click type%" is "number key" with "number-key click must report its click type"
+        assert {_key} is 3 with "number-key click must report key 3"
         log "XIAOJIE_SELFTEST detail: client number key click -> %{_message}%"
     else if the clicked slot is 3:
+        assert "%the click type%" is "left mouse button" with "page button must report left mouse button"
+        assert {_key} is not set with "page button must not report a number key"
         log "XIAOJIE_SELFTEST detail: client page 2 button -> %{_message}%"
         # The page turn is the part only a client can confirm: the server knows which page it moved to,
         # but whether the *screen* still shows a menu, and which title and items it shows, is the client's
         # half. Nothing here reads the bot's answer; that is the job of the bot's own assertions.
         turn to page 2 for player
-    else:
-        # A click on a slot the bot never clicks means the two layers disagree about slots, which is the
-        # failure this scenario exists to catch, so it is reported as one.
-        log "XIAOJIE_SELFTEST detail: client click on an unknown slot FAILED -> %{_message}%"
 
 on page turn:
+    # Recipe menus can turn pages too; only this scenario has the fixed 1 -> 2 contract.
+    if the event-menu is not the menu with id "client":
+        stop
+    assert the page is 1 with "client page turn must start at page 1"
+    assert the future page is 2 with "client page turn must target page 2"
     log "XIAOJIE_SELFTEST detail: client page turned -> %the page% -> %the future page%"
 
 # The rows below the container, which are the menu's own space only while the player's inventory is hidden.

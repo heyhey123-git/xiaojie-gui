@@ -1,0 +1,6 @@
+name: XiaojieAssertionBridge
+version: '1.0-test-only'
+main: io.github.heyhey123.xiaojiegui.test.AssertionBridge
+api-version: '26.2'
+depend: [Skript]
+description: Test-only observer of Skript native EffAssert failures; never distribute.

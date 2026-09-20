@@ -4,6 +4,7 @@
 on load:
     create a phantom menu with crafter inventory titled "Crafter" with layout "AAAAAAAAA" with id "type_crafter":
         set {_pages} to the page number of the menu with id "type_crafter"
+        assert {_pages} is 1 with "crafter inventory must create one page"
         log "XIAOJIE_SELFTEST detail: inventory type crafter -> %{_pages}% page(s)"
     set {_menu} to the menu with id "type_crafter"
     destroy the menu {_menu}

@@ -20,6 +20,7 @@
 # depending on how many items the cursor carries: one item can only ever fill one slot.
 
 on load:
+    delete {xiaojie_selftest::one_slot_drag_seen}
     create a static menu with chest inventory titled "Drag Test" with layout "ABCD     ", "         ", "         " with id "dragtest" with 0 ms click delay:
         map key "A" to icon diamond named "drag-a" for menu with id "dragtest"
         map key "B" to icon emerald named "drag-b" for menu with id "dragtest"
@@ -33,6 +34,7 @@ command /dragtest:
         set {_menu} to the menu with id "dragtest"
         open menu {_menu} for player
         set {_slots::*} to the slots of key "A" in page 1 of {_menu}
+        assert "%{_slots::*}%" is "0" with "drag menu key A must be at slot 0 only"
         log "XIAOJIE_SELFTEST detail: client drag menu opened -> A at %{_slots::*}%"
 
 # The other half of the protection story: `locked icons` refuses by itself, so the script below writes no
@@ -44,17 +46,14 @@ on load:
         map key "S" to icon diamond named "locked-goods" for menu with id "lockedtest"
 
 # The same switch at runtime: `with locked icons` sets it while the menu is created, and
-# `lock the icons of %menu%` flips it afterwards. The two self-checks below report the name nothing
-# declares, so they fail the build if they ever fire -- and every protection the bot checks depends on the
-# last one having taken.
+# `lock the icons of %menu%` flips it afterwards. Native assertions verify both transitions;
+# every protection the bot checks depends on the last one having taken.
 on load:
     edit menu with id "lockedtest":
         unlock the icons of the menu with id "lockedtest"
-        if the icons of the menu with id "lockedtest" are locked:
-            log "XIAOJIE_SELFTEST detail: locked menu toggle FAILED -> the unlock did not take"
+        assert the icons of the menu with id "lockedtest" are not locked with "locked menu toggle: unlock must take effect"
         lock the icons of the menu with id "lockedtest"
-        if the icons of the menu with id "lockedtest" are not locked:
-            log "XIAOJIE_SELFTEST detail: locked menu toggle FAILED -> the lock did not take"
+        assert the icons of the menu with id "lockedtest" are locked with "locked menu toggle: lock must take effect"
 
 command /locktest:
     trigger:
@@ -69,6 +68,8 @@ command /locktest:
         # which slots hold something, and what they hold.
         set {_occupied::*} to the occupied slots of the menu session of player
         set {_contents::*} to the menu contents of the menu session of player
+        assert "%{_occupied::*}%" is "0 and 1" with "locked menu must occupy slots 0 and 1 only"
+        assert size of {_contents::*} is 2 with "locked menu must contain two items"
         log "XIAOJIE_SELFTEST detail: locked menu read -> slots %{_occupied::*}%, %size of {_contents::*}% item(s)"
 
 on menu interact:
@@ -89,6 +90,11 @@ on menu interact:
             cancel event
             stop
         if the clicked slot is 11 or 12 or 13 or 14:
+            # Only the first such click is the one-item drag; later pickups may use the other slots.
+            if {xiaojie_selftest::one_slot_drag_seen} is not set:
+                assert the clicked slot is 11 with "first one-slot drag must be delivered at slot 11"
+                set {xiaojie_selftest::one_slot_drag_seen} to true
+            assert "%the click type%" is "left mouse button" with "one-slot drag must become a left click"
             log "XIAOJIE_SELFTEST detail: client one slot drag came in as a click -> slot %the clicked slot%, type %the click type%"
         stop
 
@@ -97,9 +103,13 @@ on menu interact:
             cancel event
             # `the cursor item` is what the player carried into the drag. A drag never takes anything out
             # of a slot, so for a drag this is always the stack that came in with it.
+            assert "%{_dragged::*}%" is "5 and 6" with "protected drag must cover slots 5 and 6 only"
+            assert the amount of the cursor item is 2 with "protected drag cursor must hold two items"
             log "XIAOJIE_SELFTEST detail: client drag onto protected slots -> cancelled for slots %{_dragged::*}%, cursor %the amount of the cursor item%"
             stop
 
     # Nothing was cancelled, so the drag happens: every touched slot keeps the item it was given, which is
     # what the bot then reads out of its own window.
+    assert "%{_dragged::*}%" is "13 and 14" with "multi-slot drag must cover slots 13 and 14 only"
+    assert "%the click type%" is "left mouse button" with "multi-slot drag must report left mouse button"
     log "XIAOJIE_SELFTEST detail: client multi slot drag -> slots %{_dragged::*}%, type %the click type%"

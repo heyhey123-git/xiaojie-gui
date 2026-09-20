@@ -4,6 +4,7 @@
 on load:
     create a phantom menu with enchanting table inventory titled "Enchanting" with layout "AAA" with id "type_enchanting":
         set {_pages} to the page number of the menu with id "type_enchanting"
+        assert {_pages} is 1 with "enchanting inventory must create one page"
         log "XIAOJIE_SELFTEST detail: inventory type enchanting -> %{_pages}% page(s)"
     set {_menu} to the menu with id "type_enchanting"
     destroy the menu {_menu}

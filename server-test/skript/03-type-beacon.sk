@@ -5,6 +5,7 @@
 on load:
     create a phantom menu with beacon inventory titled "Beacon" with layout "A" with id "type_beacon":
         set {_pages} to the page number of the menu with id "type_beacon"
+        assert {_pages} is 1 with "beacon inventory must create one page"
         log "XIAOJIE_SELFTEST detail: inventory type beacon -> %{_pages}% page(s)"
     set {_menu} to the menu with id "type_beacon"
     destroy the menu {_menu}

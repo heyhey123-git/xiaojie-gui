@@ -15,5 +15,6 @@ on load:
     create a phantom menu with chest inventory titled {_title} with layout "A" with id "skbee_title":
         set {_menu} to the menu with id "skbee_title"
         set {_read} to the title of page 1 in {_menu}
+        assert "%{_read}%" is "Selftest Component Title" with "SkBee component title must round-trip as text"
         log "XIAOJIE_SELFTEST detail: skbee component title -> %{_read}%"
     destroy the menu with id "skbee_title"

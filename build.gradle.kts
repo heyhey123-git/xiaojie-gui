@@ -5,6 +5,7 @@ import java.net.URI
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.TimeUnit
+import java.util.jar.JarFile
 
 plugins {
     java
@@ -175,10 +176,53 @@ val releaseNotes by tasks.registering {
 // plugin by subclassing it).
 //
 // `server-test/skript/*.sk` reports what it did as `XIAOJIE_SELFTEST detail: <name> -> <message>`
-// lines; the assertions live in `VerifySkriptServerTest` below, next to the log they read.
+// lines after native Skript EffAssert checks. Gradle additionally requires completion markers,
+// clean parsing and the test-only bridge's final TestTracker summary after graceful shutdown.
 
 val serverTestDirectory = layout.projectDirectory.dir("server-test/run")
 val serverTestScripts = layout.projectDirectory.dir("server-test/skript")
+// Separate output and compile-only dependencies: the observer never enters the production shadowJar.
+val assertionBridge = sourceSets.create("assertionBridge") {
+    java.srcDir("server-test/bridge/java")
+    resources.srcDir("server-test/bridge/resources")
+}
+dependencies {
+    add(assertionBridge.compileOnlyConfigurationName, libs.paper.api)
+    add(assertionBridge.compileOnlyConfigurationName, libs.skript)
+}
+val assertionBridgeJar by tasks.registering(Jar::class) {
+    from(assertionBridge.output)
+    archiveFileName.set("assertion-bridge.jar")
+    destinationDirectory.set(layout.buildDirectory.dir("test-only"))
+}
+
+/** Skript requires both paths even in development mode; this mode still loads ordinary scripts. */
+object SkriptAssertionMode {
+    fun arguments(run: File): List<String> = listOf(
+        "-Dskript.testing.enabled=true",
+        "-Dskript.testing.devMode=true",
+        "-Dskript.testing.dir=${run.resolve("assertion-tests").absolutePath}",
+        "-Dskript.testing.results=${run.resolve("assertion-results.json").absolutePath}"
+    )
+
+    fun problems(lines: List<String>): List<String> = buildList {
+        val prefix = "[XiaojieAssertionBridge] "
+        val ready = lines.indices.filter { lines[it].endsWith(prefix + "XIAOJIE_ASSERT=READY") }
+        val summaries = lines.indices.filter { prefix + "XIAOJIE_ASSERT=FINISHED" in lines[it] }
+        if (ready.size != 1) add("Expected exactly one assertion bridge READY marker, found ${ready.size}.")
+        if (summaries.size != 1) {
+            add("Expected exactly one final assertion summary, found ${summaries.size}.")
+        } else {
+            val summary = summaries.single()
+            if (!Regex("XIAOJIE_ASSERT=FINISHED failures=0\\s*$").containsMatchIn(lines[summary])) {
+                add("Skript assertion failures: ${lines[summary]}")
+            }
+            if (ready.size == 1 && summary <= ready.single()) add("Assertion summary preceded READY.")
+        }
+        lines.firstOrNull { "XIAOJIE_ASSERT=FAIL" in it }?.let { add("Skript assertion failed: $it") }
+    }
+}
+
 val serverTestElements =
     layout.projectDirectory.dir("src/main/kotlin/io/github/heyhey123/xiaojiegui/skript/elements")
 
@@ -214,7 +258,7 @@ val serverTestExpectedDetails = mapOf(
     "destroy menu" to "destroyed",
     "create static hopper menu" to "1 page(s), mode static",
     "create menu hiding the player inventory" to "default title HideSelftest, type chest inventory",
-    // "not hidden" contains "hidden", so this pins the flag but the script keeps its own FAILED branch.
+    // "not hidden" contains "hidden", so the native assertion also checks the actual flag.
     "hide flag took effect" to "hidden",
     // `player layout` hides the inventory by itself, and its keys land below the container, starting where
     // that page's own container ends: 27 under the three row page, 9 under the one row page next to it.
@@ -303,9 +347,36 @@ val serverTestUndeclaredDetails = providers.provider {
     reported - serverTestExpectedDetails.keys
 }
 
+/** Publish only complete downloads; interrupted transfers never masquerade as cached jars. */
+object TestPluginDownload {
+    fun download(url: String, jar: File) {
+        jar.parentFile.mkdirs()
+        val partial = File(jar.parentFile, jar.name + ".part")
+        try {
+            val connection = URI(url).toURL().openConnection().apply {
+                connectTimeout = 30_000
+                readTimeout = 60_000
+            }
+            connection.getInputStream().use { input -> partial.outputStream().use { input.copyTo(it) } }
+            if (partial.length() == 0L) throw GradleException("Empty plugin download: $url")
+            val expectedLength = connection.contentLengthLong
+            if (expectedLength >= 0L && partial.length() != expectedLength) {
+                throw GradleException("Incomplete plugin download: $url")
+            }
+            // Check the ZIP directory before publishing; this is integrity screening, not a checksum pin.
+            JarFile(partial).use { it.size() }
+            Files.move(partial.toPath(), jar.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        } finally {
+            partial.delete()
+        }
+    }
+}
+
 val prepareServerTest by tasks.registering {
     description = "Prepares the disposable server directory that `runServer` and `serverTest` use."
     group = "verification"
+    dependsOn(assertionBridgeJar)
+    inputs.file(assertionBridgeJar.flatMap { it.archiveFile })
     inputs.dir(serverTestScripts)
     inputs.dir(serverTestElements)
     inputs.file("server-test/server.properties")
@@ -313,6 +384,12 @@ val prepareServerTest by tasks.registering {
         val run = serverTestDirectory.asFile
         val scripts = run.resolve("plugins/Skript/scripts")
         scripts.mkdirs()
+        run.resolve("assertion-tests").mkdirs()
+        run.resolve("assertion-results.json").delete()
+        assertionBridgeJar.get().archiveFile.get().asFile.copyTo(
+            run.resolve("plugins/assertion-bridge.jar"),
+            overwrite = true
+        )
         // Paper refuses to start without this. Writing it records acceptance of the Minecraft EULA
         // (https://aka.ms/MinecraftEULA) for this disposable test server, and for no other server.
         run.resolve("eula.txt").writeText("eula=true\n")
@@ -326,9 +403,9 @@ val prepareServerTest by tasks.registering {
         scripts.resolve("07-examples.sk").writeText(exampleGateScript(serverTestElements.asFile))
         serverTestPlugins.forEach { (name, url) ->
             val jar = run.resolve("plugins/$name")
-            if (jar.isFile) return@forEach
+            if (jar.isFile && jar.length() > 0L) return@forEach
             logger.lifecycle("Downloading $name")
-            URI(url).toURL().openStream().use { input -> jar.outputStream().use { input.copyTo(it) } }
+            TestPluginDownload.download(url, jar)
         }
     }
 }
@@ -337,6 +414,7 @@ tasks.named<RunServer>("runServer") {
     dependsOn(prepareServerTest)
     minecraftVersion(paperMinecraftVersion)
     runDirectory.set(serverTestDirectory)
+    jvmArgs(SkriptAssertionMode.arguments(serverTestDirectory.asFile))
     // The shaded jar is the plugin under test; run-paper copies it into the run directory on each run.
     pluginJars(tasks.shadowJar)
     // Paper 26.2 refuses to start on anything older than Java 25, and the build itself may be running
@@ -353,11 +431,43 @@ val serverTest by tasks.registering(VerifySkriptServerTest::class) {
     undeclaredDetails.set(serverTestUndeclaredDetails)
 }
 
+// Offline re-checks make fail-closed regression probes possible without another server boot.
+val verifyServerTestLog by tasks.registering(VerifySkriptServerTest::class) {
+    group = "verification"
+    description = "Checks a saved server log (-PserverTestLog=path) without starting Paper."
+    serverLog.set(
+        layout.projectDirectory.file(
+            providers.gradleProperty("serverTestLog").getOrElse("server-test/run/logs/latest.log")
+        )
+    )
+    expectedDetails.set(serverTestExpectedDetails)
+    undeclaredDetails.set(serverTestUndeclaredDetails)
+}
+val verifySkriptAssertionGate by tasks.registering {
+    group = "verification"
+    description = "Checks assertion bridge verification fails closed for absent or ambiguous results."
+    doLast {
+        val ready = "[XiaojieAssertionBridge] XIAOJIE_ASSERT=READY"
+        val summary = "[XiaojieAssertionBridge] XIAOJIE_ASSERT=FINISHED failures=0"
+        check(SkriptAssertionMode.problems(listOf(ready, summary)).isEmpty())
+        val invalid = listOf(
+            emptyList(), listOf(ready), listOf(summary), listOf(summary, ready),
+            listOf(ready, summary, summary), listOf(ready, ready, summary),
+            listOf(ready, "[XiaojieAssertionBridge] XIAOJIE_ASSERT=FINISHED failures=1"),
+            listOf(ready, "[XiaojieAssertionBridge] XIAOJIE_ASSERT=FAILED probe", summary),
+            listOf("Line: log \"XIAOJIE_ASSERT=READY\"", "Line: log \"XIAOJIE_ASSERT=FINISHED failures=0\"")
+        )
+        invalid.forEach { check(SkriptAssertionMode.problems(it).isNotEmpty()) { "Accepted invalid assertion log: $it" } }
+        logger.lifecycle("Assertion gate passed: valid summary accepted; ${invalid.size} incomplete/failed logs rejected.")
+    }
+}
+tasks.named("check") { dependsOn(verifySkriptAssertionGate) }
+
 /**
  * Checks the log a `serverTest` run wrote.
  *
- * The Skript side reports what it did as `XIAOJIE_SELFTEST` lines, so the assertions stay here, where
- * they can be read and changed without writing Skript.
+ * Value assertions run in Skript's original EffAssert. Detail lines remain scenario-completion
+ * witnesses; the bridge makes otherwise silent TestTracker failures fail this Gradle task.
  */
 abstract class VerifySkriptServerTest : DefaultTask() {
 
@@ -379,7 +489,7 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         if (!log.isFile) throw GradleException("The server wrote no log at ${log.absolutePath}.")
 
         val lines = log.readLines()
-        val problems = mutableListOf<String>()
+        val problems = SkriptAssertionMode.problems(lines).toMutableList()
 
         fun requireLine(description: String, text: String) {
             if (lines.none { text in it }) problems += "$description\n      absent: $text"
@@ -415,6 +525,14 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         // "this condition", so matching the prefix catches all three.
         forbidLine("Skript reported a severe error.", Regex("""\[Skript]\s+Severe Error"""))
         forbidLine("Skript could not compile a registered pattern.", Regex("pattern compiling exception"))
+        forbidLine(
+            "Skript rejected a non-numeric expression.",
+            Regex("""\]:(?!\s*Line:)\s+.+ is not a number\.?\s*$""")
+        )
+        forbidLine(
+            "Skript rejected multiple values for a scalar assignment.",
+            Regex("""\]:(?!\s*Line:)\s+.+ can only be set to one .+, not more\.?\s*$""")
+        )
         forbidLine("A script line could not be understood.", Regex("""Can't understand this"""))
         // Skript refuses an expression that belongs to another event with "The expression 'x' may only be
         // used in an inventory click event", which is not one of the three wordings above. The `[Skript]
@@ -737,6 +855,7 @@ val clientTest by tasks.registering(ClientTest::class) {
     group = "verification"
     // The same run directory and the same plugin jar `serverTest` uses, so both layers test one artifact.
     dependsOn(prepareServerTest, tasks.named("shadowJar"))
+    mustRunAfter(serverTest)
     serverDirectory.set(serverTestDirectory)
     minecraftVersion.set(paperMinecraftVersion)
     pluginJar.set(tasks.named<ShadowJar>("shadowJar").flatMap { it.archiveFile })
@@ -841,6 +960,7 @@ abstract class ClientTest : DefaultTask() {
             javaExecutable.get(),
             "-Xms1G",
             "-Xmx1G",
+            *SkriptAssertionMode.arguments(dir).toTypedArray(),
             "-cp",
             paperClasspath(dir, paperJar),
             "org.bukkit.craftbukkit.Main",
@@ -858,10 +978,16 @@ abstract class ClientTest : DefaultTask() {
         try {
             awaitServerReady(process, log)
             botOutput = runBot()
+            // The bridge reports in onDisable; verification before a graceful stop loses every failure.
+            if (!stopServer(process)) throw GradleException("Client test server required forced termination.")
+            if (process.exitValue() != 0) throw GradleException("Client test server exited with ${process.exitValue()}.")
             checkServerLog(log, botOutput)
         } finally {
-            stopServer(process)
-            cleanUpRunDirectory(changes)
+            try {
+                stopServer(process)
+            } finally {
+                cleanUpRunDirectory(changes)
+            }
         }
     }
 
@@ -927,9 +1053,9 @@ abstract class ClientTest : DefaultTask() {
         val plugins = dir.resolve("plugins")
         return viaPlugins.get().map { (name, url) ->
             val cached = cache.resolve(name)
-            if (!cached.isFile) {
+            if (!cached.isFile || cached.length() == 0L) {
                 logger.lifecycle("Downloading $name")
-                URI(url).toURL().openStream().use { input -> cached.outputStream().use { input.copyTo(it) } }
+                TestPluginDownload.download(url, cached)
             }
             cached.copyTo(plugins.resolve(name), overwrite = true)
         }
@@ -1017,36 +1143,34 @@ abstract class ClientTest : DefaultTask() {
     }
 
     /**
-     * Installs the bot's dependencies with npm when they are missing or older than `package.json`.
-     *
-     * npm's cache is pointed into the build directory rather than left at its default: the pinned version
-     * in `package.json` (and the lock file next to it) is then the only thing that decides what the bot
-     * runs, whatever cache a machine or a CI runner happens to have. A CI runner installs here the same
-     * way a workstation does; the task never assumes `node_modules` was checked in, and `.gitignore` keeps
-     * it out of the repository.
+     * Recreates node_modules from the lockfile every time; package or directory mtimes are not evidence
+     * that installed dependencies match it. Only npm's content cache is reused, never node_modules.
      */
     private fun installBotDependencies() {
         val bot = botDirectory.get().asFile
-        val nodeModules = bot.resolve("node_modules")
-        val packageJson = File(bot, "package.json")
-        if (nodeModules.isDirectory && nodeModules.lastModified() >= packageJson.lastModified()) return
-
-        logger.lifecycle("Installing the client bot's dependencies (`npm install` in ${bot.name})...")
+        logger.lifecycle("Installing the client bot's dependencies (`npm ci` in ${bot.name})...")
         val cache = npmCache.get().asFile
         cache.mkdirs()
+        val log = serverLog.get().asFile.parentFile.resolve("npm.log")
+        log.parentFile.mkdirs()
         // npm on Windows is a `.cmd`, which CreateProcess cannot start on its own.
         val command = if (isWindows()) listOf("cmd.exe", "/c", "npm") else listOf("npm")
-        val process = ProcessBuilder(command + listOf("install", "--no-audit", "--no-fund"))
+        val process = ProcessBuilder(command + listOf("ci", "--prefer-offline", "--no-audit", "--no-fund"))
             .directory(bot)
             .redirectErrorStream(true)
-            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            .redirectOutput(log)
             .apply { environment()["npm_config_cache"] = cache.absolutePath }
             .start()
-        val exit = process.waitFor()
+        if (!process.waitFor(5, TimeUnit.MINUTES)) {
+            process.destroyForcibly()
+            throw GradleException("`npm ci` did not finish within 5 minutes." + logTail(log))
+        }
+        logger.lifecycle("npm ci:\n${log.readText()}")
+        val exit = process.exitValue()
         if (exit != 0) {
             throw GradleException(
-                "`npm install` failed with exit code $exit in ${bot.absolutePath}. The client test needs " +
-                    "Node.js: check that `node --version` works on this machine."
+                "`npm ci` failed with exit code $exit in ${bot.absolutePath}. The client test needs " +
+                    "Node.js and a package-lock.json matching package.json." + logTail(log)
             )
         }
     }
@@ -1054,7 +1178,7 @@ abstract class ClientTest : DefaultTask() {
     /** Reads the server log and fails with every problem it found, or reports what the run covered. */
     private fun checkServerLog(log: File, botOutput: String) {
         val lines = log.readLines()
-        val problems = mutableListOf<String>()
+        val problems = SkriptAssertionMode.problems(lines).toMutableList()
 
         if (lines.none { "XiaojieGUI has been enabled!" in it }) {
             problems += "The plugin never announced that it enabled."
@@ -1085,6 +1209,14 @@ abstract class ClientTest : DefaultTask() {
         forbid("Skript could not compile a registered pattern.", Regex("pattern compiling exception"))
         forbid("A script line could not be understood.", Regex("""Can't understand this"""))
         forbid(
+            "Skript rejected a non-numeric expression.",
+            Regex("""\]:(?!\s*Line:)\s+.+ is not a number\.?\s*$""")
+        )
+        forbid(
+            "Skript rejected multiple values for a scalar assignment.",
+            Regex("""\]:(?!\s*Line:)\s+.+ can only be set to one .+, not more\.?\s*$""")
+        )
+        forbid(
             "An expression was used outside the event it belongs to.",
             Regex("""may only be used in an? [a-z ]*event""")
         )
@@ -1110,21 +1242,20 @@ abstract class ClientTest : DefaultTask() {
         )
     }
 
-    /** Stops the server the way a console would, and kills it only if that does not work. */
-    private fun stopServer(process: Process) {
-        if (!process.isAlive) return
+    /** Returns false if forced termination was necessary, even if a summary had already been logged. */
+    private fun stopServer(process: Process): Boolean {
+        if (!process.isAlive) return true
         runCatching {
-            // Paper reads console commands from stdin, so `stop` is the same shutdown an operator asks
-            // for: the world is saved and the plugins are disabled. Killing the process cannot do that.
             process.outputStream.write("stop\n".toByteArray())
             process.outputStream.flush()
         }.onFailure { logger.warn("Could not write `stop` to the server: ${it.message}") }
-
         if (!process.waitFor(SERVER_STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             logger.warn("The server did not stop within ${SERVER_STOP_TIMEOUT_MS / 1000} s of `stop`; killing it.")
             process.destroyForcibly()
             process.waitFor(SERVER_STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            return false
         }
+        return true
     }
 
     /** The end of a log, for a failure message that has to say what the run actually did. */

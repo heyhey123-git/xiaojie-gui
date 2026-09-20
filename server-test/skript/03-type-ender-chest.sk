@@ -5,6 +5,7 @@
 on load:
     create a phantom menu with ender chest inventory titled "Ender Chest" with layout "AAAAAAAAA", "A       A", "AAAAAAAAA" with id "type_ender_chest":
         set {_pages} to the page number of the menu with id "type_ender_chest"
+        assert {_pages} is 1 with "ender chest inventory must create one page"
         log "XIAOJIE_SELFTEST detail: inventory type ender chest -> %{_pages}% page(s)"
     set {_menu} to the menu with id "type_ender_chest"
     destroy the menu {_menu}

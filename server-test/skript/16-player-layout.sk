@@ -13,11 +13,11 @@ on load:
         map key "A" to icon apple named "layout-a" for menu with id "playerlayout"
         map key "B" to icon bread named "layout-b" for menu with id "playerlayout"
     set {_menu} to the menu with id "playerlayout"
-    if player inventory of {_menu} is hidden:
-        log "XIAOJIE_SELFTEST detail: player layout hides the player inventory -> hidden"
-    else:
-        log "XIAOJIE_SELFTEST detail: player layout FAILED to hide the player inventory -> shown"
+    assert player inventory of {_menu} is hidden with "player layout must hide the player inventory"
+    log "XIAOJIE_SELFTEST detail: player layout hides the player inventory -> hidden"
     set {_slots::*} to the slots of key "B" in page 1 of {_menu}
+    assert size of {_slots::*} is 1 with "player layout key B must have one slot"
+    assert {_slots::1} is 27 with "player layout key B must be at slot 27"
     log "XIAOJIE_SELFTEST detail: player layout key slot -> B at %{_slots::*}%"
     destroy the menu {_menu}
 
@@ -29,11 +29,11 @@ on load:
     create a phantom menu with chest inventory titled "Inserted layout" with layout "AAAAA    ", "         ", "         " with id "insertlayout":
         set {_menu} to the menu with id "insertlayout"
         insert page with layout "CCCC     " with player layout "D        " with title "Second"
-        if player inventory of {_menu} is hidden:
-            log "XIAOJIE_SELFTEST detail: insert page player layout hides the inventory -> hidden"
-        else:
-            log "XIAOJIE_SELFTEST detail: insert page player layout FAILED to hide the inventory -> shown"
+        assert player inventory of {_menu} is hidden with "inserted player layout must hide the inventory"
+        log "XIAOJIE_SELFTEST detail: insert page player layout hides the inventory -> hidden"
         set {_slots::*} to the slots of key "D" in page 2 of {_menu}
+        assert size of {_slots::*} is 1 with "inserted player layout key D must have one slot"
+        assert {_slots::1} is 9 with "inserted player layout key D must be at slot 9"
         log "XIAOJIE_SELFTEST detail: insert page player layout key slot -> D at %{_slots::*}%"
     destroy the menu with id "insertlayout"
 
@@ -45,10 +45,8 @@ on load:
     create a phantom menu with chest inventory titled "Conflicting layout" with layout "AAAAA    ", "         ", "         " with player layout "B        " with id "layoutconflict" without hide player inventory:
         set {_unused} to 1
     set {_menu} to the menu with id "layoutconflict"
-    if player inventory of {_menu} is hidden:
-        log "XIAOJIE_SELFTEST detail: player layout wins over without hide -> hidden"
-    else:
-        log "XIAOJIE_SELFTEST detail: player layout FAILED to win over without hide -> shown"
+    assert player inventory of {_menu} is hidden with "player layout must win over without hide"
+    log "XIAOJIE_SELFTEST detail: player layout wins over without hide -> hidden"
     destroy the menu {_menu}
 
 # `show player inventory` cannot take that half back: the page lays it out, and a window that is half the
@@ -62,15 +60,11 @@ on load:
         set {_unused} to 1
     set {_menu} to the menu with id "layoutrefuse"
     show player inventory of {_menu}
-    if player inventory of {_menu} is hidden:
-        log "XIAOJIE_SELFTEST detail: show player inventory refused -> still hidden"
-    else:
-        log "XIAOJIE_SELFTEST detail: show player inventory FAILED to be refused -> shown"
+    assert player inventory of {_menu} is hidden with "show player inventory must be refused for a player layout"
+    log "XIAOJIE_SELFTEST detail: show player inventory refused -> still hidden"
     destroy the menu {_menu}
     set {_menu} to the menu with id "layoutshowable"
     show player inventory of {_menu}
-    if player inventory of {_menu} is hidden:
-        log "XIAOJIE_SELFTEST detail: show without a player layout FAILED -> still hidden"
-    else:
-        log "XIAOJIE_SELFTEST detail: show without a player layout -> shown"
+    assert player inventory of {_menu} is not hidden with "show without a player layout must show the inventory"
+    log "XIAOJIE_SELFTEST detail: show without a player layout -> shown"
     destroy the menu {_menu}

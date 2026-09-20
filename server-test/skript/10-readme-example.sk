@@ -11,6 +11,9 @@ on load:
     set {_menu} to the menu with id "main"
     # A list, not a single variable: the slots of a key are a set, even when it holds one slot.
     set {_slots::*} to the slots of key "A" in page 1 of {_menu}
+    assert the page number of {_menu} is 1 with "README menu must have one page"
+    assert size of {_slots::*} is 1 with "README key A must have one slot"
+    assert {_slots::1} is 12 with "README key A must be at slot 12"
     log "XIAOJIE_SELFTEST detail: readme example menu -> %the page number of {_menu}% page(s), key A at slot %{_slots::*}%"
 
 # The other half of the README example: the command that opens the menu.
