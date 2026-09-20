@@ -179,4 +179,25 @@ class PageKeyToSlotsTest {
         assertNotNull(slots, "Expected key 'k' to be mapped in both regions")
         assertEquals(setOf(0, 9), slots, "Key 'k' should merge to slots [0, 9]")
     }
+
+    // 9) the lectern is the one client menu with no player half at all, so a page that lays out the rows below
+    // the container has nowhere to put them: those rows are not slots this window has, and `computeSlots` sizes
+    // its array from the layout, so mapping them would be a write past the end of the window rather than a
+    // layout that does nothing. The rows are skipped the way they are skipped while the player's inventory is
+    // shown (test 4); test 5 is the same page on a chest, where a player half does exist.
+    @Test
+    fun `player layout ignored on a lectern, which has no player half`() {
+        val p = page(
+            layout = listOf("a"),
+            player = listOf("b        "),
+            mode = Receptacle.Mode.PHANTOM,
+            hidePI = true,
+            type = InventoryType.LECTERN
+        )
+        assertFalse(p.layout.hasPlayerInventory, "The lectern's client menu has no player inventory")
+        val ownCell = p.keyToSlots["a"]
+        assertNotNull(ownCell, "The lectern's own cell is still mapped")
+        assertEquals(setOf(0), ownCell, "The lectern's own cell is still mapped")
+        assertNull(p.keyToSlots["b"], "The player layout must not be mapped past the window's only slot")
+    }
 }

@@ -158,7 +158,15 @@ class Page(
         // neither the player's inventory nor its own half. So the two go together -- declaring a player
         // layout hides the inventory (see the syntax) -- and what a page lays out here is what the menu
         // owns. In `static` mode the lower half is the player's real inventory and never the menu's.
-        if (properties.mode == Receptacle.Mode.PHANTOM && properties.hidePlayerInventory) {
+        // A lectern's client menu is one slot and has no player half at all (`ViewLayout` says so), so a page
+        // that laid icons out below the container would be writing into slots that window does not have --
+        // `contents` is sized from the layout, and the write would land past its end. Skip it, the way a
+        // static menu's player layout is skipped, instead of indexing out of the window.
+        if (
+            properties.mode == Receptacle.Mode.PHANTOM &&
+            properties.hidePlayerInventory &&
+            layout.hasPlayerInventory
+        ) {
             this.playerLayoutPattern.asSequence()
                 .take(4)
                 .forEachIndexed { rowIndex, patternLine ->
