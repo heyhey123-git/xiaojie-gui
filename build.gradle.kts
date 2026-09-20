@@ -181,6 +181,11 @@ val releaseNotes by tasks.registering {
 
 val serverTestDirectory = layout.projectDirectory.dir("server-test/run")
 val serverTestScripts = layout.projectDirectory.dir("server-test/skript")
+
+// The script the manual acceptance checklist drives. It lives with the checklist rather than in
+// `server-test/` because a server owner is meant to copy it into `plugins/Skript/scripts/`, and that
+// folder is the one the checklist tells them not to copy.
+val manualAcceptanceScript = layout.projectDirectory.file("docs/manual-acceptance.sk")
 // Separate output and compile-only dependencies: the observer never enters the production shadowJar.
 val assertionBridge = sourceSets.create("assertionBridge") {
     java.srcDir("server-test/bridge/java")
@@ -262,6 +267,12 @@ val serverTestExpectedDetails = mapOf(
     "hide flag took effect" to "hidden",
     // The flag has nothing to hide on a static menu; the warning that says so is required further down.
     "static hide flag is a no-op" to "created",
+    // An unsupported container is one line rather than a stack trace, and the native assertion above it is
+    // the other half: the menu it names was never created.
+    "unsupported container refused" to "not created",
+    // The merchant layout exists, so creation succeeds and only the window is missing: this line proves the
+    // refusal happens at `open menu`, where the player would otherwise have been read first.
+    "static merchant refused" to "not opened",
     // `player layout` hides the inventory by itself, and its keys land below the container, starting where
     // that page's own container ends: 27 under the three row page, 9 under the one row page next to it.
     "player layout hides the player inventory" to "hidden",
@@ -382,6 +393,7 @@ val prepareServerTest by tasks.registering {
     inputs.file(assertionBridgeJar.flatMap { it.archiveFile })
     inputs.dir(serverTestScripts)
     inputs.dir(serverTestElements)
+    inputs.file(manualAcceptanceScript)
     inputs.file("server-test/server.properties")
     doLast {
         val run = serverTestDirectory.asFile
@@ -404,6 +416,10 @@ val prepareServerTest by tasks.registering {
         // annotations, so a documented example that Skript cannot read fails the run like any other
         // broken line instead of living only in the docs.
         scripts.resolve("07-examples.sk").writeText(exampleGateScript(serverTestElements.asFile))
+        // The script the manual checklist drives is parsed here too: it creates its menus from commands
+        // only and its listeners speak for `acc_*` menus alone, so it changes nothing about this run --
+        // but a line of it that stops parsing now fails the build instead of someone's game.
+        manualAcceptanceScript.asFile.copyTo(scripts.resolve("98-manual-acceptance.sk"), overwrite = true)
         serverTestPlugins.forEach { (name, url) ->
             val jar = run.resolve("plugins/$name")
             if (jar.isFile && jar.length() > 0L) return@forEach
@@ -577,6 +593,17 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         requireLine(
             "The addon no longer says that the flag does nothing on a static menu.",
             "\"with hide player inventory\" does nothing on a static menu"
+        )
+        // A container type a script can name but the addon cannot build is the author's mistake, so every
+        // path that faces one reports it instead of throwing: `create`/`build` before anything exists, and
+        // `open menu` for the merchant, whose layout exists but whose window Bukkit cannot create.
+        requireLine(
+            "An unsupported container is no longer refused with a message.",
+            "The client has no window for it, so the menu was not created."
+        )
+        requireLine(
+            "A static merchant menu is no longer refused with a message.",
+            "Use phantom mode for it."
         )
 
         val undeclared = undeclaredDetails.get()

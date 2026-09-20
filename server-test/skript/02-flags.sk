@@ -30,3 +30,20 @@ on load:
     assert the menu with id "static_hide" is set with "static menu with the hide flag must still be created"
     log "XIAOJIE_SELFTEST detail: static hide flag is a no-op -> created"
     destroy the menu with id "static_hide"
+
+# An unsupported container is a script author's mistake, so it gets one line on the runtime channel and
+# nothing is created: the gate requires that line, and `is not set` proves no half-built menu was left.
+on load:
+    create a phantom menu with crafting table inventory titled "Unsupported" with layout "AAA" with id "unsupported_type" with 0 ms click delay
+    assert the menu with id "unsupported_type" is not set with "unsupported container must not create a menu"
+    log "XIAOJIE_SELFTEST detail: unsupported container refused -> not created"
+
+# The merchant layout exists, so creation succeeds; the window is what Bukkit cannot build. The guard runs
+# before the player is read, which is why an unset player is enough to reach it here.
+on load:
+    create a static menu with merchant inventory titled "MerchantSelftest" with layout "AAA" with id "merchant_selftest" with 0 ms click delay
+on load:
+    set {_menu} to the menu with id "merchant_selftest"
+    assert {_menu} is set with "merchant menu must still be creatable"
+    open menu {_menu} for {_nobody}
+    log "XIAOJIE_SELFTEST detail: static merchant refused -> not opened"
