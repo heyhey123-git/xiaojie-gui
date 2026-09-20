@@ -269,6 +269,10 @@ val serverTestExpectedDetails = mapOf(
     "hide flag took effect" to "hidden",
     // The flag has nothing to hide on a static menu; the warning that says so is required further down.
     "static hide flag is a no-op" to "created",
+    // The runtime door to the same flag says the same thing, and still sets it.
+    "static hide effect is a no-op" to "warned",
+    // And the mirror image: a phantom window cannot move anything, so the lock flag is a no-op there.
+    "phantom locked icons is a no-op" to "created",
     // An unsupported container is one line rather than a stack trace, and the native assertion above it is
     // the other half: the menu it names was never created.
     "unsupported container refused" to "not created",
@@ -624,6 +628,17 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         requireLine(
             "The addon no longer says that the flag does nothing on a static menu.",
             "\"with hide player inventory\" does nothing on a static menu"
+        )
+        // The runtime door to the same flag: `hide player inventory of %menu%` on a static menu.
+        requireLine(
+            "The addon no longer says that the runtime hide does nothing on a static menu.",
+            "\"hide player inventory\" does nothing on a static menu"
+        )
+        // The mirror image, from the other side: nothing in a phantom window can move, so the lock flag has
+        // nothing to protect there and the menu is created anyway.
+        requireLine(
+            "The addon no longer says that the lock flag does nothing on a phantom menu.",
+            "\"with locked icons\" does nothing on a phantom menu"
         )
         // A container type a script can name but the addon cannot build is the author's mistake, so every
         // path that faces one reports it instead of throwing: `create`/`build` before anything exists, and

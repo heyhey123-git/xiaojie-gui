@@ -2,13 +2,14 @@
 # parses every file in this directory on each run, and the native assertions below check the definition
 # the recipe describes.
 #
-# A chest menu with the goods in one row and a price button directly under each one. The goods are the
-# menu's own slots -- `with locked icons` is what keeps a player from taking them out -- and the price row
-# is a single list key, so a click on it says which good it is by `the menu list index`.
+# A chest menu with the goods in one row and a price button directly under each one. A phantom window cannot
+# move anything, so the goods need no `with locked icons` -- that flag is what protects the slots of a
+# `static` menu -- and the price row is a single list key, so a click on it says which good it is by
+# `the menu list index`.
 #
 # This layer has no player, so nothing here clicks anything. What a click does is written out in the
 # recipe; what can be checked without one is the shape of the menu: which slots each key owns, that the
-# price buttons own the slots under the goods, that the mode is phantom and that the icons are locked.
+# price buttons own the slots under the goods, and that the mode is phantom.
 
 on load:
     # One price button per good, named with the good's number. Five items under one key is what makes the
@@ -20,7 +21,7 @@ on load:
     set {shop::prices::4} to stone named "&eBuy 4"
     set {shop::prices::5} to stone named "&eBuy 5"
 
-    create a phantom menu with chest inventory titled "&6Shop" with layout "12345    " and "ppppp    " and "         " with id "example_shop" with 0 ms click delay with locked icons:
+    create a phantom menu with chest inventory titled "&6Shop" with layout "12345    " and "ppppp    " and "         " with id "example_shop" with 0 ms click delay:
         # Five goods, one key each, so every good owns its own slot. A key mapped to a single item is not a
         # list key, which leaves the price row below as the page's only list.
         map key "1" to icon diamond named "&bDiamond" for menu with id "example_shop"
@@ -52,7 +53,6 @@ on load:
     loop 5 times:
         assert the key of slot (loop-number + 8) in page 1 of {_menu} is "p" with "shop example: every price slot must belong to the price key"
 
-    assert the icons of {_menu} are locked with "shop example: the goods must be locked, or they can be taken out"
     assert the page number of {_menu} is 1 with "shop example: the layout must be page 1"
 
     # The recipe leaves the menu in place, so the assertions have to run against the menu itself rather

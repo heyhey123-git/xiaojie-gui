@@ -215,6 +215,16 @@ class EffSecCreateMenu : EffectSection() {
             }
         }
 
+        // The other half of the same mistake, from the other side: a phantom window cannot move anything, so
+        // there is nothing for `locked icons` to protect. Saying so once beats a keyword that quietly does
+        // nothing -- and the answer to "is this needed here" is exactly what a reader came for.
+        if (mode == Receptacle.Mode.PHANTOM && lockedIconsFlag) {
+            warning(
+                "\"with locked icons\" does nothing on a phantom menu: nothing in a phantom window can be " +
+                    "moved, in or out, so there is nothing to lock. The flag only affects static menus."
+            )
+        }
+
         // The given layout always becomes page 1; `with page N` only decides which page `open menu` shows.
         // Making this conditional left a menu with no pages at all whenever the user set a page, which
         // `open menu` then refused.

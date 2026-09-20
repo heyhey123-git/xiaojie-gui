@@ -9,6 +9,7 @@ import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
 import org.skriptlang.skript.addon.SkriptAddon
@@ -75,6 +76,17 @@ class EffHidePlayerInv : Effect() {
         }
 
         menu.properties.hidePlayerInventory = !isNegated
+
+        // The creation-time keyword warns on a static menu, and this door has to say the same thing: a
+        // static window always shows the player's own inventory, so hiding it changes nothing on screen.
+        // The flag is still set, exactly as `create menu … with hide player inventory` sets it, because a
+        // script may read it back; what it must not do is leave the writer thinking the window changed.
+        if (!isNegated && menu.properties.mode == Receptacle.Mode.STATIC) {
+            warning(
+                "\"hide player inventory\" does nothing on a static menu: its window always shows the " +
+                    "player's own inventory. The flag only affects phantom menus."
+            )
+        }
     }
 
     override fun toString(event: Event?, debug: Boolean) =

@@ -287,6 +287,16 @@ class SecBuildMenu : Section() {
             }
         }
 
+        // The other half of the same mistake, from the other side: a phantom window cannot move anything, so
+        // there is nothing for the flag to protect. Say so once rather than leave a keyword that quietly
+        // does nothing.
+        if (mode == Receptacle.Mode.PHANTOM && lockedIconsFlag) {
+            warning(
+                "\"locked icons: true\" does nothing on a phantom menu: nothing in a phantom window can be " +
+                    "moved, in or out, so there is nothing to lock. The flag only affects static menus."
+            )
+        }
+
         menuVar?.change(event, arrayOf(menu), Changer.ChangeMode.SET)
         val menuProvider = ProvideMenuEvent(menu)
 

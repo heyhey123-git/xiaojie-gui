@@ -9,6 +9,7 @@ import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.SkriptParser
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.event.Event
 import org.skriptlang.skript.addon.SkriptAddon
@@ -63,6 +64,15 @@ class EffLockIcons : Effect() {
         }
 
         menu.properties.lockedIcons = !isNegated
+
+        // Locking is the same no-op `with locked icons` is on a phantom menu: nothing in that window can be
+        // moved, so there is nothing to lock. Only the direction that promises protection is worth a line.
+        if (!isNegated && menu.properties.mode == Receptacle.Mode.PHANTOM) {
+            warning(
+                "\"lock the icons of %menu%\" does nothing on a phantom menu: nothing in a phantom window " +
+                    "can be moved, in or out, so there is nothing to lock. The flag only affects static menus."
+            )
+        }
     }
 
     override fun toString(event: Event?, debug: Boolean) =

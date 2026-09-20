@@ -31,6 +31,29 @@ on load:
     log "XIAOJIE_SELFTEST detail: static hide flag is a no-op -> created"
     destroy the menu with id "static_hide"
 
+# The same promise for the runtime door: `hide player inventory of %menu%` on a static menu says it does
+# nothing there, exactly as the creation-time keyword does. The flag is still set, which the assertion below
+# checks -- what the warning stops is a script believing the window changed.
+on load:
+    create a static menu with chest inventory titled "StaticHideEffect" with layout "A" with id "static_hide_effect" with 0 ms click delay
+on load:
+    set {_menu} to the menu with id "static_hide_effect"
+    hide player inventory of {_menu}
+    assert {_menu} is set with "static menu must survive the runtime hide"
+    assert player inventory of {_menu} is hidden with "the runtime hide flag must still be set"
+    log "XIAOJIE_SELFTEST detail: static hide effect is a no-op -> warned"
+    destroy the menu with id "static_hide_effect"
+
+# A phantom window cannot move anything, so `with locked icons` has nothing to protect there. Same promise as
+# the static-hide block above: the keyword is reported once instead of doing nothing in silence, and the gate
+# pins that line.
+on load:
+    create a phantom menu with chest inventory titled "PhantomLocked" with layout "A" with id "phantom_locked" with 0 ms click delay with locked icons:
+        set {_unused} to 1
+    assert the menu with id "phantom_locked" is set with "phantom menu with the lock flag must still be created"
+    log "XIAOJIE_SELFTEST detail: phantom locked icons is a no-op -> created"
+    destroy the menu with id "phantom_locked"
+
 # An unsupported container is a script author's mistake, so it gets one line on the runtime channel and
 # nothing is created: the gate requires that line, and `is not set` proves no half-built menu was left.
 on load:
