@@ -37,6 +37,8 @@ command /acc [<text>]:
             send "&e/acc sametick &7同一 tick 内开窗 + 改标题（验证标题要不要等几 tick）" to player
             send "&e/acc lower &7player layout：下半部分是页面自己的格子" to player
             send "&e/acc viewers &7看这个菜单的人有几个（双人对照用）" to player
+            send "&e/acc dropperlayout &7issue #8：投掷器 3x3 的 layout，每一行都该映射" to player
+            send "&e/acc closeupd &7issue #9：同一 tick 改标题再关窗，窗口不该自己回来" to player
             send "&e/acctype <类型> &7逐个容器类型，例如 /acctype workbench" to player
             send "&e/acctype craftingtable &7不支持的容器：控制台应给一句人话，不是堆栈" to player
             send "&e/acctype merchantstatic &7static 商人：同样应给一句人话" to player
@@ -217,6 +219,38 @@ command /acc [<text>]:
             set {_viewers::*} to the menu viewers of {_menu}
             send "&e要做的：先让两个客户端都执行 /acc phantom，再执行这条。" to player
             send "&a现在有 %size of {_viewers::*}% 个人在看这个菜单：%{_viewers::*}%" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # issue #8：投掷器（3x3）的 layout 是不是每一行都映射进容器
+        # -----------------------------------------------------------------------------------------
+        if arg-1 is "dropperlayout":
+            if the menu with id "acc_dropper" is not set:
+                create a phantom menu with dropper inventory titled "&6ACC dropper" with layout "xxx" and "xwx" and "xxx" with id "acc_dropper" with 0 ms click delay:
+                    map key "x" to icon stone named "&bx" for menu with id "acc_dropper"
+                    map key "w" to icon dirt named "&ew" for menu with id "acc_dropper"
+            set {_menu} to the menu with id "acc_dropper"
+            open menu {_menu} for player
+            send "&e要做的：投掷器（3x3，共 9 格）里应当是 8 块石头围着一格泥土。" to player
+            send "&e如果只有第一行有东西，那就是 issue #8（layout 的换行没有折算成 3 格一行）。" to player
+            stop
+
+        # -----------------------------------------------------------------------------------------
+        # issue #9：同一 tick 里改完标题再关，窗口不该在关掉之后又被打开
+        #
+        # 标题是在下一 tick 靠"重开一次窗口"递到客户端的，所以这条命令故意把关闭放在重开还没发生的时候：
+        # 关得掉，说明那次迟到的重开认得窗口已经关了。（先 wait 1 tick 再关的写法同样测过，也关得掉。）
+        # -----------------------------------------------------------------------------------------
+        if arg-1 is "closeupd":
+            if the menu with id "acc_closeupd" is not set:
+                create a phantom menu with chest inventory titled "&6ACC close" with layout "#########" and "#  A  B #" and "#########" with id "acc_closeupd" with 0 ms click delay:
+                    map key "A" to icon stone named "A" for menu with id "acc_closeupd"
+            set {_menu} to the menu with id "acc_closeupd"
+            open menu {_menu} for player
+            update title of player's menu session to "&e清理中..." and refresh
+            close the menu for player
+            log "XIAOJIE_ACC closeupd closed"
+            send "&e要做的：窗口应当关掉并且不再自己回来。如果关掉后又弹出来，那就是 issue #9。" to player
             stop
 
         # -----------------------------------------------------------------------------------------

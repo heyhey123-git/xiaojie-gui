@@ -360,6 +360,75 @@ async function scenario (bot, windows) {
   // 7. And the menus the window model used to get wrong, which is the one crash a real client sees and
   //    the server's log never reports.
   await containerSizeScenario(bot, windows)
+
+  // 8. A container whose window is not nine columns wide: the layout's rows have to be mapped with the
+  //    container's own width, not a chest's.
+  await dropperLayoutScenario(bot, windows)
+
+  // 9. And a window closed in the same tick as its title was updated, which is the one ordering that used
+  //    to put a window back on screen after the player's script had closed it.
+  await closeAfterRetitleScenario(bot, windows)
+}
+
+/**
+ * A 3x3 container's layout, read back from the client (issue #8).
+ *
+ * `Layout` maps a layout string list to slots. A chest is nine columns wide, and a dropper is three: if
+ * the rows are laid out with a chest's width, row 2 lands on slots 9..11 and row 3 on 18..20, all of
+ * which are outside a nine-slot container, so only the first row survives and the rest of the icons
+ * disappear -- which is exactly what a report described as "the map key only replaces the first row".
+ *
+ * The command is the acceptance script's `/acc dropperlayout`: layout "xxx","xwx","xxx", eight stone and
+ * one dirt. What the client reads out of its own window is the assertion, and it pins all nine slots, so
+ * a mapping that is off by one row cannot pass.
+ */
+async function dropperLayoutScenario (bot, windows) {
+  const before = windows.length
+  bot.chat('/acc dropperlayout')
+  const window = await waitFor('the dropper layout window', () =>
+    windows.slice(before).find((opened) => titleOf(opened).includes('ACC dropper'))
+  )
+  log(`the dropper menu arrived with title ${JSON.stringify(titleOf(window))}`)
+  log(`  first row: ${describeFirstRow(window)}`)
+
+  for (let slot = 0; slot <= 8; slot++) {
+    const expected = slot === 4 ? 'minecraft:dirt' : 'minecraft:stone'
+    checkEqual(`the type of the item in slot ${slot} of a dropper layout`, expected, typeOf(window.slots[slot]))
+    checkEqual(`the count of the item in slot ${slot} of a dropper layout`, 1, window.slots[slot]?.count)
+  }
+  log('all nine slots of the dropper carry the icon its layout put there: eight stone around one dirt')
+}
+
+/**
+ * A window whose title is updated and which is closed in the same tick (issue #9).
+ *
+ * Retitling a window that is already on screen means opening it again, so the addon schedules that
+ * re-open for the next tick. A script that updates a title and then closes the menu has to end with the
+ * window gone, not with the re-open arriving after the close: the report was an open-screen packet
+ * captured after a close packet, and a window that comes back on its own. Closing in the same tick is the
+ * worst case for that, because the re-open is still pending when the close runs; the report's own script
+ * waited a tick before closing and was checked the same way.
+ *
+ * So the client waits for the close, notes how many windows it has been shown by then, and then waits far
+ * longer than the one tick involved: any window opened in that time is the fault.
+ */
+async function closeAfterRetitleScenario (bot, windows) {
+  const before = windows.length
+  bot.chat('/acc closeupd')
+  const window = await waitFor('the window of the update-then-close menu', () =>
+    windows.slice(before).find((opened) => titleOf(opened).includes('ACC close'))
+  )
+  log(`the update-and-close menu arrived with title ${JSON.stringify(titleOf(window))}`)
+
+  await waitFor('the window to be closed', () => bot.currentWindow == null)
+  const afterClose = windows.length
+  log(`the server closed the window; the client has been shown ${afterClose - before} window(s) by now`)
+
+  // Ten ticks, against the one tick between the title update and the close.
+  await sleep(1000)
+  checkEqual('the number of windows opened after the close', afterClose, windows.length)
+  checkEqual('the window the client is left holding', null, bot.currentWindow)
+  log('nothing reopened the window after the close')
 }
 
 /**
