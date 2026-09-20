@@ -1,26 +1,32 @@
 name: Build
 
-# Everything the build reads. `gradle/` and `server-test/` are in the list because both change what a
-# green run means: a dependency bump or an edited self-test script has to be verified like code does.
+# Include build configuration and the wrapper, not only source and test inputs.
 on:
   push:
     paths:
       - build.gradle.kts
       - settings.gradle.kts
+      - gradle.properties
+      - gradlew
+      - gradlew.bat
       - gradle/**
       - src/**
       - server-test/**
       - .github/workflows/build.yml
+      - .github/workflows/release.yml
   pull_request:
     paths:
       - build.gradle.kts
       - settings.gradle.kts
+      - gradle.properties
+      - gradlew
+      - gradlew.bat
       - gradle/**
       - src/**
       - server-test/**
       - .github/workflows/build.yml
+      - .github/workflows/release.yml
 
-# A second push to the same branch makes the first run pointless.
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -28,18 +34,18 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
 
-      # JDK 25, not 21: Paper 26.2 is compiled for it and `build.gradle.kts` asks the toolchain for it.
       - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '25'
 
+      # Sole owner of Gradle user-home caching; no overlapping actions/cache for ~/.gradle.
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
@@ -47,24 +53,107 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build, lint and run the unit tests
-        run: ./gradlew build --stacktrace
+        timeout-minutes: 23
+        run: ./gradlew build --stacktrace --info --profile --console=plain
 
-      # The one layer that sees registration and parse failures: it boots a real Paper server with Skript
-      # and reads the log afterwards. The first run downloads Paper, Skript, PacketEvents and SkBee.
+      # Keep these paths and keys identical in release.yml. Never cache the whole run directory.
+      - name: Restore server downloads
+        id: server-cache
+        uses: actions/cache/restore@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            server-test/run/versions
+            server-test/run/libraries
+            server-test/run/cache
+            server-test/run/plugins/Skript-2.16.2.jar
+            server-test/run/plugins/packetevents-spigot-2.13.0.jar
+            server-test/run/plugins/SkBee-3.25.4.jar
+          key: test-server-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/libs.versions.toml', 'build.gradle.kts') }}
+
       - name: Run the server test
-        run: ./gradlew serverTest --stacktrace
+        id: server-test
+        timeout-minutes: 10
+        run: ./gradlew serverTest --stacktrace --info --profile --console=plain
 
-      # The client layer: a real Minecraft client joins that same server, is shown the menu the plugin
-      # opens for it, clicks it, and both what the client saw and what the server did are asserted. Paper
-      # is already in the run directory from the step above, so this downloads nothing new. The bot's
-      # dependencies are installed by the task itself -- `npm install` in `server-test/client`, using the
-      # pinned versions in its `package.json` and lock file -- and `node_modules` is not checked in. Node
-      # ships on `ubuntu-latest`; no setup step is needed for it.
+      # Save now: a subsequent client timeout must not discard a successful cold bootstrap.
+      - name: Save server downloads
+        if: steps.server-test.outcome == 'success' && steps.server-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            server-test/run/versions
+            server-test/run/libraries
+            server-test/run/cache
+            server-test/run/plugins/Skript-2.16.2.jar
+            server-test/run/plugins/packetevents-spigot-2.13.0.jar
+            server-test/run/plugins/SkBee-3.25.4.jar
+          key: ${{ steps.server-cache.outputs.cache-primary-key }}
+
+      # Restore after the build/server phase: release's clean would otherwise delete these paths.
+      - name: Restore client downloads
+        id: client-cache
+        uses: actions/cache/restore@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            build/client-test-plugins/ViaVersion-5.12.0.jar
+            build/client-test-plugins/ViaBackwards-5.12.0.jar
+            build/client-test/npm-cache/_cacache
+          key: test-client-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('build.gradle.kts', 'server-test/client/package.json', 'server-test/client/package-lock.json') }}
+
+      # Node ships on ubuntu-latest. The task runs npm ci, using the lockfile and content cache.
       - name: Run the client test
-        run: ./gradlew clientTest --stacktrace
+        id: client-test
+        timeout-minutes: 12
+        run: ./gradlew clientTest --stacktrace --info --profile --console=plain
+
+      - name: Save client downloads
+        if: steps.client-test.outcome == 'success' && steps.client-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            build/client-test-plugins/ViaVersion-5.12.0.jar
+            build/client-test-plugins/ViaBackwards-5.12.0.jar
+            build/client-test/npm-cache/_cacache
+          key: ${{ steps.client-cache.outputs.cache-primary-key }}
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 2
+        with:
+          name: build-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            build/reports/
+            build/test-results/
+            build/client-test/*.log
+            server-test/run/logs/
+            server-test/run/crash-reports/
+
+      # Keep user-home logs separate so the main artifact stays relative to the project.
+      - name: Upload Gradle daemon logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 2
+        with:
+          name: build-gradle-daemon-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: ${{ env.GRADLE_USER_HOME }}/daemon/*/daemon-*.out.log
 
       - name: Upload the jar
         uses: actions/upload-artifact@v4
+        timeout-minutes: 1
         with:
           name: xiaojiegui-${{ github.sha }}
           include-hidden-files: true

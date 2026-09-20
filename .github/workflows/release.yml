@@ -20,7 +20,7 @@ jobs:
     name: Build, verify and publish
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       GH_TOKEN: ${{ github.token }}
 
@@ -42,6 +42,7 @@ jobs:
       # Checked before the build rather than after it: a release with no version, no notes or an existing
       # tag should fail in seconds, not in two minutes.
       - name: Read and check the version
+        timeout-minutes: 1
         id: version
         run: |
           version=$(sed -n 's/^version=//p' gradle.properties | tr -d '\r' | head -n 1)
@@ -71,18 +72,103 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      # The same layers CI runs, on the exact commit about to be tagged, including the real Paper server
-      # test: the jar being published is the one that test just drove.
-      - name: Build, verify and run the server test
-        run: ./gradlew clean build serverTest --stacktrace
+      - name: Build, lint and run the unit tests
+        timeout-minutes: 23
+        run: ./gradlew clean build --stacktrace --info --profile --console=plain
 
-      # The other half of CI, and the reason this workflow runs it too: a release is only ever of a jar
-      # that a real client has been driven through. Paper is already in the run directory from the step
-      # above; the bot's dependencies are installed here by the task itself (`npm install` in
-      # `server-test/client`, from the pinned versions in its `package.json` and lock file, into the
-      # `node_modules` that is not checked in). Node ships on `ubuntu-latest`.
+      # Same allowlist/key as build.yml; no worlds, player state, scripts, test jar or logs.
+      - name: Restore server downloads
+        id: server-cache
+        uses: actions/cache/restore@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            server-test/run/versions
+            server-test/run/libraries
+            server-test/run/cache
+            server-test/run/plugins/Skript-2.16.2.jar
+            server-test/run/plugins/packetevents-spigot-2.13.0.jar
+            server-test/run/plugins/SkBee-3.25.4.jar
+          key: test-server-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/libs.versions.toml', 'build.gradle.kts') }}
+
+      - name: Run the server test
+        id: server-test
+        timeout-minutes: 10
+        run: ./gradlew serverTest --stacktrace --info --profile --console=plain
+
+      - name: Save server downloads
+        if: steps.server-test.outcome == 'success' && steps.server-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            server-test/run/versions
+            server-test/run/libraries
+            server-test/run/cache
+            server-test/run/plugins/Skript-2.16.2.jar
+            server-test/run/plugins/packetevents-spigot-2.13.0.jar
+            server-test/run/plugins/SkBee-3.25.4.jar
+          key: ${{ steps.server-cache.outputs.cache-primary-key }}
+
+      # Restore AFTER clean, which deletes these build-local downloads.
+      - name: Restore client downloads
+        id: client-cache
+        uses: actions/cache/restore@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            build/client-test-plugins/ViaVersion-5.12.0.jar
+            build/client-test-plugins/ViaBackwards-5.12.0.jar
+            build/client-test/npm-cache/_cacache
+          key: test-client-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('build.gradle.kts', 'server-test/client/package.json', 'server-test/client/package-lock.json') }}
+
+      # Node ships on ubuntu-latest; the task recreates node_modules with npm ci.
       - name: Run the client test
-        run: ./gradlew clientTest --stacktrace
+        id: client-test
+        timeout-minutes: 12
+        run: ./gradlew clientTest --stacktrace --info --profile --console=plain
+
+      - name: Save client downloads
+        if: steps.client-test.outcome == 'success' && steps.client-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            build/client-test-plugins/ViaVersion-5.12.0.jar
+            build/client-test-plugins/ViaBackwards-5.12.0.jar
+            build/client-test/npm-cache/_cacache
+          key: ${{ steps.client-cache.outputs.cache-primary-key }}
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 2
+        with:
+          name: release-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            build/reports/
+            build/test-results/
+            build/client-test/*.log
+            server-test/run/logs/
+            server-test/run/crash-reports/
+
+      # Keep user-home logs separate so the main artifact stays relative to the project.
+      - name: Upload Gradle daemon logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 2
+        with:
+          name: release-gradle-daemon-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          include-hidden-files: true
+          path: ${{ env.GRADLE_USER_HOME }}/daemon/*/daemon-*.out.log
 
       - name: Check the jar agrees with the version
         run: |
@@ -97,9 +183,11 @@ jobs:
       # One extraction for the release page and for correcting it later:
       # `./gradlew releaseNotes` then `gh release edit v<version> --notes-file build/release-notes.md`.
       - name: Write the release notes
+        timeout-minutes: 1
         run: ./gradlew releaseNotes --stacktrace
 
       - name: Publish the release
+        timeout-minutes: 1
         run: |
           gh release create "v${{ steps.version.outputs.version }}" \
             "build/dist/xiaojiegui-${{ steps.version.outputs.version }}.jar" \
