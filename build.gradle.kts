@@ -1543,9 +1543,18 @@ abstract class GenerateGendocs : DefaultTask() {
         // player events to interleave with the tool's output.
         serverPlugins.get().forEach { (name, url) ->
             val jar = plugins.resolve(name)
-            if (!jar.isFile) {
-                logger.lifecycle("Downloading $name")
-                URI(url).toURL().openStream().use { input -> jar.outputStream().use { input.copyTo(it) } }
+            // The prepared run directory already holds this exact jar whenever the test layer -- or the
+            // cache a CI run restores in its place -- has been here, and this run wants a copy of that
+            // server rather than a second download of its plugins. The file name carries the version, so
+            // an upgraded plugin is a name that is not there and is fetched as it was before.
+            val prepared = source.resolve("plugins/$name")
+            when {
+                jar.isFile -> Unit
+                prepared.isFile -> prepared.copyTo(jar, overwrite = true)
+                else -> {
+                    logger.lifecycle("Downloading $name")
+                    URI(url).toURL().openStream().use { input -> jar.outputStream().use { input.copyTo(it) } }
+                }
             }
         }
         docsToolJar.get().asFile.copyTo(plugins.resolve(docsToolJar.get().asFile.name), overwrite = true)
@@ -1787,6 +1796,15 @@ val generateSkriptHubDocs by tasks.registering(GenerateGendocs::class) {
     description = "Boots a server carrying this addon and SkriptHubDocsTool and runs `/gendocs` on it."
     group = "documentation"
     dependsOn(downloadSkriptHubDocsTool, tasks.named("prepareServerTest"), tasks.named("shadowJar"))
+    // The server copied into this task's run directory is the one `runServer` downloaded, because a second
+    // Paper under `build/` would be eighty megabytes for no difference. That file only exists once the test
+    // layer has run on this machine, and a CI runner's checkout is always fresh: the first CI run of this
+    // task failed with "The prepared server is missing .../paper-26.2.jar" because the workflow ran nothing
+    // that boots a server. So the downloader itself becomes a dependency when its jar is not there yet, and
+    // nothing is added when it is -- a release restores the server cache first and takes that second branch.
+    val downloadedServer = serverTestDirectory.asFile
+        .resolve("versions/$paperMinecraftVersion/paper-$paperMinecraftVersion.jar")
+    if (!downloadedServer.isFile) dependsOn(tasks.named("runServer"))
 
     sourceServerDirectory.set(serverTestDirectory)
     runDirectory.set(skriptHubDocsDirectory)

@@ -85,13 +85,61 @@ jobs:
             exit 1
           fi
 
+      # The same allowlist and key `build.yml` and `release.yml` use: the task copies the Paper server the
+      # test layer downloaded instead of fetching a second one, and the release that this run follows has
+      # already saved that server here. A miss is not fatal — the task then boots the test server once to
+      # get it — which is why this is allowed to fail and why the save below exists.
+      - name: Restore server downloads
+        id: server-cache
+        uses: actions/cache/restore@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            server-test/run/versions
+            server-test/run/libraries
+            server-test/run/cache
+            server-test/run/plugins/Skript-2.16.2.jar
+            server-test/run/plugins/packetevents-spigot-2.13.0.jar
+            server-test/run/plugins/SkBee-3.25.4.jar
+          key: test-server-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/libs.versions.toml', 'build.gradle.kts') }}
+
       # The annotations in the code are the source, and this task is the only thing that reads them back
       # out: it boots a disposable Paper server carrying Skript, this plugin and SkriptHubDocsTool, runs
       # /gendocs there, and prints every element with its patterns -- so a kind that went missing, or a
       # Skript upgrade that stopped the tool from seeing the addon, is a line in the log next to a count,
       # and a generated file that never appeared fails the task outright.
       - name: Generate the documentation
+        id: gendocs
         run: ./gradlew gendocs --stacktrace
+
+      - name: Save server downloads
+        if: steps.gendocs.outcome == 'success' && steps.server-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        timeout-minutes: 2
+        continue-on-error: true
+        with:
+          path: |
+            server-test/run/versions
+            server-test/run/libraries
+            server-test/run/cache
+            server-test/run/plugins/Skript-2.16.2.jar
+            server-test/run/plugins/packetevents-spigot-2.13.0.jar
+            server-test/run/plugins/SkBee-3.25.4.jar
+          key: ${{ steps.server-cache.outputs.cache-primary-key }}
+
+      # The task writes the documentation server's console to that file, and prints its last lines in the
+      # failure itself. Uploading it means a failure like the first one — a server that was never downloaded
+      # on a fresh runner — can be read from the run page instead of the job log, which needs an account.
+      - name: Upload the documentation server log
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: gendocs-server-log
+          path: |
+            build/gendocs-server.log
+            build/gendocs-server/logs/latest.log
+          if-no-files-found: ignore
 
       # The same file, for the dashboard's JSON Syntax Import. It is what a person reads to see what was
       # published, and it is where examples and supporting plugins are still published from.
