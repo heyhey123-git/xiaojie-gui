@@ -1,0 +1,114 @@
+name: SkriptHub docs
+
+# SkriptHub keeps an addon's syntax in its own database. The dashboard imports the JSON that
+# `./gradlew gendocs` writes; the API updates the elements themselves, one endpoint per element, and this
+# workflow uses it so the page cannot lag behind a release.
+#
+# It waits for the Release workflow rather than for the release event. A release created with the
+# repository's own token starts no workflow run of its own — `release: published` would never fire here —
+# while the completion of the workflow that created it does, and names the commit the release was built
+# and tagged from. That commit is always on the default branch, because the Release workflow refuses to
+# run anywhere else, which is also why checking it out here and building it is safe: the usual hazard of
+# `workflow_run` is running a pull request's code with a repository secret, and no such commit reaches
+# this job.
+#
+# A failure here leaves the release published and the page stale. That is deliberate: generating the
+# documentation boots a Paper server, and a release that is otherwise ready should not depend on
+# skripthub.net being reachable at that moment.
+on:
+  workflow_run:
+    workflows: ['Release']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Report what would change without writing anything to SkriptHub'
+        type: boolean
+        default: false
+
+# Nothing here writes to this repository: the checkout is read, and what is written is written to
+# skripthub.net, with its own token.
+permissions:
+  contents: read
+
+# Two runs would be two writers reading and then writing the same elements, so a second run waits for the
+# first instead of racing it.
+concurrency:
+  group: skripthub-docs
+  cancel-in-progress: false
+
+jobs:
+
+  publish:
+    name: Publish the syntax documentation
+    # The token can write to a public page, so it is held by an environment rather than by the repository:
+    # only a job that names the environment can read it, and the environment's deployment branch rule is
+    # the default branch, which is the only branch this job is meant to run from. No required reviewers —
+    # the release is already a manual dispatch, and a second approval would only make the page lag.
+    environment: skripthub
+    # A release that failed published nothing, so there is nothing for the page to follow. A manual run
+    # has no release behind it and is always allowed.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # In the environment rather than in an argument, so the token cannot reach a command line, a
+      # process listing or a log.
+      SKRIPTHUB_TOKEN: ${{ secrets.SKRIPTHUB_TOKEN }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+        with:
+          # A release run says which commit it released; a manual run means the branch it was started on.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      # Without this the run would go on to make an unauthenticated request, which reads like a SkriptHub
+      # problem rather than a secret that was never added.
+      - name: Check the token
+        run: |
+          if [ -z "$SKRIPTHUB_TOKEN" ]; then
+            echo "::error::the environment secret SKRIPTHUB_TOKEN is not set. Create an environment named 'skripthub' whose deployment branch rule is the default branch, add the token from the SkriptHub API documentation page to its Environment secrets, and run this again."
+            exit 1
+          fi
+
+      # The annotations in the code are the source, and this task is the only thing that reads them back
+      # out: it boots a disposable Paper server carrying Skript, this plugin and SkriptHubDocsTool, runs
+      # /gendocs there, and prints every element with its patterns -- so a kind that went missing, or a
+      # Skript upgrade that stopped the tool from seeing the addon, is a line in the log next to a count,
+      # and a generated file that never appeared fails the task outright.
+      - name: Generate the documentation
+        run: ./gradlew gendocs --stacktrace
+
+      # The same file, for the dashboard's JSON Syntax Import. It is what a person reads to see what was
+      # published, and it is where examples and supporting plugins are still published from.
+      - name: Upload the generated JSON
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: skripthub-docs
+          path: build/skripthub/xiaojie-gui.json
+          if-no-files-found: ignore
+
+      # The script writes the run summary itself, so a run that fails part way through still says what it
+      # did and did not publish.
+      - name: Publish to SkriptHub
+        run: |
+          if [ "${{ inputs.dry-run }}" = "true" ]; then
+            node scripts/publish-skripthub.mjs --dry-run
+          else
+            node scripts/publish-skripthub.mjs
+          fi
