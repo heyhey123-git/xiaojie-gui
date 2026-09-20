@@ -133,6 +133,12 @@ cannot hold anything in a phantom window (the contents are re-sent after every c
 in the short "predicted" window between picking something up and our re-send arriving, or with a modified
 client or another plugin in the way. So this is an input that has to be caught, not one that never arrives.
 
+The order differs, and that is not the addon's choice: a `static` drag arrives as Bukkit's
+`InventoryDragEvent`, whose `rawSlots` is a **set** with no sequence in it, so sorting is the only honest
+report there -- and the slot a script reads as clicked is the lowest one. A `phantom` drag is read from the
+QUICK_CRAFT packets themselves, one per cell the sweep reached, so the order the player dragged in survives,
+and that is the only place it does. A script that needs a fixed order should sort the list itself.
+
 **One deliberate difference**: `the dragged slots` means something slightly different in the two modes,
 because the two modes care about different things. In `static` it is **the slots the game would really
 fill** (slots that cannot take the item, and slots the cursor no longer has items for, are skipped, and
