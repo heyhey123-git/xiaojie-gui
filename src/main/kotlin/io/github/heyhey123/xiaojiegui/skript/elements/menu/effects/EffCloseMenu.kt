@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.effects
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -54,7 +53,7 @@ class EffCloseMenu : Effect() {
         val player = playerExpr.getSingle(event) ?: return
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
-            Skript.error(
+            error(
                 "Menu can only be closed from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"
@@ -62,7 +61,7 @@ class EffCloseMenu : Effect() {
             return
         }
 
-        MenuSession.querySession(player)?.close() ?: Skript.error(
+        MenuSession.querySession(player)?.close() ?: error(
             "Cannot close menu for player ${player.name} because they do not have an open menu."
         )
     }

@@ -97,7 +97,7 @@ class EffInsertPage : Effect() {
             else -> null
         }
         if (menu == null) {
-            Skript.error("You must specify a menu to insert page to when not in a menu event.")
+            error("You must specify a menu to insert page to when not in a menu event.")
             return
         }
         val pagesIndexes = pagesIndexesExpr?.getArray(event)?.map { it.toInt() }.orEmpty()
@@ -113,7 +113,7 @@ class EffInsertPage : Effect() {
             if (menu.properties.mode == Receptacle.Mode.PHANTOM) {
                 menu.properties.hidePlayerInventory = true
             } else {
-                Skript.warning(
+                warning(
                     "\"player layout\" does nothing on a static menu: its window always shows the player's " +
                         "own inventory, so the rows below the container are the player's."
                 )

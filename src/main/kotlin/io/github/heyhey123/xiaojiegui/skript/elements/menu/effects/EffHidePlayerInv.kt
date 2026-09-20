@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.effects
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -58,7 +57,7 @@ class EffHidePlayerInv : Effect() {
     override fun execute(event: Event?) {
         val menu = menuExpr.getSingle(event)
         if (menu == null) {
-            Skript.error("Menu to set player inventory visibility cannot be null.")
+            error("Menu to set player inventory visibility cannot be null.")
             return
         }
 
@@ -67,7 +66,7 @@ class EffHidePlayerInv : Effect() {
         // is the one window this addon does not build. So showing the inventory is refused here, with a line
         // that says what to do instead, rather than producing that window or quietly ignoring the request.
         if (isNegated && menu.pages.any { it.hasPlayerLayout }) {
-            Skript.warning(
+            warning(
                 "\"show player inventory\" cannot undo the player layout of this menu: the rows below the " +
                     "container are that page's own space. Destroy the menu and build it again without a " +
                     "player layout to give the player that half back."

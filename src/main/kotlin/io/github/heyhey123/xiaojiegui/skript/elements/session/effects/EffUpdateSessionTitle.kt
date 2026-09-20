@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.session.effects
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -72,16 +71,16 @@ class EffUpdateSessionTitle : Effect() {
     override fun execute(event: Event?) {
         val session = sessionExpr.getSingle(event)
         if (session == null) {
-            Skript.error("Menu session cannot be null when updating title.")
+            error("Menu session cannot be null when updating title.")
             return
         }
         val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
         if (title == null) {
-            Skript.error("Valid title is required.")
+            error("Valid title is required.")
             return
         }
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
-            Skript.error(
+            error(
                 "Menu session title can only be updated from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"

@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.session.effects
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -55,7 +54,7 @@ class EffClearSession : Effect() {
     override fun execute(event: Event?) {
         val session = exprSession.getSingle(event)
         if (session == null) {
-            Skript.error(
+            error(
                 "Menu session cannot be null: ${this.toString(event, true)}"
             )
             return

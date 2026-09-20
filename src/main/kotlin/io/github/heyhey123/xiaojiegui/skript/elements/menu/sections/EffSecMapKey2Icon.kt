@@ -127,7 +127,7 @@ class EffSecMapKey2Icon : EffectSection() {
     override fun walk(event: Event?): TriggerItem? {
         val key = keyExpr.getSingle(event)
         if (key == null) {
-            Skript.error("Key cannot be null.")
+            error("Key cannot be null.")
             return walk(event, false)
         }
 
@@ -137,7 +137,7 @@ class EffSecMapKey2Icon : EffectSection() {
             else -> null
         }
         if (menu == null) {
-            Skript.error("Menu cannot be null.")
+            error("Menu cannot be null.")
             return walk(event, false)
         }
 
@@ -146,7 +146,7 @@ class EffSecMapKey2Icon : EffectSection() {
         val button = buttonIdExpr?.getSingle(event)?.let { Button.buttons[it] }
 
         if (button == null && buttonIdExpr != null) {
-            Skript.error("Button with ID '${buttonIdExpr!!.getSingle(event)}' not found.")
+            error("Button with ID '${buttonIdExpr!!.getSingle(event)}' not found.")
             return walk(event, false)
         }
 
@@ -154,7 +154,7 @@ class EffSecMapKey2Icon : EffectSection() {
 
         val iconProducer: IconProducer = when (items.size) {
             0 -> {
-                Skript.error("At least one item must be provided to map to an icon.")
+                error("At least one item must be provided to map to an icon.")
                 return walk(event, false)
             }
 

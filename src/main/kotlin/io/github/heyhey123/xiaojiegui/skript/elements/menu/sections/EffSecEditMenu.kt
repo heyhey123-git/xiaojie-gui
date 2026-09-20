@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.sections
 
-import ch.njol.skript.Skript
 import ch.njol.skript.config.SectionNode
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -80,7 +79,7 @@ class EffSecEditMenu : EffectSection() {
     override fun walk(event: Event?): TriggerItem? {
         val menu = menuExpr.getSingle(event)
         if (menu == null) {
-            Skript.error("Menu cannot be null in edit menu effect.")
+            error("Menu cannot be null in edit menu effect.")
             return walk(event, false)
         }
 

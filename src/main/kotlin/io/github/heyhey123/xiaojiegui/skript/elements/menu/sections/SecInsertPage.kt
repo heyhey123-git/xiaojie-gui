@@ -123,7 +123,7 @@ class SecInsertPage : Section() {
             else -> null
         }
         if (menu == null) {
-            Skript.error("You must specify a menu to insert page to when not in a menu event.")
+            error("You must specify a menu to insert page to when not in a menu event.")
             return walk(event, false)
         }
 
@@ -144,7 +144,7 @@ class SecInsertPage : Section() {
             } else {
                 val convertedTitle = titleExpr!!.getConvertedExpression(String::class.java)?.getSingle(event)
                 if (convertedTitle == null) {
-                    Skript.error("The given menu title is not a textcomponent, and cannot be converted to string.")
+                    error("The given menu title is not a textcomponent, and cannot be converted to string.")
                     return walk(event, false)
                 }
                 title = LegacyComponentSerializer.legacySection().deserialize(convertedTitle)
@@ -159,7 +159,7 @@ class SecInsertPage : Section() {
             if (menu.properties.mode == Receptacle.Mode.PHANTOM) {
                 menu.properties.hidePlayerInventory = true
             } else {
-                Skript.warning(
+                warning(
                     "\"player layout\" does nothing on a static menu: its window always shows the player's " +
                         "own inventory, so the rows below the container are the player's."
                 )

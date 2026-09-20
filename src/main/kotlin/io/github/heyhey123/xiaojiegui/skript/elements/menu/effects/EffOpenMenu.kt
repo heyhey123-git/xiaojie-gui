@@ -76,12 +76,12 @@ class EffOpenMenu : Effect() {
         }
 
         if (menu == null) {
-            Skript.error("Failed to get the menu to open. Please check your code.")
+            error("Failed to get the menu to open. Please check your code.")
             return
         }
         val player = playerExpr.getSingle(event)
         if (player == null) {
-            Skript.error(
+            error(
                 "Player expression returned null. Cannot open menu."
             )
             return
@@ -90,7 +90,7 @@ class EffOpenMenu : Effect() {
         val pageNum = pageExpr?.getSingle(event)?.toInt()
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
-            Skript.error(
+            error(
                 "Menu can only be opened from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"
@@ -100,7 +100,7 @@ class EffOpenMenu : Effect() {
 
         val targetPage = pageNum ?: menu.properties.defaultPage
         if (targetPage !in 1..menu.size) {
-            Skript.error("Page $targetPage does not exist in this menu.")
+            error("Page $targetPage does not exist in this menu.")
             return
         }
         val session = MenuSession.querySession(player)
@@ -109,7 +109,7 @@ class EffOpenMenu : Effect() {
             session.page != targetPage &&
             menu.pages[targetPage].layout != session.receptacle?.layout
         ) {
-            Skript.error("Cannot turn to page $targetPage with a different inventory layout. The current page is unchanged.")
+            error("Cannot turn to page $targetPage with a different inventory layout. The current page is unchanged.")
             return
         }
         menu.open(player, targetPage)

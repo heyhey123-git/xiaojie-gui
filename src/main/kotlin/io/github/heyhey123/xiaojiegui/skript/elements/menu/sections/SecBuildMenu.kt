@@ -213,14 +213,14 @@ class SecBuildMenu : Section() {
     override fun walk(event: Event?): TriggerItem? {
         val inventoryType = this.inventoryTypeExpr.getSingle(event)
         if (inventoryType == null) {
-            Skript.error("Inventory type cannot be null.")
+            error("Inventory type cannot be null.")
             return walk(event, false)
         }
 
         val title: Component
         val titleData = titleExpr.getSingle(event)
         if (titleData == null) {
-            Skript.error("Menu title cannot be null.")
+            error("Menu title cannot be null.")
             return walk(event, false)
         }
 
@@ -232,7 +232,7 @@ class SecBuildMenu : Section() {
         } else {
             val convertedTitle = titleExpr.getConvertedExpression(String::class.java)?.getSingle(event)
             if (convertedTitle == null) {
-                Skript.error("The given menu title is not a textcomponent, and cannot be converted to string.")
+                error("The given menu title is not a textcomponent, and cannot be converted to string.")
                 return walk(event, false)
             }
             title = LegacyComponentSerializer.legacySection().deserialize(convertedTitle)
@@ -269,12 +269,12 @@ class SecBuildMenu : Section() {
         // change. One line when the menu is built is better than a menu that quietly looks wrong forever.
         if (mode == Receptacle.Mode.STATIC) {
             when {
-                playerLayoutExpr != null -> Skript.warning(
+                playerLayoutExpr != null -> warning(
                     "\"player layout\" does nothing on a static menu: its window always shows the player's " +
                         "own inventory, so the rows below the container are the player's."
                 )
 
-                hidePlayerInventoryFlag -> Skript.warning(
+                hidePlayerInventoryFlag -> warning(
                     "\"hide player inventory: true\" does nothing on a static menu: its window always shows " +
                         "the player's own inventory. The flag only affects phantom menus."
                 )

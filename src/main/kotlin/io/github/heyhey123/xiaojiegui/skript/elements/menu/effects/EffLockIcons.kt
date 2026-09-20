@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.effects
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -59,7 +58,7 @@ class EffLockIcons : Effect() {
     override fun execute(event: Event?) {
         val menu = menuExpr.getSingle(event)
         if (menu == null) {
-            Skript.error("Menu whose icons to lock cannot be null.")
+            error("Menu whose icons to lock cannot be null.")
             return
         }
 

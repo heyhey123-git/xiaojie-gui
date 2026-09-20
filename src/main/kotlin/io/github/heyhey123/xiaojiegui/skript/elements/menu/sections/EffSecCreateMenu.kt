@@ -161,14 +161,14 @@ class EffSecCreateMenu : EffectSection() {
     override fun walk(event: Event?): TriggerItem? {
         val inventoryType = this.inventoryTypeExpr.getSingle(event)
         if (inventoryType == null) {
-            Skript.error("Inventory type is required.")
+            error("Inventory type is required.")
             return walk(event, false)
         }
 
         val defaultTitle: Component? = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
 
         if (defaultTitle == null) {
-            Skript.error("Valid Menu title is required.")
+            error("Valid Menu title is required.")
             return walk(event, false)
         } // title is required
 
@@ -194,12 +194,12 @@ class EffSecCreateMenu : EffectSection() {
         // change. One line when the menu is created is better than a menu that quietly looks wrong forever.
         if (mode == Receptacle.Mode.STATIC) {
             when {
-                playerLayoutExpr != null -> Skript.warning(
+                playerLayoutExpr != null -> warning(
                     "\"with player layout\" does nothing on a static menu: its window always shows the " +
                         "player's own inventory, so the rows below the container are the player's."
                 )
 
-                hidePlayerInventoryFlag -> Skript.warning(
+                hidePlayerInventoryFlag -> warning(
                     "\"with hide player inventory\" does nothing on a static menu: its window always shows " +
                         "the player's own inventory. The flag only affects phantom menus."
                 )

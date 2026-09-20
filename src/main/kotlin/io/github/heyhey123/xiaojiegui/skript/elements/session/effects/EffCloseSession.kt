@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.session.effects
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -52,14 +51,14 @@ class EffCloseSession : Effect() {
     override fun execute(event: Event?) {
         val session = sessionExpr.getSingle(event)
         if (session == null) {
-            Skript.error(
+            error(
                 "Menu session cannot be null: ${this.toString(event, true)}"
             )
             return
         }
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
-            Skript.error(
+            error(
                 "Menu session can only be closed from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"

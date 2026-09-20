@@ -114,13 +114,13 @@ class SecDefineButton : Section() {
     override fun walk(event: Event?): TriggerItem? {
         val id = idExpr.getSingle(event)
         if (id == null) {
-            Skript.error("Failed to get the button ID in register button section.")
+            error("Failed to get the button ID in register button section.")
             return walk(event, false)
         }
 
         val icon = iconExpr.getSingle(event)
         if (icon == null) {
-            Skript.error("Failed to get the button icon in register button section.")
+            error("Failed to get the button icon in register button section.")
             return walk(event, false)
         }
 

@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.session.effects
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -63,12 +62,12 @@ class EffSetMenuList : Effect() {
         val session = sessionExpr.getSingle(event) ?: return
         val menu = session.menu
         if (menu == null || session.page < 1) {
-            Skript.error("The menu session to fill a list in is not showing a menu.")
+            error("The menu session to fill a list in is not showing a menu.")
             return
         }
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
-            Skript.error(
+            error(
                 "Menu lists can only be filled from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"

@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.effects
 
-import ch.njol.skript.Skript
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
 import ch.njol.skript.doc.Name
@@ -65,7 +64,7 @@ class EffDestroyMenu : Effect() {
         val menu = menuExpr?.getSingle(event)
             ?: idExpr?.getSingle(event)?.let { Menu.menusWithId[it] }
         if (menu == null) {
-            Skript.error("Menu to destroy cannot be null.")
+            error("Menu to destroy cannot be null.")
             return
         }
 

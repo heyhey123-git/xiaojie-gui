@@ -80,7 +80,7 @@ class EffUpdatePageTitle : Effect() {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
-                Skript.error("Menu cannot be null.")
+                error("Menu cannot be null.")
                 return
             }
         }
@@ -88,13 +88,13 @@ class EffUpdatePageTitle : Effect() {
         val page = pageExpr?.getSingle(event)?.toInt() ?: menu.properties.defaultPage
 
         if (page !in 1..menu.size) {
-            Skript.error("Page number $page is out of bounds for the menu.")
+            error("Page number $page is out of bounds for the menu.")
             return
         }
 
         val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
         if (title == null) {
-            Skript.error(
+            error(
                 "Title cannot be null."
             )
             return
