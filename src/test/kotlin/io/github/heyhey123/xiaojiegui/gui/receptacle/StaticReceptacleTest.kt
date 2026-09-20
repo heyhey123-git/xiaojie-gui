@@ -1,8 +1,10 @@
 package io.github.heyhey123.xiaojiegui.gui.receptacle
 
 import io.github.heyhey123.xiaojiegui.gui.StaticInventory.staticInventory
+import io.github.heyhey123.xiaojiegui.listener.PlayerQuitListener
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
+import org.bukkit.event.player.PlayerQuitEvent
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.mockbukkit.mockbukkit.MockBukkit
@@ -56,6 +58,22 @@ class StaticReceptacleTest {
             diamond,
             receptacle.getElement(27),
             "The item in slot 27 should be the given diamond."
+        )
+    }
+
+    @Test
+    fun `quitting with a static menu open drops its inventory`() {
+        // The player is gone, so nothing closes the window through this addon: without the listener's own
+        // cleanup the entry, and the items in it, would stay for as long as the server runs.
+        val receptacle = StaticReceptacle(Component.text("Test Receptacle"), ViewLayout.Chest.GENERIC_9X3)
+        receptacle.open(player)
+
+        PlayerQuitListener.onQuit(PlayerQuitEvent(player, Component.text("bye")))
+
+        assertEquals(
+            null,
+            player.staticInventory,
+            "The static inventory should be dropped when the player quits."
         )
     }
 

@@ -71,6 +71,19 @@ object StaticInventory {
     }
 
     /**
+     * Drop the static inventory of a player without touching the player.
+     *
+     * A player who quits, dies or is teleported to another world never closes their window through this
+     * addon, and the entry would otherwise stay in [inventories] with its items for as long as the server
+     * runs. This is what the paths that end a session out from under it call.
+     *
+     * @param player the player whose entry to drop
+     */
+    fun forget(player: Player) {
+        inventories.remove(player.uniqueId)?.clear()
+    }
+
+    /**
      * A holder for a static inventory.
      *
      * @param layout the layout of the inventory

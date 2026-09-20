@@ -1,5 +1,6 @@
 package io.github.heyhey123.xiaojiegui.gui.menu
 
+import io.github.heyhey123.xiaojiegui.gui.StaticInventory
 import io.github.heyhey123.xiaojiegui.gui.receptacle.PhantomReceptacle
 import io.github.heyhey123.xiaojiegui.gui.receptacle.ViewReceptacle
 import net.kyori.adventure.text.Component
@@ -120,6 +121,10 @@ class MenuSession(
      */
     fun shut() {
         menu?.viewers?.remove(viewer.uniqueId)
+        // The session is about to lose the receptacle, and a session that is shut is never resumed: a
+        // static menu's real inventory has to go with it, or a player who quits while one is open leaves
+        // an inventory holding their items behind for the rest of the server's life.
+        StaticInventory.forget(viewer)
         menu = null
         page = -1
         receptacle = null

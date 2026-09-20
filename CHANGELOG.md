@@ -222,6 +222,11 @@ which is created on first start. No keys were renamed.
 - The same switch can be flipped while the server runs: `lock the icons of %menu%` /
   `unlock the icons of %menu%` set it (inside `edit menu …:` or anywhere else), and
   `if the icons of {_menu} are locked:` reads it. It takes effect on the next interaction.
+- A player who quits, dies or changes world with a `static` menu open leaves no inventory behind any more.
+  Their entry used to stay in memory with the items in it for as long as the server ran, one per player.
+- `hide player inventory` on a `static` menu now warns once when the menu is created. That window is the
+  player's real inventory, so the flag cannot hide anything, and a menu that silently looks wrong is worse
+  than a line in the console.
 - `the occupied slots of %menusession%` and `the menu contents of %menusession%` read a window back: the
   slots that hold something, and those items in slot order. Together with `icon in slot N of {_session}`
   they are how a menu that keeps things in its free slots is saved and put back.

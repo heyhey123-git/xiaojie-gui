@@ -57,7 +57,9 @@ create [a] [phantom|static] menu
 | `with hide player inventory` | 否 | 隐藏菜单下方的玩家背包区域 |
 | `with locked icons` | 否 | 布局里有图标的格子属于菜单：拿不走、放不进、换不掉、丢不出，碰到它们的拖拽整次拒绝 |
 
-`without hide player inventory` 是默认值，写出来是为了可读性。
+`without hide player inventory` 是默认值，写出来是为了可读性。它**只在 `phantom` 菜单里有意义**：`static`
+菜单显示的就是玩家真实的背包，没有东西可以"隐藏"，所以在 `static` 菜单上写它会收到一句警告（而不是得到一个
+看起来怎么都不对的菜单）。
 
 `with locked icons` 把**布局里有图标的格子**变成菜单自己的：点击、Shift 点击、数字键、副手交换、丢出、
 双击收集全都拿不走也放不进，而碰到这些格子的**拖拽会被整次拒绝**（协议上也没法只应用一半）。布局里空着的

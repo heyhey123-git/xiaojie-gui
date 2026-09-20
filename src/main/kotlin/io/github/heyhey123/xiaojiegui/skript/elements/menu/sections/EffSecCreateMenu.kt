@@ -162,6 +162,15 @@ class EffSecCreateMenu : EffectSection() {
 
         val menu = Menu(id, properties, inventoryType)
 
+        // A static window shows the player's real inventory, so there is nothing for the flag to hide. One
+        // line when the menu is created is better than a menu that quietly looks wrong forever.
+        if (mode == Receptacle.Mode.STATIC && hidePlayerInventoryFlag) {
+            Skript.warning(
+                "\"with hide player inventory\" does nothing on a static menu: its window always shows the " +
+                    "player's own inventory. The flag only affects phantom menus."
+            )
+        }
+
         // The given layout always becomes page 1; `with page N` only decides which page `open menu` shows.
         // Making this conditional left a menu with no pages at all whenever the user set a page, which
         // `open menu` then refused.

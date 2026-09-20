@@ -59,7 +59,9 @@ you do not write `phantom` / `static`, it is `phantom`.
 | `with hide player inventory` | no | hides the player inventory area below the menu |
 | `with locked icons` | no | the slots the layout gives an icon to belong to the menu: they cannot be taken, filled, swapped or dropped, and a drag that touches one is refused as a whole |
 
-`without hide player inventory` is the default; writing it out is for readability.
+`without hide player inventory` is the default; writing it out is for readability. It **only means anything in
+a `phantom` menu**: a `static` window shows the player's real inventory, so there is nothing to hide, and
+writing it on a static menu warns once instead of producing a menu that quietly looks wrong.
 
 `with locked icons` makes **the slots the layout gives an icon to** the menu's own: no click, shift click,
 number key, offhand swap, drop or double-click collect can take from them or put anything in, and a

@@ -249,6 +249,15 @@ class SecBuildMenu : Section() {
         // page, which `open menu` then refused.
         menu.insertPage(null, layout.toList(), title, null)
 
+        // A static window shows the player's real inventory, so there is nothing for the flag to hide. One
+        // line when the menu is built is better than a menu that quietly looks wrong forever.
+        if (mode == Receptacle.Mode.STATIC && hidePlayerInventoryFlag) {
+            Skript.warning(
+                "\"hide player inventory: true\" does nothing on a static menu: its window always shows the " +
+                    "player's own inventory. The flag only affects phantom menus."
+            )
+        }
+
         menuVar?.change(event, arrayOf(menu), Changer.ChangeMode.SET)
         val menuProvider = ProvideMenuEvent(menu)
 
