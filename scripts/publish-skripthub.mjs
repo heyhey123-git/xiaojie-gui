@@ -5,10 +5,17 @@
 //   SKRIPTHUB_TOKEN=<token> node scripts/publish-skripthub.mjs [--dry-run]
 //
 // The dashboard imports the whole JSON by hand, and that stays the way to publish examples; this script
-// is for the syntax itself, so a release does not have to wait for someone to paste a file. The API has
-// no bulk import — it has one endpoint per element — so this is a diff: it reads what SkriptHub has,
-// updates the elements whose pattern, description or since version changed, creates the ones that are
-// not there yet, and reports the ones it will not touch.
+// is for the syntax itself, so a release does not have to wait for someone to paste a file. The API has no
+// call that replaces a whole document -- it updates one element per request, and takes a list only when the
+// elements are new -- so this is a diff: it reads what SkriptHub has, updates the elements whose pattern,
+// description or since version changed, creates the ones that are not there yet, and reports the ones it
+// will not touch.
+//
+// Every call and field below is the v1 API as its own documentation defines it, at
+// https://skripthub.net/api/docs/ (a Swagger document): GET /api/v1/addon/, GET /api/v1/syntax/?addon=,
+// PUT /api/v1/syntax/<id>/, POST /api/v1/syntax/ (a list) and GET /api/v1/syntaxexample/?syntax=. The
+// writes carry the four fields POST /syntax/ requires -- title, syntax_pattern, required_plugins and
+// addon -- plus the optional ones the generated file owns.
 //
 // What it deliberately does not do:
 //
@@ -92,6 +99,8 @@ const readDocument = () => {
     for (const entry of document[kind] ?? []) {
       entries.set(entry.name, {
         title: entry.name,
+        // The id the documentation tool wrote for this element, which SkriptHub keeps in `json_id`.
+        jsonId: entry.id,
         syntaxType: kind.replace(/s$/, ''),
         description: (entry.description ?? []).join('\n'),
         pattern: (entry.patterns ?? []).join('\n'),
@@ -133,19 +142,30 @@ const resolveAddon = async () => {
   return match.name
 }
 
-/** The body of a write: the fields the generated file owns, plus what the existing row must keep. */
-const bodyFor = (entry, row) => {
+/**
+ * The body of a write: the fields the generated file owns, plus what the existing row must keep.
+ *
+ * `addon` is one of the four the API requires of a write, and the token does not say which addon a syntax
+ * belongs to, so it is sent every time. The value an existing row carries is what SkriptHub itself wrote
+ * and is preferred to the name this script resolved; only an addon with nothing on SkriptHub yet has no
+ * row to copy from.
+ */
+const bodyFor = (entry, row, addon) => {
   const body = {
     title: entry.title,
     description: entry.description,
     syntax_pattern: entry.pattern,
     syntax_type: entry.syntaxType,
+    addon: row?.addon ?? addon,
     // The one field SkriptHub cannot infer: a new element has none, so it starts empty and is filled in
     // by hand where an element needs another plugin loaded.
     required_plugins: (row?.required_plugins ?? []).map((plugin) => (typeof plugin === 'string' ? plugin : plugin.name))
   }
   if (entry.since) body.compatible_addon_version = entry.since
-  if (row?.addon) body.addon = row.addon
+  // SkriptHub stores the documentation tool's own element id in `json_id`, and rows that came from the
+  // dashboard's JSON import carry it (`CondHasGUI`, `ExprVersion`). Sending it is what lets an element this
+  // script creates be recognised by a later JSON import instead of being added a second time beside it.
+  if (entry.jsonId) body.json_id = entry.jsonId
   if (row?.compatible_minecraft_version != null) body.compatible_minecraft_version = row.compatible_minecraft_version
   if (row?.type_usage != null) body.type_usage = row.type_usage
   if (row?.return_type != null) body.return_type = row.return_type
@@ -232,7 +252,7 @@ try {
   if (!dryRun) {
     for (const { entry, row } of plan.updates) {
       try {
-        await request('PUT', '/syntax/' + row.id + '/', bodyFor(entry, row))
+        await request('PUT', '/syntax/' + row.id + '/', bodyFor(entry, row, addon))
       } catch (error) {
         failures.push(entry.title + ': ' + error.message)
       }
@@ -240,7 +260,7 @@ try {
 
     if (plan.creates.length) {
       // One call, because the endpoint takes a list; every element of it is created or none is.
-      const body = plan.creates.map((entry) => bodyFor(entry, null))
+      const body = plan.creates.map((entry) => bodyFor(entry, null, addon))
       try {
         await request('POST', '/syntax/', body)
       } catch (error) {
