@@ -549,6 +549,15 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         // "this condition", so matching the prefix catches all three.
         forbidLine("Skript reported a severe error.", Regex("""\[Skript]\s+Severe Error"""))
         forbidLine("Skript could not compile a registered pattern.", Regex("pattern compiling exception"))
+        // An event listener that throws is reported as "Could not pass event <name> to <plugin>" and then
+        // a stack trace, which is not one of Skript's own shapes and so is not caught above. The runs do
+        // reach the paths that used to throw: the client test opens a static menu, quits with one open and
+        // lets the server close a container itself, all of which leave the addon reading its own
+        // bookkeeping instead of assuming it.
+        forbidLine(
+            "A listener of this plugin threw an exception.",
+            Regex("""Could not pass event \w+ to xiaojie-gui""")
+        )
         forbidLine(
             "Skript rejected a non-numeric expression.",
             Regex("""\]:(?!\s*Line:)\s+.+ is not a number\.?\s*$""")

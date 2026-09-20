@@ -59,8 +59,15 @@ object StaticInventoryListener : Listener, BaseListener {
         if (holder !is StaticInventory.Holder) return
         val player = event.player as? Player ?: return
         val receptacle = player.viewingReceptacle ?: return
+        // Looked up rather than asserted: the server closes a container of its own accord when
+        // `stillValid` turns false (`ServerPlayer.tick` -> `closeContainer`), and that can arrive after
+        // this addon has already dropped the player's entry -- on a quit, or after the menu was
+        // destroyed. There is no "switching between static menus" to tell apart then, so the close is
+        // passed on as the close it is.
+        val viewing = player.staticInventory?.holder
         if (
-            player.staticInventory!!.holder != holder &&
+            viewing != null &&
+            viewing != holder &&
             event.reason == InventoryCloseEvent.Reason.OPEN_NEW
         ) {
             return // Ignore if the player is switching between static inventory menus
