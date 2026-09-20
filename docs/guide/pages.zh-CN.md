@@ -44,7 +44,7 @@ insert page [%-numbers%] [to %-menu%]
 ```
 
 ```skript
-insert page 1 to {_menu} with layout "xxxxxxxxx", "xooooooxx", "xxxxxxxox" with player layout "ooooooooo", "oooooooox", "xxxxxxxxx" with title "New Page"
+insert page 1 to {_menu} with layout "xxxxxxxxx" and "xooooooxx" and "xxxxxxxox" with player layout "ooooooooo" and "oooooooox" and "xxxxxxxxx" with title "New Page"
 ```
 
 **段落写法**（`layout:` / `player layout:` / `title:` 三个条目，全是可选的）：
@@ -103,8 +103,8 @@ turn to page 2 for player with new title "第二章"
 
 ```skript
 on load:
-    create a phantom menu with chest inventory titled "&6商店" with layout "#########", "#AAAAAAA#", "#########" with id "shop":
-        insert page 2 with layout "#########", "#BBBBBBB#", "#########" with title "&6第二页"
+    create a phantom menu with chest inventory titled "&6商店" with layout "#########" and "#AAAAAAA#" and "#########" with id "shop":
+        insert page 2 with layout "#########" and "#BBBBBBB#" and "#########" with title "&6第二页"
         map key "A" to icon diamond named "&b第一页的东西" for {_menu}
         map key "B" to icon emerald named "&a第二页的东西" for {_menu}
         map key ">" to icon arrow named "&e下一页" for {_menu} and when clicked:
@@ -148,7 +148,7 @@ command /shop:
 的图标放在那里，点上去和点别处一样；没隐藏时那半场显示的就是玩家自己的物品。
 
 ```skript
-create a phantom menu with chest inventory titled "&6背包" with layout "AAA      ", "AAA      ", "AAA      " with player layout "B        ", "         ", "         ", "         " with id "backpack":
+create a phantom menu with chest inventory titled "&6背包" with layout "AAA      " and "AAA      " and "AAA      " with player layout "B        " and "         " and "         " and "         " with id "backpack":
     map key "B" to icon chest named "&e你的背包" for menu with id "backpack"
 ```
 

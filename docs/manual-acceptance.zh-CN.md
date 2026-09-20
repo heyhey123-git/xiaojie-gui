@@ -17,7 +17,8 @@
 | 脚本 | 人工验收优先使用 README/指南里的示例。`server-test/skript/` 是自动测试输入，其中的原版 `assert` 需要专用 Skript 测试模式，不能整目录复制到普通服务器；**尤其别复制 `99-finish.sk`**，它会自动停服 |
 
 启动后看控制台：横幅是彩色的（除非 `force-truecolor: false`）、出现 `XiaojieGUI has been enabled!`、
-没有 `[Skript] Severe Error`，也没有 `can't understand` 这类解析报错。
+没有 `[Skript] Severe Error`，也没有 `can't understand` 这类解析报错。加载 README 里的示例脚本后，
+控制台同样不应出现 `List is missing 'and' or 'or'` 或 `Empty configuration section` 这两类警告。
 
 ## 1. 幽灵模式（默认）
 

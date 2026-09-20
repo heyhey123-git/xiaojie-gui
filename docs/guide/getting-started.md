@@ -19,7 +19,7 @@ load** the plugin outright, rather than loading it and then failing with strange
 
 ```skript
 on load:
-    create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########", "#  A  B #", "#########" with id "main":
+    create a phantom menu with chest inventory titled "&6Main Menu" with layout "#########" and "#  A  B #" and "#########" with id "main":
         map key "A" to icon diamond named "&bSay hello" for menu with id "main" and when clicked:
             send "Hello!" to player
         map key "B" to icon clock named "&eClose" for menu with id "main" and when clicked:

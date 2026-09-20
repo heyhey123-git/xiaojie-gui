@@ -8,7 +8,7 @@
 section:
 
 ```skript
-create a static menu with chest inventory titled "Main Menu" with id "main_menu" with layout "AAA", "ABA", "AAA" with 100 ms click delay with hide player inventory:
+create a static menu with chest inventory titled "Main Menu" with id "main_menu" with layout "AAA" and "ABA" and "AAA" with 100 ms click delay:
     override slot 4 in page 1 to diamond named "Special Item" for menu with id "main_menu"
 ```
 
@@ -88,7 +88,7 @@ buying shop: the player puts what they are selling into the container, with a ca
 the bottom row and a confirm button on the right:
 
 ```skript
-create a static menu with chest inventory titled "&6Sell" with layout "         ", "         ", "C       ", "        S" with locked icons:
+create a static menu with chest inventory titled "&6Sell" with layout "         " and "         " and "C       " and "        S" with locked icons:
 ```
 
 Only `C` and `S` are locked here. The empty slots in between are the buying area: the player clicks items
@@ -168,8 +168,13 @@ it would draw a crafting table instead; use `workbench inventory` for a crafting
 A layout is **one string per row**, and each character is one slot, starting at the top left, going left
 to right and top to bottom.
 
+Rows are joined with `and`. A comma-separated list means exactly the same thing, but Skript prints
+`List is missing 'and' or 'or', defaulting to 'and'` while such a script loads, so the examples here use
+`and`; to keep the commas, write `suppress missing conjunction warnings` on the line before, or set
+`disable variable missing and/or warnings: true` in `plugins/Skript/config.sk`.
+
 ```skript
-with layout "#########", "#  A  B #", "#########"
+with layout "#########" and "#  A  B #" and "#########"
 ```
 
 - One string = one row, no longer than 9 characters (for anything other than a chest, the container's

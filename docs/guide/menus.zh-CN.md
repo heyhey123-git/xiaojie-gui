@@ -7,7 +7,7 @@
 **段落式**（`create menu`）一次性把所有属性写在第一行，段落里放内容：
 
 ```skript
-create a static menu with chest inventory titled "Main Menu" with id "main_menu" with layout "AAA", "ABA", "AAA" with 100 ms click delay with hide player inventory:
+create a static menu with chest inventory titled "Main Menu" with id "main_menu" with layout "AAA" and "ABA" and "AAA" with 100 ms click delay:
     override slot 4 in page 1 to diamond named "Special Item" for menu with id "main_menu"
 ```
 
@@ -80,7 +80,7 @@ create [a] [phantom|static] menu
 一个取消、右下角一个确认：
 
 ```skript
-create a static menu with chest inventory titled "&6Sell" with layout "         ", "         ", "C       ", "        S" with locked icons:
+create a static menu with chest inventory titled "&6Sell" with layout "         " and "         " and "C       " and "        S" with locked icons:
 ```
 
 这里只有 `C` / `S` 两个按钮被锁住；中间那些空格是收购区，玩家照常点击放入、也照常 **Shift 点击**把背包里的
@@ -151,8 +151,13 @@ edit menu with id "main_menu":
 
 布局是**一行一个字符串**，每个字符对应一个格子，从左上角开始、从左到右、从上到下。
 
+行与行之间用 `and` 连接。写成逗号分隔含义完全相同，但 Skript 会在加载脚本时打印
+`List is missing 'and' or 'or', defaulting to 'and'`，所以本文示例统一用 `and`；若想保留逗号，可以在
+那一行之前写 `suppress missing conjunction warnings`，或在 `plugins/Skript/config.sk` 里设置
+`disable variable missing and/or warnings: true`。
+
 ```skript
-with layout "#########", "#  A  B #", "#########"
+with layout "#########" and "#  A  B #" and "#########"
 ```
 
 - 一个字符串 = 一行，长度不超过 9 个字符（箱子以外由容器宽度决定）。

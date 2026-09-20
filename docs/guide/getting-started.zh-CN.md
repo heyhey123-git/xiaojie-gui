@@ -18,7 +18,7 @@
 
 ```skript
 on load:
-    create a phantom menu with chest inventory titled "&6主菜单" with layout "#########", "#  A  B #", "#########" with id "main":
+    create a phantom menu with chest inventory titled "&6主菜单" with layout "#########" and "#  A  B #" and "#########" with id "main":
         map key "A" to icon diamond named "&b打个招呼" for menu with id "main" and when clicked:
             send "你好！" to player
         map key "B" to icon clock named "&e关闭" for menu with id "main" and when clicked:

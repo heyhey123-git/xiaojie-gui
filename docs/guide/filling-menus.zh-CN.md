@@ -45,7 +45,7 @@ map key "special_item" to item diamond named "Special Item" for menu {_menu} and
 key 的格子就是这一页的列表格，按布局顺序：
 
 ```skript
-create a phantom menu with chest inventory titled "&6物品浏览器" with layout "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "  P   N  " with id "browser":
+create a phantom menu with chest inventory titled "&6物品浏览器" with layout "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "  P   N  " with id "browser":
     map key "L" to icon {results::*} for menu with id "browser"
     map key "P" to icon arrow named "&e上一页" for menu with id "browser"
     map key "N" to icon arrow named "&e下一页" for menu with id "browser"
@@ -108,7 +108,7 @@ override slot 10 in page 1 to diamond named "Clicked Item" for menu with id "mai
 回调跟着那条映射走，只在**那个字符的格子**或**那个格子**上触发：
 
 ```skript
-create a phantom menu with chest inventory titled "Main Menu" with layout "AAA", "ABA", "AAA" with id "main_menu":
+create a phantom menu with chest inventory titled "Main Menu" with layout "AAA" and "ABA" and "AAA" with id "main_menu":
     map key "A" to icon stone for {_menu} and when clicked:
         send "你点了 A 区域。" to player
     override slot 4 in page 1 to diamond named "中间" for {_menu} and when clicked:
@@ -145,7 +145,7 @@ define button "my_button":
         send "You clicked the button!" to player
 
 on load:
-    create a phantom menu with chest inventory titled "&6菜单" with layout "#####", "# A #", "#####" with id "main":
+    create a phantom menu with chest inventory titled "&6菜单" with layout "#####" and "# A #" and "#####" with id "main":
         map key "A" to button "my_button" for {_menu}
 ```
 

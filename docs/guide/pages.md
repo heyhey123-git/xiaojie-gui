@@ -47,7 +47,7 @@ insert page [%-numbers%] [to %-menu%]
 ```
 
 ```skript
-insert page 1 to {_menu} with layout "xxxxxxxxx", "xooooooxx", "xxxxxxxox" with player layout "ooooooooo", "oooooooox", "xxxxxxxxx" with title "New Page"
+insert page 1 to {_menu} with layout "xxxxxxxxx" and "xooooooxx" and "xxxxxxxox" with player layout "ooooooooo" and "oooooooox" and "xxxxxxxxx" with title "New Page"
 ```
 
 **The section form** (the three entries `layout:` / `player layout:` / `title:`, all
@@ -111,8 +111,8 @@ return player-owned items explicitly before closing a storage menu.
 
 ```skript
 on load:
-    create a phantom menu with chest inventory titled "&6Shop" with layout "#########", "#AAAAAAA#", "#########" with id "shop":
-        insert page 2 with layout "#########", "#BBBBBBB#", "#########" with title "&6Second Page"
+    create a phantom menu with chest inventory titled "&6Shop" with layout "#########" and "#AAAAAAA#" and "#########" with id "shop":
+        insert page 2 with layout "#########" and "#BBBBBBB#" and "#########" with title "&6Second Page"
         map key "A" to icon diamond named "&bPage one item" for {_menu}
         map key "B" to icon emerald named "&aPage two item" for {_menu}
         map key ">" to icon arrow named "&eNext page" for {_menu} and when clicked:
@@ -162,7 +162,7 @@ its own icons there and a click on one of them arrives like any other click; a m
 showing the player's own items.
 
 ```skript
-create a phantom menu with chest inventory titled "&6Backpack" with layout "AAA      ", "AAA      ", "AAA      " with player layout "B        ", "         ", "         ", "         " with id "backpack":
+create a phantom menu with chest inventory titled "&6Backpack" with layout "AAA      " and "AAA      " and "AAA      " with player layout "B        " and "         " and "         " and "         " with id "backpack":
     map key "B" to icon chest named "&eYour bag" for menu with id "backpack"
 ```
 

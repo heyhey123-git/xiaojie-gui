@@ -48,7 +48,7 @@ do that is to **map a list of items to one key**: the cells of that key are the 
 order:
 
 ```skript
-create a phantom menu with chest inventory titled "&6Item browser" with layout "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "  P   N  " with id "browser":
+create a phantom menu with chest inventory titled "&6Item browser" with layout "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "  P   N  " with id "browser":
     map key "L" to icon {results::*} for menu with id "browser"
     map key "P" to icon arrow named "&ePrevious" for menu with id "browser"
     map key "N" to icon arrow named "&eNext" for menu with id "browser"
@@ -115,7 +115,7 @@ override slot 10 in page 1 to diamond named "Clicked Item" for menu with id "mai
 The callback goes with that mapping and fires only on **the slots of that character** or **that slot**:
 
 ```skript
-create a phantom menu with chest inventory titled "Main Menu" with layout "AAA", "ABA", "AAA" with id "main_menu":
+create a phantom menu with chest inventory titled "Main Menu" with layout "AAA" and "ABA" and "AAA" with id "main_menu":
     map key "A" to icon stone for {_menu} and when clicked:
         send "You clicked an A slot." to player
     override slot 4 in page 1 to diamond named "Middle" for {_menu} and when clicked:
@@ -153,7 +153,7 @@ define button "my_button":
         send "You clicked the button!" to player
 
 on load:
-    create a phantom menu with chest inventory titled "&6Menu" with layout "#####", "# A #", "#####" with id "main":
+    create a phantom menu with chest inventory titled "&6Menu" with layout "#####" and "# A #" and "#####" with id "main":
         map key "A" to button "my_button" for {_menu}
 ```
 
