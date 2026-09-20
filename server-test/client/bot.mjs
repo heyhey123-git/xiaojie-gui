@@ -356,6 +356,91 @@ async function scenario (bot, windows) {
   //    player's inventory: `player layout` is what asks for the half, and this is where a real client says
   //    whether the icons it lays out for those rows are what arrives there.
   await lowerHalfScenario(bot, windows)
+
+  // 7. And the menus the window model used to get wrong, which is the one crash a real client sees and
+  //    the server's log never reports.
+  await containerSizeScenario(bot, windows)
+}
+
+/**
+ * The menus whose client window is *not* "container slots + the player's 27 main + 9 hotbar slots".
+ *
+ * `Layout` used to build that whole range for every type. Vanilla numbers almost every window that way,
+ * but 26.2's `LecternMenu` adds a single slot and no player inventory at all, so the addon sent a content
+ * packet 37 items long for a client menu with one slot: `AbstractContainerMenu.initializeContents` walks
+ * the packet's array and calls `getSlot(1)` on a one-slot menu, which throws
+ * `IndexOutOfBoundsException: Index 1 out of bounds for length 1` inside
+ * `ClientPacketListener.handleContainerContent` and disconnects the vanilla client with a Network
+ * Protocol Error -- while the server log stays clean, because the server never reads its own packet back.
+ *
+ * A bot does not crash the way the vanilla client does, so what it can do is read what it was actually
+ * sent: the number of slots the window holds is the length of the content array the server put on the
+ * wire. One slot for a lectern is the whole assertion; before the fix the bot reads 37 there.
+ *
+ * The beacon is the control, and it is the reason this is not a blanket rule. 26.2's `BeaconMenu` adds its
+ * payment slot and then `addStandardInventorySlots(playerInventory, 36, 137)`, so its window really is
+ * 1 + 36 = 37 and must stay 37: the addon's beacon layout was already right, and shrinking it to the
+ * lectern's one slot would send the client a packet shorter than its menu instead.
+ *
+ * The commands are the acceptance script's own (`docs/manual-acceptance.sk`, loaded as
+ * `98-manual-acceptance.sk`): `/acctype <type>` builds the `acc_type` menu and opens it for the player,
+ * which is what lets this scenario name no menu of its own. Each run opens one window, and the window's
+ * title is what says which type arrived.
+ */
+async function containerSizeScenario (bot, windows) {
+  // The two types whose received size is asserted, and the size the client's own menu has for each.
+  const TYPES = [
+    { command: '/acctype lectern', title: 'lectern', slots: 1 },
+    { command: '/acctype beacon', title: 'beacon', slots: 37 }
+  ]
+
+  // The size of the last whole-window content packet the server sent, as it was on the wire.
+  //
+  // `window.slots.length` cannot be the assertion on its own: mineflayer builds that array from its own
+  // window definition and pads a short packet out to it, so a one-item packet can still read as a long
+  // window here. The raw packet's `items` array is what the server actually sent, and it is the same
+  // array a vanilla client walks in `initializeContents` -- one slot past its own menu is the crash.
+  let lastContentSize = null
+  bot._client.on('window_items', (packet) => {
+    lastContentSize = packet.items.length
+  })
+
+  for (const { command, title, slots } of TYPES) {
+    lastContentSize = null
+    const before = windows.length
+    bot.chat(command)
+    // Both halves of "the window arrived": the open-screen packet, and then the whole-window content
+    // packet that says how many slots the server put in it.
+    const window = await waitFor(`the ${title} window and its content packet`, () => {
+      if (lastContentSize === null) return null
+      return windows.slice(before).find((opened) => titleOf(opened).includes(title))
+    })
+    const received = window.slots.length
+    log(
+      `${command} -> window type ${JSON.stringify(window.type)}, the server's content packet held ` +
+        `${lastContentSize} slot(s), this client's window model reads ${received} slot(s), ` +
+        `title ${JSON.stringify(titleOf(window))} (its 26.1 data declares ` +
+        `${declaredSlotCount(bot, window)} for it, which is not what the assertion is)`
+    )
+    checkEqual(`the number of slots the server sent for the ${title} window`, slots, lastContentSize)
+    log(`the ${title} window is the ${slots}-slot menu the client draws for it, not ${slots + 36}`)
+  }
+
+  log('the container size scenario passed: the lectern window holds the one slot its client menu has, and the beacon keeps its 1 + 36')
+}
+
+/**
+ * The slot count mineflayer's own version data declares for a window type, or null when it has no entry.
+ *
+ * It is not the assertion -- it is here so the run's output separates the two numbers a reader would
+ * otherwise have to guess between: what this 26.1 client believes a menu holds, and what the server
+ * actually sent. They disagree for these windows (minecraft-data's newest data predates both the 26.2
+ * beacon and the lectern), and only the second number is a fact about the addon.
+ */
+function declaredSlotCount (bot, window) {
+  const definition = bot.registry?.windows?.[window.type]
+  const slots = definition?.slots
+  return typeof slots === 'number' ? slots : null
 }
 
 /**

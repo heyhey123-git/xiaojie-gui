@@ -64,7 +64,35 @@ class ViewLayoutTest {
 
     @Test
     fun `player slot ranges follow the container slots`() {
+        // Every window but the lectern carries the player's 27 main slots and 9 hotbar slots after its
+        // container, and that half is what `Layout` derives. The lectern's client menu is one slot with no
+        // player inventory at all, so it is the one layout whose player ranges must be empty: a range
+        // pointing at slots the client does not have is what made the content packet longer than the
+        // client's menu.
         allLayouts().forEach { layout ->
+            if (!layout.hasPlayerInventory) {
+                assertEquals(
+                    emptyList(),
+                    layout.mainInvSlotRange,
+                    "${layout.type}: a window with no player inventory has no main inventory slots"
+                )
+                assertEquals(
+                    emptyList(),
+                    layout.hotBarSlotRange,
+                    "${layout.type}: a window with no player inventory has no hotbar slots"
+                )
+                assertEquals(
+                    layout.containerSlotRange,
+                    layout.totalSlotRange,
+                    "${layout.type}: a window with no player inventory is its container slots alone"
+                )
+                assertEquals(
+                    layout.containerSize,
+                    layout.totalSize,
+                    "${layout.type}: the packet has to hold exactly what the client's menu holds"
+                )
+                return@forEach
+            }
             assertEquals(
                 layout.containerSize,
                 layout.mainInvSlotRange.first(),
@@ -81,6 +109,30 @@ class ViewLayoutTest {
                 "${layout.type}: a window is container + 27 main + 9 hotbar"
             )
         }
+    }
+
+    @Test
+    fun `only the lectern has no player inventory half`() {
+        // The measurement this file exists for: which client menus are *not* container + 36. 26.2's
+        // `LecternMenu` adds one slot and no player inventory; `BeaconMenu` adds its payment slot and then
+        // the player's 36, so it is an ordinary window. Pinned here so a type that silently loses (or
+        // gains) the player half in `Layout` fails the unit tests rather than one real client's login.
+        val without = allLayouts().filterNot { it.hasPlayerInventory }.map { it.type }
+        assertEquals(
+            listOf(LayoutType.LECTERN),
+            without,
+            "the layouts whose client menu has no player inventory changed"
+        )
+        assertEquals(
+            1,
+            ViewLayout.FixedContainer.LECTERN.totalSize,
+            "the lectern window is the one slot its client menu has"
+        )
+        assertEquals(
+            37,
+            ViewLayout.FixedContainer.BEACON.totalSize,
+            "the beacon window is its payment slot plus the player's 36"
+        )
     }
 
     @Test

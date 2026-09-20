@@ -19,9 +19,18 @@ import org.bukkit.event.inventory.InventoryType
  * slot too short does not fail, it moves every player slot in the window by one and clicks land on the
  * wrong item. `ViewLayoutTest` pins each range to Bukkit's own size for the type.
  *
+ * The derivation of that player half is one promise about every menu but one, so [hasPlayerInventory] is
+ * the exception written down: the lectern's menu has a single slot and no player inventory, so its
+ * layout carries no player half and `Layout` builds none. A window whose client menu has no player slots
+ * but whose layout claims them is not an off-by-one -- the content packet is longer than the client's
+ * menu and the vanilla client disconnects on the first slot past its own, which is what `LecternMenu` did
+ * before this was separated out.
+ *
  * @param type the layout type
  * @param inventoryType the Bukkit inventory type
  * @param slotRange the range of valid slot indices for this layout
+ * @property hasPlayerInventory whether the client's menu for this window has the player's 27 main slots
+ * and 9 hotbar slots below the container; inherited from [Layout], and false for the lectern
  */
 sealed class ViewLayout(
     val type: LayoutType,
@@ -43,6 +52,9 @@ sealed class ViewLayout(
 
     /**
      * Fixed-size container layouts
+     *
+     * Every one of these windows carries the player's half except [FixedContainer.LECTERN], whose menu
+     * has no player inventory to carry; see that layout for what the exception costs.
      */
     sealed class FixedContainer(type: LayoutType, inventoryType: InventoryType, slotRange: IntRange) :
         ViewLayout(type, inventoryType, slotRange) {
@@ -60,7 +72,23 @@ sealed class ViewLayout(
         object FURNACE : FixedContainer(LayoutType.FURNACE, InventoryType.FURNACE, 0..2)
         object GRINDSTONE : FixedContainer(LayoutType.GRINDSTONE, InventoryType.GRINDSTONE, 0..2)
         object HOPPER : FixedContainer(LayoutType.HOPPER, InventoryType.HOPPER, 0..4)
-        object LECTERN : FixedContainer(LayoutType.LECTERN, InventoryType.LECTERN, 0..0)
+
+        /**
+         * The lectern: the one window whose client menu has no player inventory at all.
+         *
+         * 26.2's `LecternMenu` adds a single slot and calls `addStandardInventorySlots` nowhere, so the
+         * client's menu is one slot long. A layout that claimed the usual 27 main slots and 9 hotbar
+         * slots after it made the whole-window content packet 37 items long for a one-slot menu, which
+         * the vanilla client answers with `IndexOutOfBoundsException: Index 1 out of bounds for length 1`
+         * in `AbstractContainerMenu.initializeContents` and a Network Protocol Error disconnect. Only the
+         * lectern is like this: the beacon is one container slot *plus* the player's 36, and every other
+         * menu has them too. A window that has no player half cannot be given one, which is why
+         * `hide player inventory` / `show player inventory` mean nothing on this menu.
+         */
+        object LECTERN : FixedContainer(LayoutType.LECTERN, InventoryType.LECTERN, 0..0) {
+            override val hasPlayerInventory: Boolean = false
+        }
+
         object LOOM : FixedContainer(LayoutType.LOOM, InventoryType.LOOM, 0..3)
         object MERCHANT : FixedContainer(LayoutType.MERCHANT, InventoryType.MERCHANT, 0..2)
         object SHULKER_BOX : FixedContainer(LayoutType.SHULKER_BOX, InventoryType.SHULKER_BOX, 0..26)

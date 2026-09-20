@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class PhantomReceptacleTest {
 
@@ -120,6 +121,46 @@ class PhantomReceptacleTest {
                 match<Array<ItemStack?>> { items -> items[30] == apple && items[11] == bread }
             )
         }
+    }
+
+    @Test
+    fun `a window with no player half opens and never mirrors the player's inventory`() {
+        // The lectern's menu has one slot and no player inventory, which is the whole reason `Layout`
+        // separates the two: `setupPlayerInventory` used to walk `hotBarSlotRange`/`mainInvSlotRange` of a
+        // layout whose client menu has neither, and `contents` is what the content packet carries, so a
+        // window that claimed a player half would also send more slots than the client's menu holds.
+        val player = mockk<Player>(relaxed = true)
+        val inventory = mockk<PlayerInventory>(relaxed = true)
+        val playerItems = arrayOfNulls<ItemStack?>(36).also { it[0] = mockk<ItemStack>() }
+
+        every { player.uniqueId } returns UUID.randomUUID()
+        every { player.inventory } returns inventory
+        every { inventory.contents } returns playerItems
+        every { mockedPacketHelper.sendOpenScreen(player, 114, any(), any()) } just Runs
+        every { mockedPacketHelper.sendContainerSetContent(player, 114, any()) } just Runs
+
+        val layout = ViewLayout.FixedContainer.LECTERN
+        val receptacle = PhantomReceptacle(Component.text("Lectern"), layout)
+
+        // No exception, with the player inventory shown: the walk that would have indexed an empty range
+        // does not run, and the flag is meaningless rather than dangerous on a menu the client draws no
+        // player slots for.
+        receptacle.open(player)
+        receptacle.setupPlayerInventory()
+
+        // The packet `open` sent is exactly the client menu's one slot, and nothing of the player is in it.
+        // `verify` rather than reading a captured argument: one call is the whole statement, so an extra
+        // packet from anywhere is a failure like a wrong slot count.
+        verify(exactly = 1) {
+            mockedPacketHelper.sendContainerSetContent(
+                player,
+                114,
+                match<Array<ItemStack?>> { items -> items.size == 1 && items[0] == null }
+            )
+        }
+        // And every slot a player half would have occupied reads as nobody's, rather than as the player's.
+        assertNull(receptacle.getElement(1))
+        assertNull(receptacle.getElement(36))
     }
 
     @Test

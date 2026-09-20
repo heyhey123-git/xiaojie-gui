@@ -38,7 +38,9 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
      * The player's own item in a window slot past the container, or null for a slot that is not theirs.
      *
      * `PlayerInventory` numbers the hotbar 0..8 and the main inventory 9..35, and a window puts the main
-     * inventory before the hotbar, so the two ranges are mapped back to those numbers.
+     * inventory before the hotbar, so the two ranges are mapped back to those numbers. A menu whose client
+     * window has no player inventory has neither range, so every slot past the container belongs to
+     * nobody and this answers null for all of them.
      */
     private fun playerHalfItem(slot: Int): ItemStack? {
         val player = viewer ?: return null
@@ -73,9 +75,15 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
         this.title = title
         if (!render) return
         // Delayed, because the client ignores a title change in the same tick it opened the window.
-        // The viewer is re-checked when the task runs: ViewReceptacle.close clears it, and without
-        // that check the open-screen packet below would put a window back on screen that the server
-        // no longer has a container for.
+        // The viewer is re-checked when the task runs: ViewReceptacle.close clears it, and without that
+        // check the open-screen packet below would put a window back on screen that the server no longer
+        // has a container for.
+        //
+        // Do not "harden" this into "only while this is still the session's receptacle": a page turn
+        // schedules this update on the receptacle it is leaving, and that delayed open-screen packet is
+        // what carries the new page's title to the client -- the session holds a different receptacle by
+        // the time the task runs. Guarding on identity makes the client sit on the old title forever
+        // (the client test waits for the page 2 window and times out).
         TaskUtil.sync(delay = 3L) {
             viewer ?: return@sync
             initializationPackets()
@@ -141,9 +149,15 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
      * because `contents` is what a whole-window refresh sends, and an icon a page laid out for those rows
      * would otherwise arrive in every cell the player happens to leave empty. That is what makes "the page's
      * icons drawn over the player's items" impossible rather than merely discouraged.
+     *
+     * A window whose client menu has no player inventory stops here, and that is also what makes
+     * `hide player inventory` / `show player inventory` meaningless on such a menu rather than dangerous:
+     * the client menu has no player slots to fill or hide, so the flag is documented as having no effect
+     * rather than refused -- there is no state to contradict, and the empty ranges are what would have
+     * made the walk below index past the end of a list.
      */
     fun setupPlayerInventory() {
-        if (hidePlayerInventory || viewer == null) return
+        if (!layout.hasPlayerInventory || hidePlayerInventory || viewer == null) return
 
         for (slot in layout.containerSize until contents.size) {
             contents[slot] = null

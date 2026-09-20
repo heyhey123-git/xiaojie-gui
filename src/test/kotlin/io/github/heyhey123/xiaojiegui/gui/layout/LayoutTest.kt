@@ -5,7 +5,8 @@ package io.github.heyhey123.xiaojiegui.gui.layout
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-private class TestLayout(range: IntRange) : Layout(range)
+private class TestLayout(range: IntRange, hasPlayerInventory: Boolean = true) :
+    Layout(range, hasPlayerInventory)
 
 class LayoutTest {
 
@@ -49,6 +50,21 @@ class LayoutTest {
             layout.totalSize,
             "Total size should be correct"
         )
+    }
+
+    @Test
+    fun `a window with no player inventory is its container slots alone`() {
+        // The client menu of a window like the lectern has no player slots, so there is no player half to
+        // derive: the ranges are empty and the total stops at the container, which is what keeps the
+        // content packet the same length as the menu the client built from the open-screen packet.
+        val layout = TestLayout(0..0, hasPlayerInventory = false)
+
+        assertEquals(emptyList(), layout.mainInvSlotRange, "no player half means no main inventory slots")
+        assertEquals(emptyList(), layout.hotBarSlotRange, "no player half means no hotbar slots")
+        assertEquals(listOf(0), layout.containerSlotRange, "the container is still the window")
+        assertEquals(1, layout.containerSize, "the container size is unchanged")
+        assertEquals(listOf(0), layout.totalSlotRange, "the window's total is its container")
+        assertEquals(1, layout.totalSize, "the packet holds one slot, like the client's menu")
     }
 
     @Test
