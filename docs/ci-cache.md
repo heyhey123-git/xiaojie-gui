@@ -138,10 +138,14 @@ test server, and one category was ours to fix:
 - The refusal messages (`Player cannot be null.`, `Menu session cannot be null …`, `At least one item
   must be provided …`, `"show player inventory" cannot undo …`) come from `04-pages-keys.sk`,
   `05-titles.sk`, `14-browser-list.sk` and `16-player-layout.sk` doing the refused thing on purpose.
-  A production script sees them only by making the same mistake. They go through `Skript.error`, which
-  at runtime has no script/line attribution and no rate limiting; moving those call sites to the
-  `error(…)` an `Effect`/`Condition` inherits from `RuntimeErrorProducer` is a recorded follow-up, not
-  a behaviour change.
+  A production script sees them only by making the same mistake. Effects and sections report them
+  through the `error(…)`/`warning(…)` they inherit from `RuntimeErrorProducer`, so each one is framed
+  with the script and the syntax name and Skript's runtime-error limits apply:
+  `The script '05-titles.sk' encountered an error while executing the 'Update Page Title' effect:`.
+  What still calls `Skript.error` at runtime is what cannot inherit that API: the expressions'
+  `change`/`get` methods, and one helper in `skript/utils/ComponentHelper.kt`. Parse-time `init` calls
+  stay on `Skript.error`, which is what it is for, and a parse-time warning still prints under the bare
+  `[Skript] Line N:` header — the two remaining bare blocks in the log are exactly those.
 
 ## Validation boundary
 
