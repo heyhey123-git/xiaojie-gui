@@ -234,6 +234,16 @@ which is created on first start. No keys were renamed.
   one of them. That is what makes an item browser a layout plus one call plus one index, and it is why the
   two things a browser still cannot do (a page count that shrinks, and typing inside a window) are written
   down in the guide instead.
+- What a player has open is called a **window** in everything a script reads: `the menu window of player`,
+  and `the window` inside a menu event. `the menu session of player` and `session` still parse and mean the
+  same thing, so no script has to change, and the type's own description no longer reads like a database
+  manual. The guide's page on it now opens by saying what a window is -- and that most scripts never name
+  one, with a table of the things that need it and the many that do not.
+- A `phantom` window reads the player's own half live instead of copying their whole inventory on every
+  read, which was the one hot spot the performance pass found.
+- Two runnable examples now ship in `server-test/`: a list-page browser (`14-browser-list.sk`) and a backpack
+  saved on close and put back on open (`15-backpack-persist.sk`). `serverTest` parses every script there on
+  every run, so they cannot quietly stop working -- and it already caught a bad loop in the first one.
 - `the occupied slots of %menusession%` and `the menu contents of %menusession%` read a window back: the
   slots that hold something, and those items in slot order. Together with `icon in slot N of {_session}`
   they are how a menu that keeps things in its free slots is saved and put back.

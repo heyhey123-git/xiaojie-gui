@@ -2,18 +2,30 @@
 
 [中文](sessions.zh-CN.md) | English
 
-A **menu** (the menu itself) and a **session** (one player's one opening of that menu) are two
-different things. The menu is a shared definition; the session is each person's own state: which page
-he is on, what his window title is, and what is in every slot he sees.
+A **menu** is the definition (its pages, layouts and icons, shared by everyone). A **window** is the one
+copy a player sees after opening it: which page he is on, what his title says, what is in every slot he
+looks at. One menu can be open for ten people at once, each on a different page with different contents --
+that is why windows exist.
 
-One menu can be open for ten people at once, each on a different page, each seeing different contents
-— that is why sessions exist.
+The word a script uses is **window**: `the menu window of player`, and `the window` inside an event. (The
+type is still called `menusession`, so `session` parses as well and means the same thing.)
 
-## Getting a session
+**Most scripts never need to name one.** Naming a window is for exactly one job: changing what **one player**
+sees.
+
+| What you want | How | Window needed? |
+|---|---|---|
+| Do something after a click or a drag | `the clicked slot` / `the dragged slots` in `on menu interact:` | no |
+| Open a menu for a player, or close it | `open menu {_menu} for player` / `close the menu for player` | no |
+| Turn a player's page | `turn to page 2 for player` | no |
+| Change the shelf everybody sees | `override slot 5 in page 1 to X for {_menu}` | no (that is the **menu**) |
+| Change **this player's** slots, title or list | `set icon in slot 5 of the menu window of player to X` and the like | yes |
+
+## Getting a window
 
 ```skript
-set {_session} to the menu session of player
-if {_session} is not set:
+set {_window} to the menu window of player
+if {_window} is not set:
     send "You do not have a menu open right now." to player
 ```
 

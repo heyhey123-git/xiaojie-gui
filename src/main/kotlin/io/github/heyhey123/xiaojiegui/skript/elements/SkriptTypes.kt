@@ -30,13 +30,19 @@ object SkriptTypes {
 
         Classes.registerClass(
             ClassInfo(MenuSession::class.java, "menusession")
-                .user("menu ?sessions?", "sessions?")
-                .name("Menu Session")
+                // `window` is the word a script should reach for, and it is the one the guide and the
+                // examples use: it is what a player sees after opening a menu, which Bukkit calls an
+                // InventoryView. `session` is this addon's own word for the same thing and still parses,
+                // so a script written with either one reads as itself.
+                .user("menu ?sessions?", "menu ?windows?", "sessions?", "windows?")
+                .name("Menu Window")
                 .description(
-                    "Represents a specific interaction session a player has with a menu.",
-                    "A new menu session is created for a player when they open a menu, and it is destroyed when they close it.",
-                    "This is very useful as it allows multiple players to have the same menu open simultaneously. A menu session enables you to distinguish between different players and manage specific data or actions for each player within the menu.",
-                    "For example, you can get the corresponding player or menu from a session."
+                    "One player's view of a menu: which page they are on, what icons they have, what their",
+                    "title says. A menu is the definition everybody shares -- its pages and layouts -- and a",
+                    "window is a single player's use of it; changing a window changes nothing for anyone else.",
+                    "Most scripts never name one: clicking, dragging, turning a page and opening a menu all",
+                    "work without it, and inside a menu event `the window` is the one the event is about.",
+                    "Naming it is for changing what one player sees -- their icons, their title, their list."
                 )
                 .defaultExpression(EventValueExpression(MenuSession::class.java))
                 .since("1.0-SNAPSHOT")

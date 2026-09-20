@@ -36,7 +36,7 @@ class EffRefreshSession : Effect() {
             SkriptSyntax.effect(
                 addon,
                 EffRefreshSession::class.java,
-                "refresh [the slot %-number% in] [the] [menu] [session] %menusession%"
+                "refresh [the slot %-number% in] [the] [menu] [(session|window)] %menusession%"
             )
         }
     }

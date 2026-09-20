@@ -38,9 +38,9 @@ class EffUpdateSessionTitle : Effect() {
                 // alternatives of a group have different types, Skript hands the literal over unparsed
                 // (see EffSecCreateMenu) and the group's two slots moved every later slot. Both patterns
                 // put the title at index 1, next to the session slot.
-                "update title of [the] [menu] [session] %menusession% " +
+                "update title of [the] [menu] [(session|window)] %menusession% " +
                     "to string:%-string% [refresh:(and refresh)]",
-                "update title of [the] [menu] [session] %menusession% " +
+                "update title of [the] [menu] [(session|window)] %menusession% " +
                     "to %-object% [refresh:(and refresh)]"
             )
         }

@@ -31,7 +31,7 @@ class EffClearSession : Effect() {
             SkriptSyntax.effect(
                 addon,
                 EffClearSession::class.java,
-                "clear [the] [menu] [session] %menusession% [refresh:and refresh]"
+                "clear [the] [menu] [(session|window)] %menusession% [refresh:and refresh]"
             )
         }
     }

@@ -121,6 +121,12 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
   are the exception, and only because each belongs to one slot and is handed an event whose slot and icon
   are its own; `Page.loadInPage` is where that is written, and `docs/guide/dragging.zh-CN.md` is what a
   script author reads about it.
+- User-facing words come from the game, not from this addon's model. What a player has open is a **window**
+  (Bukkit's `InventoryView`), not a "session"; what is behind it is an inventory, not a "receptacle". The
+  type name `menusession` and the word `session` still parse and mean the same thing, and the guide teaches
+  `window`. When a concept can only be said with our own word, that is the signal it needed one: `the dragged
+  slots` earned its name that way, while `phantom` and `static` are the two things a script must choose
+  between, so they stay.
 
 ## 4. Tests
 

@@ -1,0 +1,55 @@
+# A list-page browser, which is what a thousand items look like when the menu shows 45 at a time: a layout
+# whose result cells share one key, one call to fill a page, and one index to read a click back. Nothing here
+# needs to know how many items there are until the player looks at them.
+#
+# This file is parsed by `serverTest` on every run, so the recipe in `docs/guide/filling-menus.zh-CN.md`
+# cannot quietly stop parsing.
+
+function browserPage(p: player, page: number):
+    set {_window} to the menu window of {_p}
+    set {_first} to ({_page} - 1) * 45
+    delete {browser::shown::%uuid of {_p}%::*}
+    loop 45 times:
+        set {_one} to {browser::all::%{_first} + loop-number%}
+        if {_one} is set:
+            set {browser::shown::%uuid of {_p}%::%loop-number%} to {_one}
+    # One call for the whole page, and one update: that is what `set the menu list` is for.
+    set the menu list of {_window} to {browser::shown::%uuid of {_p}%::*}
+
+on load:
+    create a phantom menu with chest inventory titled "&6Browser" with layout "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "P       N" with id "browser" with 0 ms click delay:
+        map key "L" to icon {browser::all::*} for menu with id "browser"
+        map key "P" to icon arrow named "&ePrevious" for menu with id "browser" and when clicked:
+            set {_page} to the page of the menu window of player
+            if {_page} is greater than 1:
+                turn to page {_page} - 1 for player
+        map key "N" to icon arrow named "&eNext" for menu with id "browser" and when clicked:
+            set {_page} to the page of the menu window of player
+            if {_page} is less than the page number of the menu with id "browser":
+                turn to page {_page} + 1 for player
+
+command /browse:
+    trigger:
+        # A real browser fills this from its own source; 200 items is 5 of the 23 pages a thousand would need.
+        delete {browser::all::*}
+        loop 200 times:
+            set {browser::all::%loop-number%} to stone named "&7Item %loop-number%"
+        set {_menu} to the menu with id "browser"
+        open menu {_menu} for player
+
+on menu open:
+    if the event-menu is the menu with id "browser":
+        browserPage(player, 1)
+
+# Filling on the page turn rather than in the button is what keeps the content right whichever way the page
+# was turned -- the button, `turn to page` from another script, or a future command.
+on page turn:
+    if the event-menu is the menu with id "browser":
+        browserPage(player, the future page)
+
+on menu interact:
+    set {_index} to the menu list index
+    # Empty for a button, which is how one handler tells a result from the arrows.
+    set {_picked} to {browser::shown::%uuid of player%::%{_index}%}
+    if {_picked} is set:
+        send "&aYou picked %{_picked}%" to player

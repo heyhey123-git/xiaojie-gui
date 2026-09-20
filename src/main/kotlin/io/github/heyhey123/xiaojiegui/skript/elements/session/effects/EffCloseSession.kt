@@ -31,7 +31,7 @@ class EffCloseSession : Effect() {
             SkriptSyntax.effect(
                 addon,
                 EffCloseSession::class.java,
-                "close [the] [menu] [session] %menusession%"
+                "close [the] [menu] [(session|window)] %menusession%"
             )
         }
     }

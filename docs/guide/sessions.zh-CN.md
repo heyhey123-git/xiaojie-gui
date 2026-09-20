@@ -2,16 +2,28 @@
 
 [English](sessions.md) | 简体中文
 
-**菜单**（菜单本身）和**会话**（某个玩家和这个菜单的一次打开）是两件事。菜单是共享的定义，
-会话是每个人的独立状态：他在第几页、他的窗口标题叫什么、他看到的每个格子里是什么。
+**菜单**是定义（页面、布局、图标，所有人共享）；**窗口**是某个玩家打开它之后看到的**那一份**：他在第几页、
+他的标题是什么、他每个格子里是什么。一个菜单可以同时被十个人打开，各自在不同的页、看到各自的内容——这就是
+窗口存在的理由。
 
-一个菜单可以同时被十个人打开，每个人在不同的页上，各自看到不同的内容 —— 这就是会话存在的理由。
+面向脚本的词是**窗口**：`the menu window of player`，事件里就是 `the window`。（类型名仍然叫
+`menusession`，所以 `session` 也照样能用，两个词一个意思。）
 
-## 拿到会话
+**大多数脚本根本不需要提到它。** 点名窗口只为一件事：改**某一个玩家看到的东西**。
+
+| 想做的事 | 写法 | 要提窗口吗 |
+|---|---|---|
+| 点一下/拖一下之后做事 | `on menu interact:` 里的 `the clicked slot` / `the dragged slots` | 不用 |
+| 给某个玩家开菜单、或关掉 | `open menu {_menu} for player` / `close the menu for player` | 不用 |
+| 让某个玩家翻页 | `turn to page 2 for player` | 不用 |
+| 改所有人看到的货架 | `override slot 5 in page 1 to X for {_menu}` | 不用（那是**菜单**的事） |
+| 改**这个玩家**看到的格子、标题或列表 | `set icon in slot 5 of the menu window of player to X` 这一类 | 要 |
+
+## 拿到窗口
 
 ```skript
-set {_session} to the menu session of player
-if {_session} is not set:
+set {_window} to the menu window of player
+if {_window} is not set:
     send "你现在没有打开任何菜单。" to player
 ```
 

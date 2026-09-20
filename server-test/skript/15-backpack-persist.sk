@@ -1,0 +1,32 @@
+# A backpack that remembers. A window only lives while it is open, and in `static` mode its free slots are
+# real items in a real inventory, so what a player left in them has to be read back out before the window
+# goes away -- and put back, slot by slot, the next time it is opened.
+#
+# The two reads it needs are `the occupied slots of` (which slots hold something) and
+# `icon in slot N of` (what they hold); there is no separate "save the window" element, because the storage
+# belongs to the script (a variable here, a database through skript-orm in a real server).
+#
+# This file is parsed by `serverTest` on every run.
+
+on load:
+    create a static menu with chest inventory titled "&6Backpack" with layout "         ", "         ", "         " with id "backpack" with 0 ms click delay:
+
+command /backpack:
+    trigger:
+        set {_menu} to the menu with id "backpack"
+        open menu {_menu} for player
+        set {_window} to the menu window of player
+        # Put back what this player left behind last time. The slots are the stored indexes, so an item keeps
+        # the slot it was in.
+        loop {backpack::%uuid of player%::*}:
+            set icon in slot loop-index of {_window} to {backpack::%uuid of player%::%loop-index%}
+
+on menu close:
+    if the event-menu is not the menu with id "backpack":
+        stop
+    set {_window} to the menu window of player
+    # Deleting first matters: a player who took something out would otherwise keep a stale copy of it in the
+    # stored list, and get it back for free next time.
+    delete {backpack::%uuid of player%::*}
+    loop the occupied slots of {_window}:
+        set {backpack::%uuid of player%::%loop-value%} to icon in slot loop-value of {_window}

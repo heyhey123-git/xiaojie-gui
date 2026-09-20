@@ -26,9 +26,27 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
     private var draggedSlots: MutableSet<Int>? = null
 
     override fun getElement(slot: Int): ItemStack? {
-        setupPlayerInventory()
-        // just follow trm, if this method called frequently, may cause performance issue
+        // The player's own half is read live rather than out of the copy this receptacle keeps for the
+        // packets: it is their real inventory, reading one slot costs one lookup instead of copying all 36,
+        // and a script reading a slot is asking about the player, not about what was last sent to them.
+        if (slot !in layout.containerSlotRange) return playerHalfItem(slot)
         return contents.getOrNull(slot)
+    }
+
+    /**
+     * The player's own item in a window slot past the container, or null for a slot that is not theirs.
+     *
+     * `PlayerInventory` numbers the hotbar 0..8 and the main inventory 9..35, and a window puts the main
+     * inventory before the hotbar, so the two ranges are mapped back to those numbers.
+     */
+    private fun playerHalfItem(slot: Int): ItemStack? {
+        val player = viewer ?: return null
+        val index = when {
+            slot in layout.hotBarSlotRange -> slot - layout.hotBarSlotRange.first()
+            slot in layout.mainInvSlotRange -> 9 + (slot - layout.mainInvSlotRange.first())
+            else -> return null
+        }
+        return player.inventory.getItem(index)
     }
 
     override fun setElement(slot: Int, item: ItemStack?) {
