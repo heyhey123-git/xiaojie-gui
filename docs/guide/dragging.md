@@ -142,6 +142,31 @@ One last limit: `the cursor item` is **empty in phantom mode**. Since 1.21 the p
 a **hash** of the item rather than the item itself, so the server cannot see it, and this addon does not
 guess.
 
+## Using a drag as "select several" (phantom mode)
+
+Nothing can be moved in a phantom menu, so the only thing a drag carries is the **gesture** itself: "I swept
+over these slots". Used as a picker, one click selects one item and one sweep selects a row of them, with **no
+second code path for drags**:
+
+```skript
+on menu interact:
+    set {_slots::*} to the dragged slots
+    if {_slots::*} is not set:
+        set {_slots::*} to the clicked slot      # a click: the one slot it touched
+    loop {_slots::*}:
+        if loop-value is not between 0 and 4:
+            continue                             # buttons and the like are not part of the selection
+        if {picked::%uuid of player%::*} contains loop-value:
+            remove loop-value from {picked::%uuid of player%::*}
+        else:
+            add loop-value to {picked::%uuid of player%::*}
+```
+
+A complete, runnable version is `server-test/skript/13-phantom-picker.sk` (with a confirm button that reports
+which slots were picked), and it is parsed by `serverTest` so it cannot quietly stop working. It uses
+`set icon in slot N of {_session}` to draw the selection: an icon set at runtime is **not** one of the slots
+`locked icons` protects, which is exactly what makes per-player content possible.
+
 ## Measured: one gesture, four results
 
 These were run against a real server with a real client (sending raw packets, because mineflayer does not

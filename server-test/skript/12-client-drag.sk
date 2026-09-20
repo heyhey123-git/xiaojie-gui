@@ -43,6 +43,19 @@ on load:
     create a static menu with chest inventory titled "Locked Test" with layout "SS       ", "         ", "         " with id "lockedtest" with 0 ms click delay with locked icons:
         map key "S" to icon diamond named "locked-goods" for menu with id "lockedtest"
 
+# The same switch at runtime: `with locked icons` sets it while the menu is created, and
+# `lock the icons of %menu%` flips it afterwards. The two self-checks below report the name nothing
+# declares, so they fail the build if they ever fire -- and every protection the bot checks depends on the
+# last one having taken.
+on load:
+    edit menu with id "lockedtest":
+        unlock the icons of the menu with id "lockedtest"
+        if the icons of the menu with id "lockedtest" are locked:
+            log "XIAOJIE_SELFTEST detail: locked menu toggle FAILED -> the unlock did not take"
+        lock the icons of the menu with id "lockedtest"
+        if the icons of the menu with id "lockedtest" are not locked:
+            log "XIAOJIE_SELFTEST detail: locked menu toggle FAILED -> the lock did not take"
+
 command /locktest:
     trigger:
         set {_menu} to the menu with id "lockedtest"

@@ -87,6 +87,15 @@ create a static menu with chest inventory titled "&6Sell" with layout "         
 幽灵菜单是另一回事：那边整个窗口本来就是服务端画的，本来就什么都动不了，`locked icons` 在那里只表示
 "这些格子不是给你放东西的地方"。
 
+要在**运行时**开关这个开关，用 `lock the icons of %menu%` / `unlock the icons of %menu%`，读它的状态用
+`if the icons of {_menu} are locked:`。它和创建时那个 `with locked icons` 是同一个开关，改完对**下一次**
+交互生效（屏幕上的东西不会因此变化）：
+
+```skript
+edit menu with id "main_menu":
+    unlock the icons of the menu with id "main_menu"
+```
+
 ## 容器类型
 
 `%inventorytype%` 用的是 Skript 自己的容器类型，所以名字就是 Skript 里的名字：

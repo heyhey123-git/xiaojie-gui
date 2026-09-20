@@ -3,12 +3,14 @@ package io.github.heyhey123.xiaojiegui.skript
 import io.github.heyhey123.xiaojiegui.skript.elements.SkriptTypes
 import io.github.heyhey123.xiaojiegui.skript.elements.button.expressions.ExprAllButtons
 import io.github.heyhey123.xiaojiegui.skript.elements.button.sections.SecDefineButton
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.conditions.CondIconsLocked
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.conditions.CondMenuDestroyed
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.conditions.CondPlayerInvHidden
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.effects.EffCloseMenu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.effects.EffDestroyMenu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.effects.EffHidePlayerInv
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.effects.EffInsertPage
+import io.github.heyhey123.xiaojiegui.skript.elements.menu.effects.EffLockIcons
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.effects.EffOpenMenu
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.effects.EffTurnPage
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.effects.EffUpdatePageTitle
@@ -75,12 +77,14 @@ internal fun registerElements(addon: SkriptAddon) {
 
     ExprAllButtons.register(addon)
     SecDefineButton.register(addon)
+    CondIconsLocked.register(addon)
     CondMenuDestroyed.register(addon)
     CondPlayerInvHidden.register(addon)
     EffCloseMenu.register(addon)
     EffDestroyMenu.register(addon)
     EffHidePlayerInv.register(addon)
     EffInsertPage.register(addon)
+    EffLockIcons.register(addon)
     EffOpenMenu.register(addon)
     EffTurnPage.register(addon)
     EffUpdatePageTitle.register(addon)

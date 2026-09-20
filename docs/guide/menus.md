@@ -98,6 +98,15 @@ in, and **shift clicks** a whole stack in from their backpack, as usual. The dec
 Phantom mode is a different story: that window is the server's own invention and nothing can move in it
 anyway, so `locked icons` there only says "these slots are not somewhere to put things".
 
+To flip that switch **at runtime**, use `lock the icons of %menu%` / `unlock the icons of %menu%`, and read
+it with `if the icons of {_menu} are locked:`. It is the same switch the creation-time `with locked icons`
+sets, and it takes effect on the **next** interaction (nothing on screen changes because of it):
+
+```skript
+edit menu with id "main_menu":
+    unlock the icons of the menu with id "main_menu"
+```
+
 ## Inventory types
 
 `%inventorytype%` uses Skript's own inventory type, so the names are the names in Skript:

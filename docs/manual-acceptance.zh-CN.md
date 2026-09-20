@@ -123,4 +123,4 @@
 | 单元测试 | `./gradlew test` | 点击类型、点击冷却、页面计算、每个布局的格子数（对齐 Bukkit 自己的库存大小）、`locked icons` 的每种拒绝情形 |
 | 真实服务端 | `./gradlew serverTest` | 元素能否注册、脚本能否解析、42 条行为断言、每个 `@Examples` 的解析 |
 | 真实客户端 | `./gradlew clientTest` | 26.1 客户端穿过 Via 翻译层：窗口、标题、物品**类型**、四种点击、翻页、拖拽（含被拒绝的拖拽）、`locked icons` 下点击/Shift/数字键都拿不走商品 |
-| 文档导出 | `./gradlew gendocs` | SkriptHub 用的 JSON（54 个元素；事件不在导出里） |
+| 文档导出 | `./gradlew gendocs` | SkriptHub 用的 JSON（56 个元素；事件不在导出里） |

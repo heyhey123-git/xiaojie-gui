@@ -219,6 +219,9 @@ which is created on first start. No keys were renamed.
 - A page turn clears only the slots the page being left owns, instead of the whole window. Clearing
   everything threw away whatever the player had put in a slot the layout left empty, which is to say it
   made a paging backpack impossible.
+- The same switch can be flipped while the server runs: `lock the icons of %menu%` /
+  `unlock the icons of %menu%` set it (inside `edit menu …:` or anywhere else), and
+  `if the icons of {_menu} are locked:` reads it. It takes effect on the next interaction.
 - `the occupied slots of %menusession%` and `the menu contents of %menusession%` read a window back: the
   slots that hold something, and those items in slot order. Together with `icon in slot N of {_session}`
   they are how a menu that keeps things in its free slots is saved and put back.

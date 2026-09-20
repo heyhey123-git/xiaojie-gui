@@ -1,0 +1,50 @@
+# A phantom menu used as a picker, which is what `the dragged slots` is for: in phantom mode nothing can be
+# moved, so a drag is a gesture and nothing else -- "select these", not "put this there". A click picks one
+# item, a drag across several picks all of them, and the confirm button acts on the whole selection.
+#
+# This file lives here rather than only in the guide because `serverTest` parses every script in this
+# directory: a snippet that stops parsing fails the build instead of going stale in a page.
+
+on load:
+    create a phantom menu with chest inventory titled "&6Pick items" with layout "ABCDE    ", "         ", "        X" with id "picker" with 0 ms click delay:
+        map key "A" to icon apple named "&fApple" for menu with id "picker"
+        map key "B" to icon bread named "&fBread" for menu with id "picker"
+        map key "C" to icon cake named "&fCake" for menu with id "picker"
+        map key "D" to icon carrot named "&fCarrot" for menu with id "picker"
+        map key "E" to icon cookie named "&fCookie" for menu with id "picker"
+        map key "X" to icon emerald named "&aConfirm" for menu with id "picker" and when clicked:
+            set {_picked::*} to {picker::%uuid of player%::*}
+            if {_picked::*} is not set:
+                send "&7You have not picked anything yet." to player
+                stop
+            send "&aYou picked %size of {_picked::*}%: slot(s) %{_picked::*}%." to player
+            delete {picker::%uuid of player%::*}
+
+command /picker:
+    trigger:
+        set {_menu} to the menu with id "picker"
+        open menu {_menu} for player
+
+on menu interact:
+    set {_menu} to the event-menu
+    if {_menu} is not the menu with id "picker":
+        stop
+
+    # A drag reports every slot it swept over, a click reports the one slot it touched. That is the whole
+    # difference between the two gestures here, and both end up in the same loop -- which is the point: a
+    # script written for clicks gains "select several at once" without a second code path.
+    set {_slots::*} to the dragged slots
+    if {_slots::*} is not set:
+        set {_slots::*} to the clicked slot
+
+    loop {_slots::*}:
+        if loop-value is not between 0 and 4:
+            continue
+        if {picker::%uuid of player%::*} contains loop-value:
+            remove loop-value from {picker::%uuid of player%::*}
+        else:
+            add loop-value to {picker::%uuid of player%::*}
+
+    # A finished menu would show the selection here, with `set icon in slot N of {_session}` -- a slot that
+    # `locked icons` does not protect, which is exactly what makes per-player content possible.
+    send "&7Picked: %{picker::%uuid of player%::*}%" to player

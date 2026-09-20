@@ -188,6 +188,8 @@ on menu interact:
   所以"从玩家背包里收购东西"的商店照样能让玩家把东西 Shift 进收购区。
 - 翻页只清掉**正要离开的那一页自己有的格子**，而不是整个窗口。以前清空整个窗口会把玩家放进空格子里的东西一起
   丢掉，等于让"翻页背包"不可能做出来。
+- 这个开关也能在运行时改：`lock the icons of %menu%` / `unlock the icons of %menu%`（写在 `edit menu …:`
+  里或任何地方都行），读它用 `if the icons of {_menu} are locked:`。改完对下一次交互生效。
 - `the occupied slots of %menusession%` 和 `the menu contents of %menusession%` 可以读回一个窗口：哪些格子里有
   东西，以及那些东西本身（按格子顺序）。配合 `icon in slot N of {_session}`，这就是"把东西存在自由格子里的菜单"
   存档与恢复的写法。

@@ -97,7 +97,6 @@ on menu interact:
 
 先摆事实：幽灵菜单里玩家**拿不起任何东西**。窗口是服务端自己画的（每个点击包都被插件拦下，随后把内容
 重发回去），所以拖拽改变不了任何真实物品——和点一下改变不了一样。那为什么还要处理它？
-
 1. **不处理会留下幽灵物品。** 客户端总是先在本地"预测"一次容器操作，只有服务端的重发能把它纠正回来。
    以前拖拽的**开始包和结束包在这套代码里没有对应项**，于是它们会抛异常、**既不取消也不重发**：玩家划过的
    格子就停在客户端那一侧错误的样子里（正是别处警告过的"幽灵物品"）。
@@ -120,6 +119,29 @@ on menu interact:
 
 最后一条限制：`the cursor item` 在幽灵模式下**没有值**。协议里点击包的光标字段从 1.21 起只是物品的
 **哈希**，不是物品本身，服务端拿不到它，所以这里不猜。
+
+## 把拖拽当"多选"用（幽灵菜单）
+
+幽灵菜单里什么都动不了，所以拖拽唯一能带的信息就是**手势**本身："我扫过了这几格"。把它当多选框用，
+点一下选一项、划一下选一片，而且**不需要为拖拽写第二套代码**：
+
+```skript
+on menu interact:
+    set {_slots::*} to the dragged slots
+    if {_slots::*} is not set:
+        set {_slots::*} to the clicked slot      # 点一下：就是那一格
+    loop {_slots::*}:
+        if loop-value is not between 0 and 4:
+            continue                             # 按钮之类的格子不参与选择
+        if {picked::%uuid of player%::*} contains loop-value:
+            remove loop-value from {picked::%uuid of player%::*}
+        else:
+            add loop-value to {picked::%uuid of player%::*}
+```
+
+完整的可运行版本在 `server-test/skript/13-phantom-picker.sk`（带一个确认按钮，会念出选中了哪些格子），
+它同时会被 `serverTest` 解析，所以不会悄悄失效。里面用到 `set icon in slot N of {_session}` 画选中效果：
+运行时设置的图标**不属于** `locked icons` 保护的格子，这正是"每个玩家自己的内容"能存在的原因。
 
 ## 实测：同一个手势，四种结果
 
