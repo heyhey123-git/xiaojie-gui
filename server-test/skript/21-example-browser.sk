@@ -8,7 +8,9 @@
 # because this layer has no player and therefore no window to write into.
 #
 # The recipe on the page talks about a thousand items, and so does this file: the interesting part is the
-# last, partial page, and 1000 items is what makes page 23 a real case rather than an empty one.
+# last, partial page, and 1000 items is what makes page 23 a real case rather than an empty one. The 23 pages
+# themselves are made here the way the recipe makes them, because the arrows' guard compares against the page
+# count: with one page the next arrow is refused and the recipe's paging half would be dead code.
 
 # Copy the 45 items of page {_page} out of the source list into `{browser::slice::*}`. It writes a variable
 # rather than returning a value because a Skript function returns one value, while a page is a list; the
@@ -49,6 +51,14 @@ on load:
     assert size of {_nextSlots::*} is 1 with "browser example: there must be one next arrow"
     assert {_previousSlots::1} is 45 with "browser example: the previous arrow must sit at slot 45"
     assert {_nextSlots::1} is 53 with "browser example: the next arrow must sit at slot 53"
+
+    # The recipe's arrows compare the window's page against `the page number of the menu`, so the pages have
+    # to exist: a thousand items are 23 pages of 45, which is the layout page plus 22 `insert page` calls.
+    # `map key` above names no page, so every page -- these included -- gets the same keys and callbacks.
+    set {_layout::*} to "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "P       N"
+    loop 22 times:
+        insert page to {_menu} with layout {_layout::*}
+    assert the page number of {_menu} is 23 with "browser example: a thousand items must be 23 pages"
 
     # What the recipe claims about page numbers, checked against a real source list of a thousand items.
     delete {browser::all::*}

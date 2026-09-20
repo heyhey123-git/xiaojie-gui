@@ -110,20 +110,24 @@ set icon in slot 9 of the menu window of player to barrier named "&cSold out"
 ```skript
 # 浏览器的一页：把 45 件物品放进窗口的列表格。`set the menu list` 多出来的物品会丢掉、
 # 没填满的格子会清空，所以"只剩 3 条结果"不需要额外处理。
-function fillBrowser(window: menusession, page: number):
+# 屏幕上是哪 45 件要**按玩家**记：同一个菜单里两个玩家可以停在不同页，点下去不能读到对方那一页。
+function fillBrowser(p: player, page: number):
+    set {_window} to the menu window of {_p}
     set {_first} to ({_page} - 1) * 45
-    delete {browser::shown::*}
+    delete {browser::shown::%uuid of {_p}%::*}
     loop 45 times:
         set {_one} to {browser::all::%{_first} + loop-number%}
         if {_one} is set:
-            set {browser::shown::%loop-number%} to {_one}
-    set the menu list of {_window} to {browser::shown::*}
+            set {browser::shown::%uuid of {_p}%::%loop-number%} to {_one}
+    set the menu list of {_window} to {browser::shown::%uuid of {_p}%::*}
 
 on load:
+    # 浏览器的每一页长得一样，所以布局写一次、所有页共用。
+    set {_layout::*} to "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "P       N"
     build a menu {_menu}:
         inventory type: chest inventory
         title: "&6Item browser"
-        layout: "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "P       N"
+        layout: {_layout::*}
         id: "browser"
         edit:
             map key "L" to icon {browser::all::*} for {_menu}
@@ -133,12 +137,16 @@ on load:
                     turn to page {_page} - 1 for player
                     # 翻过去之后再填：翻页事件跑在页面加载之前，而加载会把 key 自己的图标写进这些格子，
                     # 比它更早写的列表会被盖掉。
-                    fillBrowser(the menu window of player, {_page} - 1)
+                    fillBrowser(player, {_page} - 1)
             map key "N" to icon arrow named "&eNext" for {_menu} and when clicked:
                 set {_page} to the page of the menu window of player
                 if {_page} is less than the page number of {_menu}:
                     turn to page {_page} + 1 for player
-                    fillBrowser(the menu window of player, {_page} + 1)
+                    fillBrowser(player, {_page} + 1)
+    # 上面那个布局就是第 1 页；其余的页要自己加，因为页数在菜单创建时就定下来了——
+    # `turn to page` 翻不过最后一页。一千件物品是 23 页（每页 45 件），所以再加 22 页。
+    loop 22 times:
+        insert page to {_menu} with layout {_layout::*}
 
 command /browse:
     trigger:
@@ -148,22 +156,24 @@ command /browse:
             set {browser::all::%loop-number%} to stone named "&7Item %loop-number%"
         open menu (the menu with id "browser") for player
         # 开窗之后再填，不要写在 `on menu open` 里：那个事件跑的时候还没有窗口可写。
-        fillBrowser(the menu window of player, 1)
+        fillBrowser(player, 1)
 
 on menu interact:
-    set {_picked} to {browser::shown::%the menu list index%}
+    set {_picked} to {browser::shown::%uuid of player%::%the menu list index%}
     if {_picked} is set:
         send "&aYou picked %{_picked}%" to player
     # 没有值：这一格不是结果，是箭头之类的按钮。
 ```
 
 - 结果的格子是**一个 key**：`map key "L" to icon {browser::all::*}` 里那个列表让这一页有了列表格，格子
-  顺序就是布局顺序。给了一页 45 个格子，第 `p` 页的第一件就是 `(p - 1) * 45 + 1`，一千件是 23 页，最后
-  一页 10 件，见[填充菜单](filling-menus.zh-CN.md)。
+  顺序就是布局顺序。给了一页 45 个格子，第 `p` 页的第一件就是 `(p - 1) * 45 + 1`，一千件是 23 页——上面
+  那个 `loop 22 times` 就是它们的来源，因为菜单的页数在创建时就固定了——最后一页 10 件，见
+  [填充菜单](filling-menus.zh-CN.md)。
 - `set the menu list` 是整页**一次调用、一次刷新**：45 个格子一次，而不是 45 次；多余的物品丢掉、没有物品
   的格子清空，所以短的一页不需要额外代码。
 - `the menu list index` 是**1 基**的，点到的不是列表格时没有值。这就是"结果"和"上一页/下一页"共用一个
-  事件的方式，见[填充菜单](filling-menus.zh-CN.md#列表页把一页填成一列物品)。
+  事件的方式；屏幕上那一页是**按玩家**记的（`{browser::shown::%uuid of player%::*}`），因为同一个菜单里
+  两个玩家可能停在不同页。见[填充菜单](filling-menus.zh-CN.md#列表页把一页填成一列物品)。
 - 填的时机必须在**窗口或页面已经就位之后**，不要写在 `on menu open` 或 `on page turn` 里：前者跑的时候窗口
   还不存在，后者跑在页面加载之前——在它们里面写列表，不是被拒绝就是被覆盖。这个浏览器的翻页入口只有两个箭头
   和 `/browse`，所以填充也就写在这三处；如果别的脚本直接给这个菜单翻页，那里也得自己填，否则格子里一直是 key

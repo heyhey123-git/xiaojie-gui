@@ -1,6 +1,7 @@
 # A list-page browser, which is what a thousand items look like when the menu shows 45 at a time: a layout
 # whose result cells share one key, one call to fill a page, and one index to read a click back. Nothing here
-# needs to know how many items there are until the player looks at them.
+# needs to know how many items there are until the player looks at them -- the page count is the one thing
+# decided up front, because a page is a shared definition and `turn to page` cannot leave the pages a menu has.
 #
 # This file is parsed by `serverTest` on every run, so the recipe in `docs/guide/cookbook.zh-CN.md` cannot
 # quietly stop parsing. It also shows the timing that recipe warns about: a page is filled *after* it is
@@ -31,6 +32,12 @@ on load:
             if {_page} is less than the page number of the menu with id "browser":
                 turn to page {_page} + 1 for player
                 browserPage(player, {_page} + 1)
+
+    # `create` turned the layout into page 1; every further page is an `insert page` with the same layout.
+    # 200 items are 45 * 4 + 20, so five pages, and the arrows above compare the window's page against
+    # `the page number of the menu` -- with one page that comparison is false and they can never turn.
+    loop 4 times:
+        insert page to the menu with id "browser" with layout "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "P       N"
 
 command /browse:
     trigger:

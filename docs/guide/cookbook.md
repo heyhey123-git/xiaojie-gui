@@ -120,20 +120,25 @@ result or an arrow is decided by whether `the menu list index` is empty.
 ```skript
 # One page of the browser: put 45 items into the window's list cells. `set the menu list` drops the items
 # that do not fit and clears the cells left without one, so "only three results" needs no extra handling.
-function fillBrowser(window: menusession, page: number):
+# What is on screen is remembered per player: two players on different pages of one menu must not read each
+# other's 45 items when they click.
+function fillBrowser(p: player, page: number):
+    set {_window} to the menu window of {_p}
     set {_first} to ({_page} - 1) * 45
-    delete {browser::shown::*}
+    delete {browser::shown::%uuid of {_p}%::*}
     loop 45 times:
         set {_one} to {browser::all::%{_first} + loop-number%}
         if {_one} is set:
-            set {browser::shown::%loop-number%} to {_one}
-    set the menu list of {_window} to {browser::shown::*}
+            set {browser::shown::%uuid of {_p}%::%loop-number%} to {_one}
+    set the menu list of {_window} to {browser::shown::%uuid of {_p}%::*}
 
 on load:
+    # Every page of a browser looks the same, so the layout is written once and used for all of them.
+    set {_layout::*} to "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "LLLLLLLLL" and "P       N"
     build a menu {_menu}:
         inventory type: chest inventory
         title: "&6Item browser"
-        layout: "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "LLLLLLLLL", "P       N"
+        layout: {_layout::*}
         id: "browser"
         edit:
             map key "L" to icon {browser::all::*} for {_menu}
@@ -143,12 +148,17 @@ on load:
                     turn to page {_page} - 1 for player
                     # Fill after the turn: the page is loaded after its event, and loading it writes the
                     # key's own icons into the cells, which would overwrite a list written before it.
-                    fillBrowser(the menu window of player, {_page} - 1)
+                    fillBrowser(player, {_page} - 1)
             map key "N" to icon arrow named "&eNext" for {_menu} and when clicked:
                 set {_page} to the page of the menu window of player
                 if {_page} is less than the page number of {_menu}:
                     turn to page {_page} + 1 for player
-                    fillBrowser(the menu window of player, {_page} + 1)
+                    fillBrowser(player, {_page} + 1)
+    # The layout above is the first page; the others have to be asked for, because the page count is fixed
+    # here, when the menu is made -- `turn to page` cannot go past the last page. A thousand items are 23
+    # pages of 45, so 22 more.
+    loop 22 times:
+        insert page to {_menu} with layout {_layout::*}
 
 command /browse:
     trigger:
@@ -159,9 +169,10 @@ command /browse:
         open menu (the menu with id "browser") for player
         # After the window is open, never from `on menu open`: that event runs before there is a window to
         # write into. The last bullet below says why both events are the wrong place.
+        fillBrowser(player, 1)
 
 on menu interact:
-    set {_picked} to {browser::shown::%the menu list index%}
+    set {_picked} to {browser::shown::%uuid of player%::%the menu list index%}
     if {_picked} is set:
         send "&aYou picked %{_picked}%" to player
     # Empty: this cell is not a result, so it is a button such as an arrow.
@@ -169,12 +180,14 @@ on menu interact:
 
 - The result cells are **one key**: the list in `map key "L" to icon {browser::all::*}` is what gives the page
   its list cells, in layout order. With 45 of them, the first item of page `p` is `(p - 1) * 45 + 1`; a
-  thousand items are 23 pages, and the last page holds 10. See [Filling Menus](filling-menus.md).
+  thousand items are 23 pages -- the `loop 22 times` above is what makes them, since a menu's page count is
+  fixed when it is made -- and the last page holds 10. See [Filling Menus](filling-menus.md).
 - `set the menu list` is **one call and one update** for the whole page: 45 cells in one go rather than 45,
   and extra items are dropped while cells with nothing left are cleared, so a short page needs no extra code.
 - `the menu list index` is **1-based**, and it is empty when the clicked cell is not a list cell. That is how
-  one event tells a result from the previous/next arrow; see
-  [List pages](filling-menus.md#list-pages-filling-a-page-with-a-column-of-items).
+  one event tells a result from the previous/next arrow; the slice on screen is kept per player
+  (`{browser::shown::%uuid of player%::*}`), because two players looking at one menu can be on different pages.
+  See [List pages](filling-menus.md#list-pages-filling-a-page-with-a-column-of-items).
 - Fill **after** the window or the page is there, never from `on menu open` or `on page turn`: `on menu open`
   fires before the window exists, and a page turn loads the page *after* its event, so a list written inside
   either one is refused or overwritten. The two arrow callbacks and `/browse` are the places this browser

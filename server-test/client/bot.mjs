@@ -368,6 +368,156 @@ async function scenario (bot, windows) {
   // 9. And a window closed in the same tick as its title was updated, which is the one ordering that used
   //    to put a window back on screen after the player's script had closed it.
   await closeAfterRetitleScenario(bot, windows)
+
+  // 10. The item browser from the cookbook's recipe: 45 result cells on one key, filled after the window is
+  //     open, with the previous and next arrows on its last row.
+  await browserScenario(bot, windows)
+}
+
+/**
+ * The item browser (`14-browser-list.sk`), which is the cookbook's recipe for showing a long list 45 items at
+ * a time, and the one menu whose contents only a client can check.
+ *
+ * The result cells are the cells of one key: the layout's "L" rows are the page's list cells, and
+ * `set the menu list of {_window} to …` writes the whole page in one call, made after the window is open. The
+ * two arrows are the layout's "P" and "N" on the sixth row, at slots 45 and 53.
+ *
+ * What the client is asked to prove is what the recipe promises and a server-side check cannot see: page 1
+ * holds items 1 to 45 of the source list rather than the icons the key was mapped to, the arrows are where the
+ * layout puts them, and a click on one of them really turns the page. The turn is the half no server-side check
+ * can see: `create ... with layout "a" and "b"` is the *rows* of one page, so the browser's other four pages are
+ * the `insert page` calls in `14-browser-list.sk`, and its arrow callback turns the page and fills it
+ * *afterwards* -- `browserPage(player, {_page} + 1)` -- because loading a page overwrites a list that was
+ * written before it. Every page of this browser carries the same title, and a turn re-sends the window only
+ * when the title changes (`Menu.turnPage` refreshes it otherwise), so the page the arrow turned to arrives as
+ * the contents of the window the client already had: item 46 in slot 0 after the first click of the next
+ * arrow, item 91 after the second, and item 46 again after the previous one.
+ *
+ * The `&` in an icon's name is a colour code, and a colour code is a style rather than text: the client reads
+ * the `custom_name` of `stone named "&7Item 1"` as "Item 1" and of `arrow named "&ePrevious"` as "Previous".
+ * The arrow's item type is asserted next to its name because it is the half of "which icon" that does not
+ * depend on the name at all.
+ */
+async function browserScenario (bot, windows) {
+  const BROWSER_TITLE = 'Browser'
+  // Where the layout "P       N" puts the two arrows, on the browser's sixth row.
+  const PREVIOUS_SLOT = 45
+  const NEXT_SLOT = 53
+  // The cells the layout's single list key covers: five rows of nine, the whole container above the arrows.
+  const RESULT_CELLS = 45
+  const ARROWS = [
+    { slot: PREVIOUS_SLOT, name: 'Previous', which: 'previous' },
+    { slot: NEXT_SLOT, name: 'Next', which: 'next' }
+  ]
+
+  const before = windows.length
+  bot.chat('/browse')
+  log('asked for the browser with the script\'s own /browse: 200 items in the source list, the menu opened at page 1')
+
+  // Both halves of "page 1 arrived": the window, and the `set the menu list` that fills it, which the script
+  // makes after the open rather than from `on menu open`. Waiting on the title alone would read the window
+  // before its page was written.
+  const window = await waitFor('the browser window with page 1 of its list', () => {
+    const opened = windows.slice(before).find((candidate) => titleOf(candidate).includes(BROWSER_TITLE))
+    return opened !== undefined && labelOf(opened.slots[0]) === 'Item 1' ? opened : null
+  })
+  log(`the browser menu arrived with title ${JSON.stringify(titleOf(window))}`)
+  log(`  first row: ${describeFirstRow(window)}`)
+
+  // Page 1 of 200 items is items 1 to 45, in the 45 cells of the layout's single list key. That pins the
+  // first row the line above shows (items 1 to 9), the last cell the page reaches (slot 44) and everything
+  // between: a page filled from the wrong offset, or one that wrote only its first row, changes one of these.
+  for (let slot = 0; slot < RESULT_CELLS; slot++) {
+    checkEqual(
+      `the type of the item in result cell ${slot} of the browser`,
+      'minecraft:stone',
+      typeOf(window.slots[slot])
+    )
+    checkEqual(
+      `the name of the item in result cell ${slot} of the browser`,
+      `Item ${slot + 1}`,
+      labelOf(window.slots[slot])
+    )
+  }
+  log(
+    `all ${RESULT_CELLS} result cells hold page 1 of the source list: ` +
+      `${JSON.stringify(labelOf(window.slots[0]))} in slot 0 through ` +
+      `${JSON.stringify(labelOf(window.slots[RESULT_CELLS - 1]))} in slot ${RESULT_CELLS - 1}`
+  )
+
+  // The row that carries the arrows is not a list row: the first cell after the list stays empty rather than
+  // taking the 46th item, which no page-1 cell has room for.
+  checkEqual('the item in slot 46, the first cell of the arrow row', null, window.slots[46])
+
+  for (const { slot, name, which } of ARROWS) {
+    checkEqual(`the type of the browser's ${which} arrow in slot ${slot}`, 'minecraft:arrow', typeOf(window.slots[slot]))
+    checkEqual(`the name of the browser's ${which} arrow in slot ${slot}`, name, labelOf(window.slots[slot]))
+  }
+  log(
+    `the arrows are where the layout "P       N" puts them: slot ${PREVIOUS_SLOT} carries ` +
+      `${typeOf(window.slots[PREVIOUS_SLOT])} named ${JSON.stringify(labelOf(window.slots[PREVIOUS_SLOT]))}, ` +
+      `slot ${NEXT_SLOT} carries ${typeOf(window.slots[NEXT_SLOT])} named ` +
+      `${JSON.stringify(labelOf(window.slots[NEXT_SLOT]))}`
+  )
+
+  // The two arrows, as clicks. Each one is a button, so a plain left click is the whole request, and each turn
+  // is read off the window the client already has -- see the comment above the scenario. `first` is that page's
+  // first item, and the page's own icons are items 1 to 45: loading a page resets the key's producer and writes
+  // it into every cell, so a browser that filled *before* the turn, or never filled it, would leave item 1 in
+  // slot 0 and the check below would catch it. The next arrow is clicked twice so that the previous arrow has
+  // a page to come back to whose contents are neither item 1 nor the icons the page itself was loaded with.
+  const clickArrow = async (slot, which, first) => {
+    const window = bot.currentWindow
+    const windowsBeforeTurn = windows.length
+    await bot.clickWindow(slot, 0, 0)
+    log(`clicked the ${which} arrow in slot ${slot} (a plain left click, mode 0, button 0)`)
+    await waitFor(`the browser's first result cell to read item ${first}`, () =>
+      labelOf(window.slots[0]) === `Item ${first}` || null
+    )
+    checkEqual(
+      `the number of windows the client was shown while the ${which} arrow turned the page`,
+      windowsBeforeTurn,
+      windows.length
+    )
+    for (let cell = 0; cell < RESULT_CELLS; cell++) {
+      checkEqual(
+        `the type of the item in result cell ${cell} after the ${which} arrow`,
+        'minecraft:stone',
+        typeOf(window.slots[cell])
+      )
+      checkEqual(
+        `the name of the item in result cell ${cell} after the ${which} arrow`,
+        `Item ${first + cell}`,
+        labelOf(window.slots[cell])
+      )
+    }
+    checkEqual(`the item in slot 46 after the ${which} arrow`, null, window.slots[46])
+    for (const { slot: arrowSlot, name, which: arrow } of ARROWS) {
+      checkEqual(
+        `the type of the browser's ${arrow} arrow in slot ${arrowSlot} after the ${which} arrow`,
+        'minecraft:arrow',
+        typeOf(window.slots[arrowSlot])
+      )
+      checkEqual(
+        `the name of the browser's ${arrow} arrow in slot ${arrowSlot} after the ${which} arrow`,
+        name,
+        labelOf(window.slots[arrowSlot])
+      )
+    }
+    log(
+      `the ${which} arrow turned the page: ${JSON.stringify(labelOf(window.slots[0]))} is in slot 0 and ` +
+        `${JSON.stringify(labelOf(window.slots[RESULT_CELLS - 1]))} in slot ${RESULT_CELLS - 1}`
+    )
+    return window
+  }
+
+  await clickArrow(NEXT_SLOT, 'next', 46)
+  await clickArrow(NEXT_SLOT, 'next', 91)
+  await clickArrow(PREVIOUS_SLOT, 'previous', 46)
+  log(
+    'the browser scenario passed: /browse filled the 45 list cells with items 1 to 45, both arrows are on the ' +
+      'last row, and each arrow turned a page and filled it from the source list'
+  )
 }
 
 /**
