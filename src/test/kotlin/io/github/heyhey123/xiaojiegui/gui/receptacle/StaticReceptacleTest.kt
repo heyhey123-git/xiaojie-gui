@@ -68,7 +68,7 @@ class StaticReceptacleTest {
         val receptacle = StaticReceptacle(Component.text("Test Receptacle"), ViewLayout.Chest.GENERIC_9X3)
         receptacle.open(player)
 
-        PlayerQuitListener.onQuit(PlayerQuitEvent(player, Component.text("bye")))
+        PlayerQuitListener.onQuit(PlayerQuitEvent(player, Component.text("bye"), PlayerQuitEvent.QuitReason.DISCONNECTED))
 
         assertEquals(
             null,
