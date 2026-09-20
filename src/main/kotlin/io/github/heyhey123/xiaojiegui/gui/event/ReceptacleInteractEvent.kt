@@ -21,6 +21,9 @@ import org.bukkit.inventory.ItemStack
  * @property slot the first slot of [slots]
  * @property slots every slot this interaction touches, in ascending order; more than one only for a drag
  * @property cursor what the player was holding, or null when the server did not say (phantom mode)
+ * @property clickedItem the item in the slot that was clicked, at the moment it was clicked: null for a
+ * drag, and null in phantom mode. A click in a player's own half needs it, because whether such a click is
+ * allowed is decided by what it would move and where that could land, not by which half it happened in.
  */
 class ReceptacleInteractEvent(
     val player: Player,
@@ -28,7 +31,8 @@ class ReceptacleInteractEvent(
     val clickType: ClickType,
     val slot: Int,
     val slots: List<Int> = listOf(slot),
-    val cursor: ItemStack? = null
+    val cursor: ItemStack? = null,
+    val clickedItem: ItemStack? = null
 ) : Event(), Cancellable {
 
     companion object {

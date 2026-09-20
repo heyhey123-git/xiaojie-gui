@@ -37,7 +37,8 @@ command /dragtest:
 
 # The other half of the protection story: `locked icons` refuses by itself, so the script below writes no
 # cancellation at all. The bot clicks and shift clicks the icon and reads its own window back: the icon has
-# to still be there both times.
+# to still be there both times. It then does the buying-shop case: a shift click from the player's own half
+# into a free slot has to work, and one that would land on the goods has to be refused.
 on load:
     create a static menu with chest inventory titled "Locked Test" with layout "SS       ", "         ", "         " with id "lockedtest" with 0 ms click delay with locked icons:
         map key "S" to icon diamond named "locked-goods" for menu with id "lockedtest"
@@ -46,6 +47,11 @@ command /locktest:
     trigger:
         set {_menu} to the menu with id "lockedtest"
         open menu {_menu} for player
+        # Two things for the bot to hold: apples, which the free slots can take, and a diamond that is the
+        # *same item* as the goods -- same type and same components, name included -- because that is the
+        # case a shift click has to be refused for: the game merges into a matching stack wherever it is.
+        set slot 0 of player's inventory to 2 apples
+        set slot 1 of player's inventory to 1 diamond named "locked-goods"
         # The two reads a menu that keeps things in its free slots is saved with, against a real window:
         # which slots hold something, and what they hold.
         set {_occupied::*} to the occupied slots of the menu session of player

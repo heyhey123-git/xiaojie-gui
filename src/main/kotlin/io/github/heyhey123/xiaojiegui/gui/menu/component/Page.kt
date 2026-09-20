@@ -192,16 +192,45 @@ class Page(
     /**
      * Whether `locked icons` refuses this interaction.
      *
-     * Anything that touches one of the page's own slots is refused. So is an interaction in the player's
-     * own half of a static window that can reach into the container -- a shift click, or a double click
-     * that collects -- because which slot it would reach cannot be known before it happens and a
-     * half-applied interaction is not something this addon can offer. Everything else in that half is the
-     * player's own business.
+     * An interaction that touches one of the page's own slots is refused: that slot is the menu's, so
+     * nothing about it may change. For the player's own half the question is not which half it happened in
+     * but where it would land. A shop that buys from the player needs a shift click to reach the container,
+     * and a player tidying their own inventory should be able to do that, so only the slots the menu owns
+     * have to stay out of the way:
+     *
+     * - a **shift click** moves the item into the container, merging into a matching stack first wherever
+     *   it is and only then using an empty slot, so it is refused when a matching stack in one of the
+     *   page's own slots could take it;
+     * - a **double click** collects the item out of every slot that holds one, so it is refused when one
+     *   of the page's own slots holds that item at all;
+     * - anything else in that half changes nothing in the container and is left to the player.
      */
-    private fun refusesInteraction(event: ReceptacleInteractEvent, iconSlots: Set<Int>): Boolean {
+    private fun refusesInteraction(
+        event: ReceptacleInteractEvent,
+        iconSlots: Set<Int>,
+        session: MenuSession
+    ): Boolean {
         if (event.slots.any { it in iconSlots }) return true
-        val inPlayerHalf = properties.mode == Receptacle.Mode.STATIC && event.slots.all { it >= size }
-        return inPlayerHalf && (event.clickType.isShiftClick() || event.clickType == ClickType.DOUBLE_CLICK)
+        val ownHalfOnly = properties.mode == Receptacle.Mode.STATIC && event.slots.all { it >= size }
+        if (!ownHalfOnly) return false
+
+        // A shift click moves what is in the clicked slot; a double click collects what is on the cursor,
+        // or what the click picked up when the cursor was empty.
+        val moved = when {
+            event.clickType.isShiftClick() -> event.clickedItem
+            event.clickType == ClickType.DOUBLE_CLICK -> event.cursor ?: event.clickedItem
+            else -> null
+        } ?: return false
+
+        val ownItems = iconSlots.mapNotNull { session.getIcon(it) }
+        return when {
+            event.clickType.isShiftClick() ->
+                ownItems.any { it.isSimilar(moved) && it.amount < it.maxStackSize }
+
+            event.clickType == ClickType.DOUBLE_CLICK -> ownItems.any { it.isSimilar(moved) }
+
+            else -> false
+        }
     }
 
     /**
@@ -301,7 +330,7 @@ class Page(
             // `locked icons`: an interaction that touches a slot this page gave an icon to changes
             // nothing. The callbacks above have already run by now, which is the point -- a shop's "buy"
             // callback fires and the goods stay exactly where they are.
-            if (lockedIcons && refusesInteraction(event, iconSlots)) {
+            if (lockedIcons && refusesInteraction(event, iconSlots, session)) {
                 doCancel()
             }
         }

@@ -137,20 +137,56 @@ class PageLockedIconsTest {
     }
 
     @Test
-    fun `a shift click or a double click in the player's own half is refused`() {
-        // Both reach into the container, and which slot they would reach cannot be known up front.
-        for (clickType in listOf(ClickType.SHIFT_LEFT, ClickType.SHIFT_RIGHT, ClickType.DOUBLE_CLICK)) {
-            val setup = Setup(lockedIcons = true, layout = "aa       ")
-            setup.interact(clickType, slot = 12)
-            verify { setup.clickedEvent.isCancelled = true }
-        }
+    fun `a shift click in the player's own half reaches a free slot, which is what selling is`() {
+        // A shop that buys from the player's backpack: the container's empty slots are where the goods go,
+        // and nothing the menu owns can take the item, so the click happens.
+        val setup = Setup(lockedIcons = true, layout = "aa       ")
+
+        setup.interact(ClickType.SHIFT_LEFT, slot = 12, item = item(similarTo = false))
+
+        verify(exactly = 0) { setup.clickedEvent.isCancelled = true }
+    }
+
+    @Test
+    fun `a shift click is refused when a slot the menu owns could merge the item`() {
+        // The game merges into a matching stack first, wherever that stack is, so a matching stack in a
+        // slot the menu owns is the one case where a shift click would reach somewhere it may not.
+        val setup = Setup(lockedIcons = true, layout = "aa       ")
+        setup.holds(0, item(similarTo = true, amount = 1, max = 64))
+
+        setup.interact(ClickType.SHIFT_LEFT, slot = 12, item = item(similarTo = false))
+
+        verify { setup.clickedEvent.isCancelled = true }
+    }
+
+    @Test
+    fun `a full stack in a slot the menu owns is not something a shift click can merge into`() {
+        val setup = Setup(lockedIcons = true, layout = "aa       ")
+        setup.holds(0, item(similarTo = true, amount = 64, max = 64))
+
+        setup.interact(ClickType.SHIFT_LEFT, slot = 12, item = item(similarTo = false))
+
+        verify(exactly = 0) { setup.clickedEvent.isCancelled = true }
+    }
+
+    @Test
+    fun `a double click is refused only when the menu's own slots hold that item`() {
+        val nothing = Setup(lockedIcons = true, layout = "aa       ")
+        nothing.interact(ClickType.DOUBLE_CLICK, slot = 12, item = item(similarTo = false))
+        verify(exactly = 0) { nothing.clickedEvent.isCancelled = true }
+
+        val held = Setup(lockedIcons = true, layout = "aa       ")
+        held.holds(1, item(similarTo = true))
+        held.interact(ClickType.DOUBLE_CLICK, slot = 12, item = item(similarTo = false))
+        verify { held.clickedEvent.isCancelled = true }
     }
 
     @Test
     fun `the rest of the player's own half is their own business`() {
         for (clickType in listOf(ClickType.LEFT, ClickType.RIGHT, ClickType.NUMBER_KEY_3, ClickType.DROP)) {
             val setup = Setup(lockedIcons = true, layout = "aa       ")
-            setup.interact(clickType, slot = 12)
+            setup.holds(0, item(similarTo = true))
+            setup.interact(clickType, slot = 12, item = item(similarTo = false))
             verify(exactly = 0) { setup.clickedEvent.isCancelled = true }
         }
     }
@@ -215,15 +251,40 @@ class PageLockedIconsTest {
             page.loadInPage(session)
         }
 
-        fun interact(clickType: ClickType, slot: Int) = interact(clickType, listOf(slot))
+        fun interact(
+            clickType: ClickType,
+            slot: Int,
+            item: ItemStack? = null,
+            cursor: ItemStack? = null
+        ) = interact(clickType, listOf(slot), item, cursor)
 
-        fun interact(clickType: ClickType, slots: List<Int>) {
+        fun interact(
+            clickType: ClickType,
+            slots: List<Int>,
+            item: ItemStack? = null,
+            cursor: ItemStack? = null
+        ) {
             every { clickedEvent.clickType } returns clickType
             every { clickedEvent.slot } returns slots.first()
             every { clickedEvent.slots } returns slots
             every { clickedEvent.player } returns mockk(relaxed = true)
             every { clickedEvent.receptacle } returns mockk(relaxed = true)
+            every { clickedEvent.clickedItem } returns item
+            every { clickedEvent.cursor } returns cursor
             onClick.captured.invoke(clickedEvent)
         }
+
+        /** Puts an item into one of the menu's own slots, as the container really holds it. */
+        fun holds(slot: Int, item: ItemStack) {
+            every { session.getIcon(slot) } returns item
+        }
     }
+
+    /** An item, and the answer its `isSimilar` gives for whatever is being moved. */
+    private fun item(similarTo: Boolean, amount: Int = 1, max: Int = 64): ItemStack =
+        mockk<ItemStack>(relaxed = true).also {
+            every { it.isSimilar(any()) } returns similarTo
+            every { it.amount } returns amount
+            every { it.maxStackSize } returns max
+        }
 }

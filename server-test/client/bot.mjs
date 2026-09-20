@@ -504,7 +504,22 @@ async function lockedScenario (bot, windows) {
   await settle('swapping the locked icon with hotbar slot 4')
   checkGoods('after a number key swap')
 
-  log('the locked icons scenario passed: the menu refused every way of taking its goods without the script saying anything')
+  // The buying-shop case: the player's own half is theirs, so a shift click carrying something the free
+  // slots can take has to happen. Window slot 54 is the first hotbar slot, which is where `12-client-drag.sk`
+  // put the apples.
+  await bot.clickWindow(54, 0, 1)
+  await settle('shift clicking the apples out of the player\'s own inventory')
+  checkEqual('the type in the free slot 2 after the shift click', 'minecraft:apple', typeOf(window.slots[2]))
+  checkEqual('the count in the free slot 2 after the shift click', 2, window.slots[2]?.count)
+
+  // And the same gesture with a diamond: the goods hold diamonds and could take it, so this one is refused
+  // and the diamond stays with the player. Window slot 55 is the second hotbar slot.
+  await bot.clickWindow(55, 0, 1)
+  await settle('shift clicking the diamond the goods could take')
+  checkEqual('the diamond is still in the player\'s inventory', 'minecraft:diamond', typeOf(window.slots[55]))
+  checkGoods('after the refused shift click')
+
+  log('the locked icons scenario passed: the menu refused every way of taking its goods, and still let the player shift a sale into its free slots')
 }
 
 /** Clicks one slot and reports it, naming the mode and button the protocol carries for that click. */

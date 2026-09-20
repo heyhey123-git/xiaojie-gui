@@ -212,7 +212,10 @@ which is created on first start. No keys were renamed.
   stay the player's, so a shop and a backpack are the same mechanism, and a lock does not stop a slot
   callback: a shop's "buy" callback still fires while the goods stay exactly where they are. `override
   slot` counts as the menu's furniture and `set icon in slot N of {_session}` as that player's own content,
-  which is the difference between a shop's goods and a backpack's items.
+  which is the difference between a shop's goods and a backpack's items. The player's own half is only
+  guarded where it would reach the menu: a shift click is refused when a matching stack in one of the
+  menu's own slots could take the item, and a double click when one of them holds it, so a shop that buys
+  from the player can still have him shift things into its buying area.
 - A page turn clears only the slots the page being left owns, instead of the whole window. Clearing
   everything threw away whatever the player had put in a slot the layout left empty, which is to say it
   made a paging backpack impossible.

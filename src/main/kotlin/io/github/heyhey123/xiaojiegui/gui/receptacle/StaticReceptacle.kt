@@ -61,7 +61,16 @@ class StaticReceptacle(
     }
 
     override fun clicked(clickType: ClickType, slot: Int, staticInventoryEvent: InventoryClickEvent?) {
-        val event = ReceptacleInteractEvent(viewer!!, this, clickType, slot)
+        // What is in the clicked slot comes along with the interaction: a click in the player's own half is
+        // allowed or refused by what it would move, and only the event knows what that is.
+        val event = ReceptacleInteractEvent(
+            viewer!!,
+            this,
+            clickType,
+            slot,
+            cursor = staticInventoryEvent?.cursor,
+            clickedItem = staticInventoryEvent?.currentItem
+        )
         onClick(event)
 
         if (!event.callEvent()) {

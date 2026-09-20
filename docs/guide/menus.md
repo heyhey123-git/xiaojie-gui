@@ -73,6 +73,31 @@ Which slots count as "has an icon" is deliberate: **the ones the layout names a 
 for everyone, and the last one is that player's own content, which is usually exactly what they are meant
 to be able to take.
 
+**The player's own half of a `static` window is not the menu's, so only the operations that would land on a
+menu slot are refused** -- the whole half is not closed off. A menu that really is designed that way is a
+buying shop: the player puts what they are selling into the container, with a cancel button on the left of
+the bottom row and a confirm button on the right:
+
+```skript
+create a static menu with chest inventory titled "&6Sell" with layout "         ", "         ", "C       ", "        S" with locked icons:
+```
+
+Only `C` and `S` are locked here. The empty slots in between are the buying area: the player clicks items
+in, and **shift clicks** a whole stack in from their backpack, as usual. The decision is:
+
+- **shift click** (from the backpack into the container): the game merges into a matching stack first and
+  only then uses an empty slot, so it is refused only when **one of the menu's own slots holds a matching
+  item that could still take more** -- which is where it would have gone -- and allowed otherwise.
+  "Matching" means the same type and the same components: a different name is a different item, and the
+  game would not merge them either;
+- **double-click collect**: it gathers that item out of every slot that holds one, so it is refused only
+  when **one of the menu's own slots really holds it**;
+- everything else (a plain click, a right click, a number key, a drop, ...) touches nothing in the
+  container and is allowed.
+
+Phantom mode is a different story: that window is the server's own invention and nothing can move in it
+anyway, so `locked icons` there only says "these slots are not somewhere to put things".
+
 ## Inventory types
 
 `%inventorytype%` uses Skript's own inventory type, so the names are the names in Skript:
