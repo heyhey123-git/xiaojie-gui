@@ -65,6 +65,9 @@ insert page 1 into menu {_menu}:
 | `insert page 2 …` | 插在第 1 页之后 |
 | 页码超出范围 | 夹到 `1..页数+1`，也就是等价于追加 |
 
+翻页时**只会清掉这一页自己有的格子**（布局里写了 key 的格子，加上 `override slot` 覆盖过的格子），
+其它格子原地不动。所以一个把东西存在空格子里的背包菜单，翻页回来东西还在——这也是"翻页背包"能成立的原因。
+
 不写 `layout:` 的新页会继承菜单的**默认布局**（`the default layout of {_menu}`，可以用
 `set the default layout of {_menu} to …` 改）；不写 `title:` 会继承默认标题
 （`the default title of {_menu}`）。

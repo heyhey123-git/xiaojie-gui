@@ -42,6 +42,7 @@ create [a] [phantom|static] menu
     [with page %number%]
     [with %number% ms click delay]
     [with|without hide player inventory]
+    [with|without locked icons]
 ```
 
 The order is fixed: `with id` comes **after** `with layout`, and `with page` comes after `with id`. If
@@ -56,8 +57,21 @@ you do not write `phantom` / `static`, it is `phantom`.
 | `with page %number%` | no | only decides which page `open menu` shows first, see [Pages](pages.md) |
 | `with %number% ms click delay` | no | the minimum interval between two clicks, 50 milliseconds by default |
 | `with hide player inventory` | no | hides the player inventory area below the menu |
+| `with locked icons` | no | the slots the layout gives an icon to belong to the menu: they cannot be taken, filled, swapped or dropped, and a drag that touches one is refused as a whole |
 
 `without hide player inventory` is the default; writing it out is for readability.
+
+`with locked icons` makes **the slots the layout gives an icon to** the menu's own: no click, shift click,
+number key, offhand swap, drop or double-click collect can take from them or put anything in, and a
+**drag that touches one of them is refused as a whole** (the protocol cannot apply half a drag). The slots
+the layout leaves empty stay entirely the player's, which is why a shop (icons) and a backpack (a page of
+nothing but empty slots) are the same mechanism.
+
+Which slots count as "has an icon" is deliberate: **the ones the layout names a key for**, plus the ones
+`override slot` has covered. An item a script puts into one player's session at runtime with
+`set icon in slot N of {_session}` does **not** count -- the first two are the menu's furniture, the same
+for everyone, and the last one is that player's own content, which is usually exactly what they are meant
+to be able to take.
 
 ## Inventory types
 

@@ -185,7 +185,7 @@ Two halves, for two readers:
   skUnity's jar import, the tool reads Skript's registry, so syntax registered through the addon API does
   reach the file — but only conditions, effects, expressions and sections: the events are not in the
   export, and the wiki stays the list for those. The version in the JSON comes from `gradle.properties`,
-  so it cannot disagree with the jar; a 2.0.0 run reports 52 elements, which is the 57 this addon
+  so it cannot disagree with the jar; a 2.0.0 run reports 54 elements, which is the 59 this addon
   registers minus its five events.
 
 A page may only describe syntax that exists: read the element's own patterns and prefer its `@Examples`

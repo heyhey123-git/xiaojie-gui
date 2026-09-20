@@ -98,6 +98,10 @@ If you want to turn the page without changing the title, leave out `with new tit
 title, that title is only for **this one display** and is not written back to the page's title — to
 change the title permanently use `update title of page N in {_menu} to "…"`.
 
+Turning a page **clears only the slots the page being left owns** (the ones its layout names a key for,
+plus the ones `override slot` covered); every other slot is left exactly as it is. That is what lets a
+backpack menu keep what the player put in its empty slots across a page turn.
+
 ## A two-page menu
 
 ```skript

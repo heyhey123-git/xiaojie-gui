@@ -32,10 +32,26 @@ Inside a menu event, `the session` is it directly, with no lookup needed.
 | which page the session is on | `the page of {_session}` |
 | the session window's title | `the title of {_session}` |
 | the item in a slot of the session | `icon in slot 5 of {_session}` |
+| the slots of the session's container that hold something | `the occupied slots of {_session}` |
+| everything the session's container holds, in slot order | `the menu contents of {_session}` |
 | the player the session belongs to (short form) | `the menu session of player` |
 
 The other way round, you can also get the page number straight from the player:
 `player's current menu page`.
+
+The last two are what saving a window is made of: `the occupied slots of {_session}` says which slots hold
+something, and `the menu contents of {_session}` is those items themselves, in slot order. Both read the
+**container** only -- the slots the layout describes -- because the lower half of a `static` menu belongs to
+the player. Saving a backpack is then:
+
+```skript
+on menu close:
+    loop the occupied slots of the menu session of player:
+        set {backpack::%loop-value%} to icon in slot loop-value of the menu session of player
+```
+
+The `menu` in the name is not decoration: Skript's own `contents of %inventory%` is registered before this
+addon, so a shorter name would be answered by Skript, exactly as with `menu viewers`.
 
 ## Changing what one player sees
 

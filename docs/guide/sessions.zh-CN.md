@@ -29,9 +29,24 @@ if {_session} is not set:
 | 会话当前在第几页 | `the page of {_session}` |
 | 会话窗口的标题 | `the title of {_session}` |
 | 会话里某个格子的物品 | `icon in slot 5 of {_session}` |
+| 会话容器里**放着东西**的格子 | `the occupied slots of {_session}` |
+| 会话容器里的全部物品（按格子顺序） | `the menu contents of {_session}` |
 | 会话对应的玩家（简写） | `the menu session of player` |
 
 反过来，从玩家直接拿页码也可以：`player's current menu page`。
+
+后两个是"把一个窗口存下来"用的：`the occupied slots of {_session}` 告诉你哪些格子有东西，
+`the menu contents of {_session}` 就是那些东西本身（按格子顺序）。两个都只读**容器**——布局描述的那些
+格子——因为 `static` 菜单下半部分属于玩家自己。把背包存起来的写法：
+
+```skript
+on menu close:
+    loop the occupied slots of the menu session of player:
+        set {backpack::%loop-value%} to icon in slot loop-value of the menu session of player
+```
+
+名字里的 `menu` 不是装饰：Skript 自己的 `contents of %inventory%` 比本插件先注册，短名字会被它接走，
+这一点和 `menu viewers` 是一样的。
 
 ## 改某个玩家看到的东西
 

@@ -40,6 +40,7 @@ create [a] [phantom|static] menu
     [with page %number%]
     [with %number% ms click delay]
     [with|without hide player inventory]
+    [with|without locked icons]
 ```
 
 顺序是固定的：`with id` 在 `with layout` **之后**，`with page` 又在 `with id` 之后。
@@ -54,8 +55,17 @@ create [a] [phantom|static] menu
 | `with page %number%` | 否 | 只决定 `open menu` 先显示第几页，见[页面](pages.zh-CN.md) |
 | `with %number% ms click delay` | 否 | 两次点击之间的最小间隔，默认 50 毫秒 |
 | `with hide player inventory` | 否 | 隐藏菜单下方的玩家背包区域 |
+| `with locked icons` | 否 | 布局里有图标的格子属于菜单：拿不走、放不进、换不掉、丢不出，碰到它们的拖拽整次拒绝 |
 
 `without hide player inventory` 是默认值，写出来是为了可读性。
+
+`with locked icons` 把**布局里有图标的格子**变成菜单自己的：点击、Shift 点击、数字键、副手交换、丢出、
+双击收集全都拿不走也放不进，而碰到这些格子的**拖拽会被整次拒绝**（协议上也没法只应用一半）。布局里空着的
+格子仍然完全属于玩家——所以"商店"（有图标）和"背包"（整页留空）用的是同一个机制。
+
+哪些格子算"有图标"是刻意的：**布局里写了 key 的格子**，加上用 `override slot` 覆盖过的格子。运行时用
+`set icon in slot N of {_session}` 放进某个会话的物品**不算**——前者是菜单的家具，对所有人都一样；后者是
+这一名玩家自己的内容，通常正是要让他拿走的。
 
 ## 容器类型
 

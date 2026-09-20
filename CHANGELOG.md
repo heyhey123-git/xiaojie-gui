@@ -206,6 +206,19 @@ which is created on first start. No keys were renamed.
 - A `phantom` menu puts the whole window back for the clicks that can move an item between slots, and that
   set no longer includes the drop keys: a `Q` drop takes the item out of the window, so the slot it names
   is the only one that changed.
+- `with locked icons` (and `locked icons: true` in `build a menu`) makes the slots a layout gives an icon
+  to the menu's own: no click, shift click, number key, offhand swap, drop or double-click collect can take
+  from them or put anything into them, and a drag that touches one is refused as a whole. The empty slots
+  stay the player's, so a shop and a backpack are the same mechanism, and a lock does not stop a slot
+  callback: a shop's "buy" callback still fires while the goods stay exactly where they are. `override
+  slot` counts as the menu's furniture and `set icon in slot N of {_session}` as that player's own content,
+  which is the difference between a shop's goods and a backpack's items.
+- A page turn clears only the slots the page being left owns, instead of the whole window. Clearing
+  everything threw away whatever the player had put in a slot the layout left empty, which is to say it
+  made a paging backpack impossible.
+- `the occupied slots of %menusession%` and `the menu contents of %menusession%` read a window back: the
+  slots that hold something, and those items in slot order. Together with `icon in slot N of {_session}`
+  they are how a menu that keeps things in its free slots is saved and put back.
 - `/skript reload` closes every menu before the new scripts load. A menu holds the callbacks of the scripts
   that built it, so a menu that survived a reload answered the next click with code that was no longer in
   any script. The reloaded scripts build their menus again, as they do on start.
