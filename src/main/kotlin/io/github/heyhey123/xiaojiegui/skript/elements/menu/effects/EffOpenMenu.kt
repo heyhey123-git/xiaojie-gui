@@ -12,6 +12,7 @@ import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.XiaojieGUI.Companion.enableAsyncCheck
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
@@ -97,11 +98,21 @@ class EffOpenMenu : Effect() {
             return
         }
 
-        if (pageNum != null) {
-            menu.open(player, pageNum)
+        val targetPage = pageNum ?: menu.properties.defaultPage
+        if (targetPage !in 1..menu.size) {
+            Skript.error("Page $targetPage does not exist in this menu.")
             return
         }
-        menu.open(player)
+        val session = MenuSession.querySession(player)
+        if (
+            session?.menu == menu &&
+            session.page != targetPage &&
+            menu.pages[targetPage].layout != session.receptacle?.layout
+        ) {
+            Skript.error("Cannot turn to page $targetPage with a different inventory layout. The current page is unchanged.")
+            return
+        }
+        menu.open(player, targetPage)
     }
 
     override fun toString(event: Event?, debug: Boolean): String {

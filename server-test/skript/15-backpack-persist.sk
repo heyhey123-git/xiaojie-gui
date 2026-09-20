@@ -19,7 +19,8 @@ command /backpack:
         # Put back what this player left behind last time. The slots are the stored indexes, so an item keeps
         # the slot it was in.
         loop {backpack::%uuid of player%::*}:
-            set icon in slot loop-index of {_window} to {backpack::%uuid of player%::%loop-index%}
+            set {_slot} to loop-index parsed as number
+            set icon in slot {_slot} of {_window} to {backpack::%uuid of player%::%loop-index%}
 
 on menu close:
     if the event-menu is not the menu with id "backpack":

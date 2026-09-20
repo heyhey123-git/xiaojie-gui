@@ -171,6 +171,11 @@ class Menu(
             "Page $page does not exist in this menu."
         }
 
+        // Receptacles have an immutable layout. Reject before events or clearing any player items.
+        check(pages[page].layout == receptacle!!.layout) {
+            "Cannot turn to page $page with a different inventory layout. The current page is unchanged."
+        }
+
         var titleToSet = newTitle ?: pages[page].title
 
         val event = PageTurnEvent(session, viewer, this, session.page, page, titleToSet)
@@ -185,7 +190,7 @@ class Menu(
         session.page = page
 
         session.updatePlayerSlots()
-        val shouldUpdateTitle: Boolean = titleToSet != receptacle!!.title
+        val shouldUpdateTitle: Boolean = titleToSet != receptacle.title
 
         pages[page].loadInPage(session)
 
@@ -245,8 +250,9 @@ class Menu(
 
             val currentPage = this.pages[session.page]
             currentPage.keyToSlots[key]?.apply {
+                (itemProducer as? IconProducer.MultipleIconProducer)?.reset()
                 forEach { slot ->
-                    session.setIcon(slot, itemProducer.produceNext(), false)
+                    session.setIcon(slot, itemProducer.produceNext()?.clone(), false)
                 }
                 if (refresh) {
                     session.refresh(singleOrNull() ?: -1)

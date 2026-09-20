@@ -155,7 +155,8 @@ the loop.
 
 The last one matters: a menu holds callbacks from the script that built it, and after a script reload
 those callbacks point at triggers that no longer exist. That is why the plugin destroys every menu in
-`PreScriptLoadEvent` and the scripts build them again when they reload — and why menus are almost
+`ScriptLoader.ScriptPreInitEvent`, registered through Skript's lifecycle event registry, before the batch
+of scripts is parsed. The scripts build them again when they reload — which is why menus are almost
 always built in `on load:`.
 
 Building the same menu again with a fixed id inside `on load` is safe: a new menu with the same id

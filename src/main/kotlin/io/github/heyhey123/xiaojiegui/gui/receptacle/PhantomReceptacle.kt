@@ -201,7 +201,10 @@ class PhantomReceptacle(title: Component, layout: ViewLayout) : ViewReceptacle(t
             QuickCraft.START -> draggedSlots = linkedSetOf()
 
             QuickCraft.CONTINUE -> draggedSlots?.let {
-                if (slot in layout.containerSlotRange) it.add(slot)
+                val ownsLowerSlot = hidePlayerInventory && slot in layout.containerSize until layout.totalSize
+                if (slot in layout.containerSlotRange || ownsLowerSlot) {
+                    it.add(slot)
+                }
             }
 
             QuickCraft.END -> {

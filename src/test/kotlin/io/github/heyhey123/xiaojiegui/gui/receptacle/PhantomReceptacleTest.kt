@@ -157,6 +157,29 @@ class PhantomReceptacleTest {
     }
 
     @Test
+    fun `single slot refresh replaces a lower override with the real player item`() {
+        val player = mockk<Player>(relaxed = true)
+        val inventory = mockk<PlayerInventory>(relaxed = true)
+        val contents = arrayOfNulls<ItemStack>(36)
+        val realItem = mockk<ItemStack>()
+        contents[9] = realItem
+        every { player.inventory } returns inventory
+        every { inventory.contents } returns contents
+        every { mockedPacketHelper.sendOpenScreen(any(), any(), any(), any()) } just Runs
+        every { mockedPacketHelper.sendContainerSetContent(any(), any(), any()) } just Runs
+        every { mockedPacketHelper.sendContainerSetSlot(any(), any(), any(), any()) } just Runs
+        val receptacle = PhantomReceptacle(Component.empty(), ViewLayout.Chest.GENERIC_9X3)
+        receptacle.open(player)
+        receptacle.setElement(27, mockk<ItemStack>())
+        receptacle.refresh(27)
+        verify(exactly = 1) { mockedPacketHelper.sendContainerSetSlot(player, 114, 27, realItem) }
+        contents[9] = null
+        receptacle.setElement(27, mockk<ItemStack>())
+        receptacle.refresh(27)
+        verify(exactly = 1) { mockedPacketHelper.sendContainerSetSlot(player, 114, 27, null) }
+    }
+
+    @Test
     fun `retitle receptacle and send update to player`() {
         val player = mockk<Player>(relaxed = true)
         every { player.uniqueId } returns UUID.randomUUID()

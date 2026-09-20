@@ -129,6 +129,7 @@ class MenuTest {
         val receptacle = mockk<ViewReceptacle>(relaxed = true)
         mockkObject(ViewReceptacle)
         every { ViewReceptacle.create(any(), any(), any()) } returns receptacle
+        every { receptacle.layout } returns menu.pages[1].layout
         every { receptacle.title(any(), any()) } just Runs
 
         mockkConstructor(MenuOpenEvent::class)
@@ -159,6 +160,7 @@ class MenuTest {
         menu.pages.add(page)
 
         val icon = mockk<ItemStack>(relaxed = true)
+        every { icon.clone() } returns icon
 
         val v1 = mockk<Player>(relaxed = true)
         val v2 = mockk<Player>(relaxed = true)
@@ -251,6 +253,7 @@ class MenuTest {
         mockkObject(ViewReceptacle)
         every { ViewReceptacle.create(any(), any(), any()) } returns receptacle
         every { receptacle.open(any()) } just Runs
+        every { receptacle.layout } returns menu.pages[1].layout
         every { receptacle.title(any(), any()) } just Runs
 
         mockkConstructor(MenuOpenEvent::class)
@@ -313,6 +316,71 @@ class MenuTest {
 
         assertTrue(first.isDestroyed)
         assertTrue(second.isDestroyed)
+    }
+
+    @Test
+    fun `turnPage preserves free contents and rejects incompatible layout before any changes`() {
+        val menu = Menu(null, properties, InventoryType.CHEST)
+        menu.pages.addAll(
+            listOf(
+                chestPage(properties, "One"),
+                chestPage(properties, "Two"),
+                Page(InventoryType.CHEST, Component.text("Large"), List(2) { "aaaaaaaaa" }, emptyList(), properties)
+            )
+        )
+        val item = mockk<ItemStack>(relaxed = true)
+        val contents = mutableMapOf<Int, ItemStack?>(5 to item)
+        val receptacle = mockk<ViewReceptacle>(relaxed = true)
+        every { receptacle.layout } returns menu.pages[1].layout
+        every { receptacle.setElement(any(), any()) } answers { contents[firstArg()] = secondArg() }
+        val player = mockk<Player>(relaxed = true)
+        every { player.uniqueId } returns UUID.randomUUID()
+        val session = MenuSession.getSession(player).apply {
+            this.menu = menu
+            page = 1
+            this.receptacle = receptacle
+        }
+        mockkConstructor(PageTurnEvent::class)
+        every { anyConstructed<PageTurnEvent>().callEvent() } returns true
+        menu.turnPage(player, 2)
+        assertEquals(2, session.page)
+        assertSame(item, contents[5])
+        menu.pages[2].slotOverrides[0] = item
+        contents[0] = item
+        kotlin.test.assertFailsWith<IllegalStateException> { menu.turnPage(player, 3) }
+        assertEquals(2, session.page)
+        assertSame(item, contents[0])
+        assertSame(item, contents[5])
+        verify(exactly = 1) { anyConstructed<PageTurnEvent>().callEvent() }
+        verify(exactly = 0) { receptacle.setElement(5, any()) }
+    }
+
+    @Test
+    fun `list updates restart for each viewer and clone each displayed item`() {
+        val menu = Menu(null, properties, InventoryType.CHEST)
+        menu.pages.add(chestPage(properties))
+        val source = mockk<ItemStack>(relaxed = true)
+        val clones = mutableListOf<ItemStack>()
+        every { source.clone() } answers { mockk<ItemStack>().also { clones += it } }
+        val receptacles = List(2) {
+            val player = mockk<Player>(relaxed = true)
+            val id = UUID.randomUUID()
+            every { player.uniqueId } returns id
+            val receptacle = mockk<ViewReceptacle>(relaxed = true)
+            MenuSession.getSession(player).apply {
+                this.menu = menu
+                page = 1
+                this.receptacle = receptacle
+            }
+            menu.viewers.add(id)
+            receptacle
+        }
+        menu.updateIconForKey("a", IconProducer.MultipleIconProducer(listOf(source)), refresh = false)
+        assertEquals(2, clones.size)
+        receptacles.forEachIndexed { index, receptacle ->
+            verify(exactly = 1) { receptacle.setElement(0, clones[index]) }
+            verify(exactly = 1) { receptacle.setElement(1, null) }
+        }
     }
 
     @Test

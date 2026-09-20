@@ -27,9 +27,8 @@ import org.skriptlang.skript.registration.SyntaxInfo
     "When deleting icons, all existing icons in the specified slots will be removed."
 )
 @Examples(
-    // Reading icons goes into a list variable: the expression can describe several slots at once, and a
-    // single variable refuses more than one possible type. The two writing forms use the other pattern.
-    "set {_icon::*} to icon in slot 10 of {_session}",
+    "set {_icon} to icon in slot 10 of {_session}",
+    "set {_icons::*} to icon in slot 5 and 10 of {_session}",
     "set icon in slot 5 of {_session} to dirt",
     "delete icon in slot 3 of {_session}"
 )
@@ -124,7 +123,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
     override fun toString(event: Event?, debug: Boolean) =
         "icon in slot ${slotsExpr.toString(event, debug)} of ${sessionExpr.toString(event, debug)}"
 
-    override fun isSingle() = false
+    override fun isSingle() = slotsExpr.isSingle
 
     override fun getReturnType() = ItemStack::class.java
 }

@@ -110,39 +110,34 @@ class Page(
     val keyToSlots: MutableMap<String, MutableSet<Int>> = run {
         val mapping = mutableMapOf<String, MutableSet<Int>>()
 
-        fun computeSlot(visualX: Int, yIndex: Int, baseIndex: Int): Int =
-            baseIndex + yIndex * width + visualX
+        fun processLine(line: String, yIndex: Int, baseIndex: Int, rowWidth: Int = width) {
+            fun addKey(key: String, visualX: Int) {
+                mapping.computeIfAbsent(key) { mutableSetOf() }
+                    .add(baseIndex + yIndex * rowWidth + visualX)
+            }
 
-        fun addKey(key: String, visualX: Int, yIndex: Int, baseIndex: Int) {
-            mapping.computeIfAbsent(key) { mutableSetOf() }
-                .add(computeSlot(visualX, yIndex, baseIndex))
-        }
+            fun addKey(ch: Char, visualX: Int) = addKey(ch.toString(), visualX)
 
-        fun addKey(ch: Char, visualX: Int, yIndex: Int, baseIndex: Int) {
-            addKey(ch.toString(), visualX, yIndex, baseIndex)
-        }
-
-        fun processLine(line: String, yIndex: Int, baseIndex: Int) {
             var i = 0
             var visualX = 0 // the x coordinate inside the container, which is what a slot is counted in
 
-            while (i < line.length && visualX < width) {
+            while (i < line.length && visualX < rowWidth) {
                 val ch = line[i]
                 if (ch == '`') {
                     val closing = line.indexOf('`', i + 1)
                     if (closing == -1) {
                         // Not a pair: a lone backquote is an ordinary key of its own.
-                        addKey('`', visualX, yIndex, baseIndex)
+                        addKey('`', visualX)
                         i += 1
                         visualX += 1
                         continue
                     }
                     val keyName = line.substring(i + 1, closing)
-                    addKey(keyName, visualX, yIndex, baseIndex)
+                    addKey(keyName, visualX)
                     visualX += 1 // a whole backquoted block is one visible cell
                     i = closing + 1
                 } else {
-                    addKey(ch, visualX, yIndex, baseIndex)
+                    addKey(ch, visualX)
                     i += 1
                     visualX += 1
                 }
@@ -167,7 +162,7 @@ class Page(
             this.playerLayoutPattern.asSequence()
                 .take(4)
                 .forEachIndexed { rowIndex, patternLine ->
-                    processLine(patternLine, rowIndex, size)
+                    processLine(patternLine, rowIndex, size, rowWidth = 9)
                 }
         }
 
@@ -299,10 +294,6 @@ class Page(
         menu ?: return
         receptacle ?: return
 
-        // A page's own slots do not change while it is loaded, so they are worked out once per load.
-        val iconSlots = iconSlots()
-        val lockedIcons = menu.properties.lockedIcons
-
         receptacle.title(title, false)
 
         receptacle.hidePlayerInventory = menu.properties.hidePlayerInventory
@@ -353,7 +344,15 @@ class Page(
             // A slot callback belongs to one slot, so it is handed an event whose slot and icon are its
             // own: a callback written for a click keeps working when the player drags over that slot
             // instead. A click's one slot makes the two the same event, so nothing changes for clicks.
+            var callbackCancelled = false
             for (slot in event.slots) {
+                // Only the menu's own cells can be buttons, never the player's real items.
+                val ownsLowerSlot = properties.mode == Receptacle.Mode.PHANTOM &&
+                    receptacle.hidePlayerInventory &&
+                    slot in size until layout.totalSize
+                if (slot !in 0 until size && !ownsLowerSlot) {
+                    continue
+                }
                 val callback = clickCallbacks[slot] ?: continue
                 val slotEvent = if (event.slots.size == 1) {
                     menuEvent
@@ -373,27 +372,31 @@ class Page(
 
                 callback(slotEvent)
 
-                if (!slotEvent.callEvent()) {
-                    doCancel()
-                    return@onClick
+                if (slotEvent.isCancelled) {
+                    callbackCancelled = true
+                    break
                 }
             }
 
-            if (!menuEvent.callEvent()) {
+            // Per-slot events are callback contexts, not additional global interactions.
+            if (callbackCancelled) menuEvent.isCancelled = true
+            if (!menuEvent.callEvent() || callbackCancelled) {
                 doCancel()
             }
 
             // `locked icons`: an interaction that touches a slot this page gave an icon to changes
             // nothing. The callbacks above have already run by now, which is the point -- a shop's "buy"
             // callback fires and the goods stay exactly where they are.
-            if (lockedIcons && refusesInteraction(event, iconSlots, session)) {
+            if (menu.properties.lockedIcons && refusesInteraction(event, iconSlots(), session)) {
                 doCancel()
             }
         }
 
         val slots = computeSlots()
-        for ((index, item) in slots.withIndex()) {
-            receptacle.setElement(index, item)
+        // Only mapped slots belong to this page. Nulls in unmapped slots must not erase
+        // items the player deposited in a static menu; null list entries still clear owned slots.
+        for (index in iconSlots()) {
+            if (index in slots.indices) receptacle.setElement(index, slots[index])
         }
 
         for ((index, item) in slotOverrides) {

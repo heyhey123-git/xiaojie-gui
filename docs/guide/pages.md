@@ -102,6 +102,11 @@ Turning a page **clears only the slots the page being left owns** (the ones its 
 plus the ones `override slot` covered); every other slot is left exactly as it is. That is what lets a
 backpack menu keep what the player put in its empty slots across a page turn.
 
+Turning pages requires the **same inventory layout** as the open window (including the chest row count).
+A different layout is rejected before the page number or existing contents change. Closing and opening a
+different-sized page creates a new session; it is **not** a way to migrate stored items safely. Save or
+return player-owned items explicitly before closing a storage menu.
+
 ## A two-page menu
 
 ```skript

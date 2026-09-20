@@ -132,6 +132,30 @@ class DragHandlingTest {
         verify { dragEvent.isCancelled = true }
     }
 
+    @Test
+    fun `hidden lower slots participate in phantom drags while invalid slots do not`() {
+        val receptacle = openPhantom()
+        val interactions = mutableListOf<ReceptacleInteractEvent>()
+        receptacle.onClick { interactions += it }
+        receptacle.dragPacket(-999, 0)
+        for (slot in listOf(26, 27, 62, -1, 63)) receptacle.dragPacket(slot, 1)
+        receptacle.dragPacket(-999, 2)
+        assertEquals(listOf(26, 27, 62), interactions.single().slots)
+    }
+
+    @Test
+    fun `shown lower slots are not phantom drag buttons`() {
+        val receptacle = openPhantom()
+        receptacle.hidePlayerInventory = false
+        val interactions = mutableListOf<ReceptacleInteractEvent>()
+        receptacle.onClick { interactions += it }
+        receptacle.dragPacket(-999, 0)
+        receptacle.dragPacket(27, 1)
+        receptacle.dragPacket(62, 1)
+        receptacle.dragPacket(-999, 2)
+        assertTrue(interactions.isEmpty())
+    }
+
     private fun openPhantom(): PhantomReceptacle {
         val receptacle = PhantomReceptacle(Component.text("Drag"), ViewLayout.Chest.GENERIC_9X3).apply {
             hidePlayerInventory = true

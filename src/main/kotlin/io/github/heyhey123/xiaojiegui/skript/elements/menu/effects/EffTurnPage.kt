@@ -101,6 +101,14 @@ class EffTurnPage : Effect() {
             return
         }
 
+        if (page !in 1..menu.size) {
+            Skript.error("Page $page does not exist in this menu.")
+            return
+        }
+        if (menu.pages[page].layout != session.receptacle?.layout) {
+            Skript.error("Cannot turn to page $page with a different inventory layout. The current page is unchanged.")
+            return
+        }
         menu.turnPage(player, page, title)
     }
 
