@@ -1,0 +1,21 @@
+# The nouns Skript prints for this addon's own classes.
+#
+# Skript builds each registered class's noun from `types.<code name>` while the class is registered.
+# Without an entry here the noun falls back to the raw key, so Skript's own error messages talk about
+# `types.menu` instead of `menu`; Skript also reports "Missing entry 'types.menu' in the default/english
+# language file" whenever it is logging debug, which the test server turns on through
+# `skript.testing.enabled` (a stock server with `verbosity: normal` prints nothing).
+#
+# The entries belong in `default.lang`: that is the file Skript reads for entries that are not
+# translated (its own `types:` section is there too), and Skript loads each addon's `lang/default.lang`
+# out of the addon's own jar while it enables (`LocalizerImpl.setSourceDirectories` calls
+# `Language.loadDefault`). The addon therefore has to declare its language directory in `onEnable`,
+# or the file is never opened at all.
+#
+# The version is the Skript release the entries are written against, the same meaning it has in Skript's
+# own language files: Skript compares it with the version it is running.
+version: 2.16.2
+
+types:
+	menu: menu¦s @a
+	menusession: menu window¦s @a

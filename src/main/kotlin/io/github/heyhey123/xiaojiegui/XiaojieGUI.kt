@@ -11,6 +11,7 @@ import io.github.heyhey123.xiaojiegui.logging.LogoPrinter
 import io.github.heyhey123.xiaojiegui.skript.registerElements
 import io.github.heyhey123.xiaojiegui.skript.utils.Button
 import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
 
 class XiaojieGUI : JavaPlugin() {
     companion object {
@@ -36,8 +37,16 @@ class XiaojieGUI : JavaPlugin() {
         StaticInventoryListener.register()
         ScriptLoadListener.register()
 
-        Skript.instance().registerAddon(XiaojieGUI::class.java, pluginMeta.name)
-            .let(::registerElements)
+        // The language directory has to be declared before the elements are registered, because
+        // Skript reads `<dir>/default.lang` out of this plugin's own jar at that moment
+        // (`LocalizerImpl.setSourceDirectories` calls `Language.loadDefault`), and an addon that
+        // never declares one has its `lang/` folder ignored entirely. `types.menu` and
+        // `types.menusession` live there: without them Skript names those types `types.menu` in its
+        // own error messages. The second directory is where a server owner may drop a language file
+        // of their own; this plugin ships no translations of its own.
+        val addon = Skript.instance().registerAddon(XiaojieGUI::class.java, pluginMeta.name)
+        addon.localizer().setSourceDirectories("lang", File(dataFolder, "lang").path)
+        registerElements(addon)
 
         LogoPrinter.print(pluginMeta.version)
         logger.info("XiaojieGUI has been enabled!")
