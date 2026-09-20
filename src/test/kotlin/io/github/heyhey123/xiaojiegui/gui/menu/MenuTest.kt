@@ -324,7 +324,7 @@ class MenuTest {
             page = null,
             layoutPattern = listOf("aaaaaaaaa"),
             title = Component.text("X"),
-            playerInventoryPattern = emptyList()
+            playerLayoutPattern = emptyList()
         )
 
         assertEquals(1, menu.pages.size)

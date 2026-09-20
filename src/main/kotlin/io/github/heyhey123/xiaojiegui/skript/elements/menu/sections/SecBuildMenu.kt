@@ -35,6 +35,7 @@ import kotlin.jvm.java
 @Description(
     "Build a menu with specified properties.",
     "You can specify the menu type (phantom or static), inventory type, title, layout, id, default page, click delay, whether to hide the player inventory, and whether the slots the layout gives an icon to are the menu's rather than the player's.",
+    "A player layout describes the rows below the container, which are the menu's own space, so giving one hides the player's inventory.",
     "You can also provide an edit section to define additional properties or behaviors for the menu.",
     "The created menu is stored in the specified variable."
 )
@@ -46,6 +47,7 @@ import kotlin.jvm.java
     "    inventory type: chest inventory",
     "    title: \"Main Menu\"",
     "    layout: \"AAA\", \"ABA\", \"AAA\"",
+    "    player layout: \"B        \", \"         \", \"         \", \"         \"",
     "    id: \"main_menu\"",
     "    click delay: 100",
     "    hide player inventory: true",
@@ -75,6 +77,8 @@ class SecBuildMenu : Section() {
     private lateinit var titleExpr: Expression<Any>
 
     private lateinit var layoutExpr: Expression<String>
+
+    private var playerLayoutExpr: Expression<String>? = null
 
     private var idExpr: Expression<String>? = null
 
@@ -110,6 +114,7 @@ class SecBuildMenu : Section() {
             .addEntryData(ExpressionEntryData("inventory type", null, false, InventoryType::class.java))
             .addEntryData(ExpressionEntryData("title", null, false, *ComponentHelper.titleReturnTypes))
             .addEntryData(ExpressionEntryData("layout", null, false, String::class.java))
+            .addEntryData(ExpressionEntryData("player layout", null, true, String::class.java))
             .addEntryData(ExpressionEntryData("id", null, true, String::class.java))
             .addEntryData(ExpressionEntryData("default page", null, true, Number::class.java))
             .addEntryData(ExpressionEntryData("click delay", null, true, Number::class.java))
@@ -165,9 +170,18 @@ class SecBuildMenu : Section() {
         idExpr = container.getOptional("id", true) as? Expression<String>
         defaultPageExpr = container.getOptional("default page", false) as? Expression<Number>
         clickDelayExpr = container.getOptional("click delay", false) as? Expression<Number>
+        playerLayoutExpr = container.getOptional("player layout", false) as? Expression<String>
 
         hidePlayerInventoryFlag = container.getOptional("hide player inventory", true) as? Boolean ?: false
         lockedIconsFlag = container.getOptional("locked icons", true) as? Boolean ?: false
+
+        // The rows below the container are the menu's own space only while the player's inventory is hidden,
+        // so a menu that lays them out is a menu that needs it hidden: giving a player layout says both at
+        // once. A static menu is warned about when it is built, where the one line can say which of the two
+        // keywords does nothing.
+        if (playerLayoutExpr != null && mode == Receptacle.Mode.PHANTOM) {
+            hidePlayerInventoryFlag = true
+        }
 
         // edit section
         var triggerNode: SectionNode? = null
@@ -226,6 +240,8 @@ class SecBuildMenu : Section() {
 
         val layout = layoutExpr.getArray(event)
 
+        val playerLayout = playerLayoutExpr?.getArray(event)?.toList()
+
         val id = idExpr?.getSingle(event)
 
         val defaultPage = defaultPageExpr?.getSingle(event)?.toInt()
@@ -247,15 +263,22 @@ class SecBuildMenu : Section() {
         // The given layout always becomes page 1; `default page` only decides which page `open menu`
         // shows. Making this conditional left a menu with no pages at all whenever the user set a default
         // page, which `open menu` then refused.
-        menu.insertPage(null, layout.toList(), title, null)
+        menu.insertPage(null, layout.toList(), title, playerLayout)
 
-        // A static window shows the player's real inventory, so there is nothing for the flag to hide. One
-        // line when the menu is built is better than a menu that quietly looks wrong forever.
-        if (mode == Receptacle.Mode.STATIC && hidePlayerInventoryFlag) {
-            Skript.warning(
-                "\"hide player inventory: true\" does nothing on a static menu: its window always shows the " +
-                    "player's own inventory. The flag only affects phantom menus."
-            )
+        // A static window shows the player's real inventory, so there is nothing for either keyword to
+        // change. One line when the menu is built is better than a menu that quietly looks wrong forever.
+        if (mode == Receptacle.Mode.STATIC) {
+            when {
+                playerLayoutExpr != null -> Skript.warning(
+                    "\"player layout\" does nothing on a static menu: its window always shows the player's " +
+                        "own inventory, so the rows below the container are the player's."
+                )
+
+                hidePlayerInventoryFlag -> Skript.warning(
+                    "\"hide player inventory: true\" does nothing on a static menu: its window always shows " +
+                        "the player's own inventory. The flag only affects phantom menus."
+                )
+            }
         }
 
         menuVar?.change(event, arrayOf(menu), Changer.ChangeMode.SET)
@@ -276,6 +299,9 @@ class SecBuildMenu : Section() {
         sb.append(" menu of type ").append(inventoryTypeExpr.toString(event, debug))
         sb.append(" with title ").append(titleExpr.toString(event, debug))
         sb.append(" and layout ").append(layoutExpr.toString(event, debug))
+        playerLayoutExpr?.let {
+            sb.append(" and player layout ").append(it.toString(event, debug))
+        }
         idExpr?.let {
             sb.append(", with id ").append(it.toString(event, debug))
         }

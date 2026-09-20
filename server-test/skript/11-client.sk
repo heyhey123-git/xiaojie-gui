@@ -62,6 +62,14 @@ on menu interact:
     # something that check can read. The message carries the clicked slot from the protocol's side, the
     # click type, and the number key, which is nothing (`<none>`) for every click that is not one.
     set {_menu} to the event-menu
+    # The menu whose button sits *below* its container, which only exists because that menu hides the
+    # player's inventory: the bot reads slot 27 out of its own window and clicks it.
+    if {_menu} is the menu with id "client_lower":
+        if the clicked slot is 27:
+            log "XIAOJIE_SELFTEST detail: client lower half click -> slot %the clicked slot%, type %the click type%"
+        else:
+            log "XIAOJIE_SELFTEST detail: client lower half click on an unknown slot FAILED -> %the clicked slot%"
+        stop
     # The drag scenario opens a menu of its own, and its clicks arrive here too: this handler answers only
     # for the menu below, or it would report that menu's slots as unknown ones.
     if {_menu} is not the menu with id "client":
@@ -90,3 +98,23 @@ on menu interact:
 
 on page turn:
     log "XIAOJIE_SELFTEST detail: client page turned -> %the page% -> %the future page%"
+
+# The rows below the container, which are the menu's own space only while the player's inventory is hidden.
+# A `player layout` asks for exactly that, so this menu is what proves the whole statement on a real client:
+# the page's button is in slot 27 of a three row chest (the first cell below the container, where a shown
+# half would hold the player's own item) and a click on it arrives like any other slot's. The bot opens it
+# last, by command, so it cannot put a window in front of the half of the run above it.
+on load:
+    create a phantom menu with chest inventory titled "Client Lower Half" with layout "AAAAAAAAA", "         ", "         " with player layout "B        ", "         ", "         ", "         " with id "client_lower" with 0 ms click delay:
+        map key "A" to icon stone named "lower-a-stone" for menu with id "client_lower"
+        map key "B" to icon bread named "lower-b-bread" for menu with id "client_lower"
+
+command /clientlower:
+    trigger:
+        set {_menu} to the menu with id "client_lower"
+        # The player's own item in the main inventory cell that a three row chest's window maps to slot 27.
+        # The half is hidden, so the client has to be shown the page's bread there and not this diamond --
+        # which is the difference between "the rows below the container are the menu's" and "they are the
+        # player's", and the one thing a server-side check cannot see.
+        set slot 9 of player's inventory to 1 diamond named "player-main-9"
+        open menu {_menu} for player

@@ -22,16 +22,17 @@ import kotlin.math.min
  * @param title The title of the page.
  * @param layoutPattern The layout pattern of the page, represented as a list of strings.
  *                      Each character represents a slot, and spaces represent empty slots.
- * @param playerInventoryPattern The layout pattern for the player's inventory, represented as a list of
- *                     strings. Each character represents a slot, and spaces represent empty slots.
- *                     This pattern is only used if the menu's mode is PHANTOM.
+ * @param playerLayoutPattern The layout pattern for the rows below the container, represented as a list of
+ *                     strings. Each character represents a slot, and spaces represent empty slots. Those
+ *                     rows are the menu's own only while the player's inventory is hidden, so this pattern
+ *                     is only used in PHANTOM mode with the player inventory hidden.
  * @param properties The properties of the menu that this page belongs to.
  */
 class Page(
     inventoryType: InventoryType,
     var title: Component,
     val layoutPattern: List<String>,
-    playerInventoryPattern: List<String>,
+    playerLayoutPattern: List<String>,
     val properties: MenuProperties
 ) {
     /**
@@ -45,10 +46,21 @@ class Page(
     }
 
     /**
-     * The layout pattern of the player's inventory, ensured to have exactly 4 rows.
+     * The layout pattern of the rows below the container, ensured to have exactly 4 rows.
      */
-    val playerInventoryPattern: MutableList<String> =
-        MutableList(4) { playerInventoryPattern.getOrNull(it) ?: "         " } // 9*4
+    val playerLayoutPattern: MutableList<String> =
+        MutableList(4) { playerLayoutPattern.getOrNull(it) ?: "         " } // 9*4
+
+    /**
+     * Whether this page lays the rows below the container out, which is to say whether it asks for the
+     * player's inventory to be hidden.
+     *
+     * The pattern is read once, when the page is built, so this is what a page was declared with rather than
+     * what the flag says now: `EffHidePlayerInv` warns when a script shows the inventory of a menu whose
+     * page asks for it, because from then on those rows are the player's again while the page still lays
+     * icons out for them.
+     */
+    val hasPlayerLayout: Boolean = playerLayoutPattern.any { it.isNotBlank() }
 
     /**
      * The layout of the inventory, determined by its type and number of rows.
@@ -144,13 +156,15 @@ class Page(
                 processLine(patternLine, rowIndex, 0)
             }
 
-        // The player's inventory, for a phantom page that shows it: it starts after the container, and the
-        // pattern decorates that copy (a button hidden among the player's rows is what it is for). With the
-        // inventory hidden there is no copy to decorate -- those slots are then the menu's own space, which
-        // a script writes at runtime with `set icon in slot N of {_window}` instead. In `static` mode the
-        // lower half is the player's real inventory and never the menu's.
-        if (properties.mode == Receptacle.Mode.PHANTOM && !properties.hidePlayerInventory) {
-            this.playerInventoryPattern.asSequence()
+        // The rows below the container are the menu's own space only while the player's inventory is hidden:
+        // the client draws that half of the window from the last content packet either way, so a menu that
+        // hid it can put icons down there and they are buttons like any other. With the inventory shown the
+        // same 36 slots are a copy of the player's real items, and a menu laying icons over them would be
+        // neither the player's inventory nor its own half. So the two go together -- declaring a player
+        // layout hides the inventory (see the syntax) -- and what a page lays out here is what the menu
+        // owns. In `static` mode the lower half is the player's real inventory and never the menu's.
+        if (properties.mode == Receptacle.Mode.PHANTOM && properties.hidePlayerInventory) {
+            this.playerLayoutPattern.asSequence()
                 .take(4)
                 .forEachIndexed { rowIndex, patternLine ->
                     processLine(patternLine, rowIndex, size)

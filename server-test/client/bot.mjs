@@ -336,6 +336,60 @@ async function scenario (bot, windows) {
 
   // 5. And the menu that refuses for itself (`locked icons`), where the script says nothing at all.
   await lockedScenario(bot, windows)
+
+  // 6. The rows below the container, which are the menu's own space only because that menu hides the
+  //    player's inventory: `player layout` is what asks for the half, and this is where a real client says
+  //    whether the icons it lays out for those rows are what arrives there.
+  await lowerHalfScenario(bot, windows)
+}
+
+/**
+ * The half below the container, from the client's side.
+ *
+ * That half belongs to the menu only while the player's inventory is hidden, so `11-client.sk` hides it and
+ * gives it a `player layout` with one button in it. Slot 27 is the first cell below a three row chest, and
+ * the player has a diamond in the inventory cell the window maps to that same slot: the client reading the
+ * page's bread there, and not the diamond, is what "those rows are the menu's" means. Nothing a server-side
+ * check can see, because both answers are "a menu slot with an item in it" from there.
+ *
+ * The click afterwards is the other half of the same claim: a button below the container is a button, so it
+ * has to arrive with its slot number like any other.
+ */
+async function lowerHalfScenario (bot, windows) {
+  const LOWER_SLOT = 27
+  const before = windows.length
+  bot.chat('/clientlower')
+  const window = await waitFor('the lower half window', () =>
+    windows.slice(before).find((opened) => titleOf(opened).includes('Client Lower Half'))
+  )
+  log(`the lower half menu arrived with title ${JSON.stringify(titleOf(window))}`)
+  log(`  row 1: ${describeFirstRow(window)}`)
+  checkEqual('the number of slots in the window', 63, window.slots.length)
+
+  // The container's own row is untouched by the player layout, and the button below it is the page's.
+  checkEqual('the type of the item in slot 0', 'minecraft:stone', typeOf(window.slots[0]))
+  checkEqual(
+    `the type of the item in slot ${LOWER_SLOT}, the first cell below the container`,
+    'minecraft:bread',
+    typeOf(window.slots[LOWER_SLOT])
+  )
+  checkEqual('the label of the item below the container', 'lower-b-bread', labelOf(window.slots[LOWER_SLOT]))
+  log(
+    `slot ${LOWER_SLOT} carries ${typeOf(window.slots[LOWER_SLOT])} ` +
+      `named ${JSON.stringify(labelOf(window.slots[LOWER_SLOT]))}, not the player's own diamond: ` +
+      'the rows below the container are the menu\'s while its inventory is hidden'
+  )
+
+  await bot.clickWindow(LOWER_SLOT, 0, 0)
+  await sleep(CLICK_PAUSE_MS)
+  // No `_syncWindow` here: a click on this menu refreshes the one slot it touched, and `_syncWindow` waits
+  // for a whole-content packet that therefore never arrives. Reading the window's own slot is enough.
+  checkEqual(
+    'the type of the item below the container after clicking it',
+    'minecraft:bread',
+    typeOf(window.slots[LOWER_SLOT])
+  )
+  log('the lower half scenario passed: the page\'s own icon is what the client is shown below the container, and clicking it is a click like any other')
 }
 
 /**

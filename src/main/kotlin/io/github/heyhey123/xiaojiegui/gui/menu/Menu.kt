@@ -507,13 +507,14 @@ class Menu(
      * @param page The position to insert the new page. If out of bounds, it will be clamped.
      * @param layoutPattern The layout pattern for the new page.
      * @param title The title for the new page. If null, the default title from properties will be used.
-     * @param playerInventoryPattern The player inventory pattern for the new page. If null, an empty pattern will be used.
+     * @param playerLayoutPattern The layout pattern for the rows below the container of the new page. If
+     * null, an empty pattern will be used.
      */
     fun insertPage(
         page: Int?,
         layoutPattern: List<String>?,
         title: Component?,
-        playerInventoryPattern: List<String>?
+        playerLayoutPattern: List<String>?
     ) {
         checkDestroyed()
 
@@ -521,7 +522,7 @@ class Menu(
             inventoryType,
             title ?: properties.defaultTitle,
             layoutPattern ?: properties.defaultLayout,
-            playerInventoryPattern ?: listOf(),
+            playerLayoutPattern ?: listOf(),
             properties
         )
 

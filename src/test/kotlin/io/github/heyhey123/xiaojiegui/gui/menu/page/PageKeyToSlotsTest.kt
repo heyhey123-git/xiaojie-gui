@@ -36,7 +36,7 @@ class PageKeyToSlotsTest {
             inventoryType = type,
             title = Component.text("T"),
             layoutPattern = layout,
-            playerInventoryPattern = player,
+            playerLayoutPattern = player,
             properties = props
         )
     }
@@ -63,7 +63,7 @@ class PageKeyToSlotsTest {
             layout = layoutPattern,
             player = playerInventoryPattern,
             mode = Receptacle.Mode.PHANTOM,
-            hidePI = false,
+            hidePI = true,
             type = inventoryType
         )
 
@@ -111,29 +111,30 @@ class PageKeyToSlotsTest {
         assertEquals(setOf(2), slots, "Unpaired backquote should map at index 2")
     }
 
-    // 4) the player inventory is not mapped when hidden
+    // 4) a player layout is not read while the player's own inventory is shown: those slots are the
+    // player's, and a menu painting icons over them would be neither half
     @Test
-    fun `player inventory ignored when hidden`() {
+    fun `player layout ignored when the player inventory is shown`() {
         val p = page(
             layout = listOf("         "),
             player = listOf("`pi`      "),
             mode = Receptacle.Mode.PHANTOM,
-            hidePI = true
+            hidePI = false
         )
-        assertFalse(p.keyToSlots.containsKey("pi"), "Player inventory should be ignored when hidden")
+        assertFalse(p.keyToSlots.containsKey("pi"), "Player layout should be ignored while the inventory is shown")
     }
 
-    // 5) when the player inventory is visible in PHANTOM mode, the offset starts at size
+    // 5) with the player's inventory hidden the lower half is the menu's, and the offset starts at size
     @Test
-    fun `player inventory mapped with correct offset when visible`() {
+    fun `player layout mapped with correct offset when the inventory is hidden`() {
         val p = page(
             layout = listOf("         "), // 1 row CHEST => container size = 9
             player = listOf("`pi`      "),
             mode = Receptacle.Mode.PHANTOM,
-            hidePI = false
+            hidePI = true
         )
         val slots = p.keyToSlots["pi"]
-        assertNotNull(slots, "Expected key 'pi' to be mapped in player inventory")
+        assertNotNull(slots, "Expected key 'pi' to be mapped in the hidden lower half")
         assertEquals(setOf(9), slots, "Key 'pi' should start at base index = size (9)") // base is size=9, row=0, column=0
     }
 
@@ -165,14 +166,14 @@ class PageKeyToSlotsTest {
         assertEquals(setOf(1), slots, "Key 'pi' should be mapped at index 1 on HOPPER")
     }
 
-    // 8) the same key merges across regions
+    // 8) the same key merges across the container and the hidden lower half
     @Test
-    fun `merges same key across layout and player inventory`() {
+    fun `merges same key across layout and hidden lower half`() {
         val p = page(
             layout = listOf("`k`       "), // slot 0
             player = listOf("`k`       "), // slot size(=9) + 0 => 9
             mode = Receptacle.Mode.PHANTOM,
-            hidePI = false
+            hidePI = true
         )
         val slots = p.keyToSlots["k"]
         assertNotNull(slots, "Expected key 'k' to be mapped in both regions")

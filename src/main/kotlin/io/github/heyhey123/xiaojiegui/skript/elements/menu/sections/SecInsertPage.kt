@@ -13,6 +13,7 @@ import ch.njol.skript.lang.TriggerItem
 import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.event.MenuEvent
 import io.github.heyhey123.xiaojiegui.gui.menu.Menu
+import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.skript.elements.menu.event.ProvideMenuEvent
 import io.github.heyhey123.xiaojiegui.skript.utils.ComponentHelper
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
@@ -26,7 +27,9 @@ import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
 @Name("Build and Insert Page")
 @Description(
     "Insert a new page into a menu.",
-    "You can optionally specify the page index, layout, player inventory layout, and title for the new page.",
+    "You can optionally specify the page index, layout, player layout, and title for the new page.",
+    "A player layout describes the rows below the container, which are the menu's own space, so giving one " +
+        "hides the player's inventory in that menu.",
     "If the page index is not provided, the new page will be added at the end of the menu."
 )
 @Examples(
@@ -34,7 +37,7 @@ import org.skriptlang.skript.lang.entry.util.ExpressionEntryData
     // but the effect refuses to parse without one and without a menu event to take it from.
     "insert page 1 into menu {_menu}:",
     "    layout: \"xxxxxxxxx\", \"xooooooxx\", \"xxxxxxxox\"",
-    "    player inventory layout: \"ooooooooo\", \"oooooooox\", \"xxxxxxxxx\"",
+    "    player layout: \"ooooooooo\", \"oooooooox\", \"xxxxxxxxx\"",
     "    title: \"New Page\""
 )
 @Since("1.0.0")
@@ -56,7 +59,7 @@ class SecInsertPage : Section() {
 
     private var layoutExpr: Expression<String>? = null
 
-    private var playerInvLayoutExpr: Expression<String>? = null
+    private var playerLayoutExpr: Expression<String>? = null
 
     private var titleExpr: Expression<Any>? = null
 
@@ -86,7 +89,7 @@ class SecInsertPage : Section() {
     private fun parseNode(sectionNode: SectionNode): Boolean {
         val validator = EntryValidator.builder()
             .addEntryData(ExpressionEntryData("layout", null, true, String::class.java))
-            .addEntryData(ExpressionEntryData("player inventory layout", null, true, String::class.java))
+            .addEntryData(ExpressionEntryData("player layout", null, true, String::class.java))
             .addEntryData(
                 ExpressionEntryData(
                     "title",
@@ -106,7 +109,7 @@ class SecInsertPage : Section() {
 
         layoutExpr = container.getOptional("layout", false) as Expression<String>?
 
-        playerInvLayoutExpr = container.getOptional("player inventory layout", false) as Expression<String>?
+        playerLayoutExpr = container.getOptional("player layout", false) as Expression<String>?
 
         titleExpr = container.getOptional("title", false) as Expression<Any>?
 
@@ -127,7 +130,7 @@ class SecInsertPage : Section() {
         val pageIndex = pageIndexExpr?.getSingle(event)?.toInt()
 
         val layout = layoutExpr?.getArray(event)?.toList()
-        val playerInvLayout = playerInvLayoutExpr?.getArray(event)?.toList()
+        val playerLayout = playerLayoutExpr?.getArray(event)?.toList()
 
         var title: Component? = null
         titleExpr?.let {
@@ -148,11 +151,26 @@ class SecInsertPage : Section() {
             }
         }
 
+        // The rows below the container are the menu's own space only while the player's inventory is hidden,
+        // so a page that lays them out is a page that needs it hidden: the keyword says so itself instead of
+        // leaving the user with a layout that silently does nothing. A static window always shows the
+        // player's real inventory, so there it is the layout that does nothing, and one line says so.
+        if (playerLayout != null) {
+            if (menu.properties.mode == Receptacle.Mode.PHANTOM) {
+                menu.properties.hidePlayerInventory = true
+            } else {
+                Skript.warning(
+                    "\"player layout\" does nothing on a static menu: its window always shows the player's " +
+                        "own inventory, so the rows below the container are the player's."
+                )
+            }
+        }
+
         menu.insertPage(
             pageIndex,
             layoutPattern = layout,
             title = title,
-            playerInventoryPattern = playerInvLayout
+            playerLayoutPattern = playerLayout
         )
 
         return walk(event, false)
@@ -167,8 +185,8 @@ class SecInsertPage : Section() {
         layoutExpr?.let {
             sb.append(" with layout ").append(it.toString(event, debug))
         }
-        playerInvLayoutExpr?.let {
-            sb.append(" with player inv layout ").append(it.toString(event, debug))
+        playerLayoutExpr?.let {
+            sb.append(" with player layout ").append(it.toString(event, debug))
         }
         titleExpr?.let {
             sb.append(" with new title ").append(it.toString(event, debug))

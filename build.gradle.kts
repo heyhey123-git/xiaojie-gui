@@ -216,6 +216,15 @@ val serverTestExpectedDetails = mapOf(
     "create menu hiding the player inventory" to "default title HideSelftest, type chest inventory",
     // "not hidden" contains "hidden", so this pins the flag but the script keeps its own FAILED branch.
     "hide flag took effect" to "hidden",
+    // `player layout` hides the inventory by itself, and its keys land below the container, starting where
+    // that page's own container ends: 27 under the three row page, 9 under the one row page next to it.
+    "player layout hides the player inventory" to "hidden",
+    "player layout key slot" to "B at 27",
+    "insert page player layout hides the inventory" to "hidden",
+    "insert page player layout key slot" to "D at 9",
+    // Written against each other, `with player layout` wins: it is the keyword that says that half is the
+    // menu's, so `without hide player inventory` is the half of the pair that is ignored.
+    "player layout wins over without hide" to "hidden",
     // One file per inventory type: that type's layout becoming a page is the whole assertion.
     "inventory type beacon" to "1 page(s)",
     "inventory type workbench" to "1 page(s)",
@@ -693,7 +702,11 @@ val clientTestExpectedDetails = mapOf(
     // `locked icons`: the script writes no cancellation at all, and the bot reads its own window back to
     // check that the icon is still there after a click and a shift click. That last line reads a window
     // with the two expressions a menu which keeps things in its free slots is saved with.
-    "locked menu read" to "slots 0 and 1, 2 item(s)"
+    "locked menu read" to "slots 0 and 1, 2 item(s)",
+    // The half below the container of the menu that hides the player's inventory: slot 27 is the first cell
+    // below a three row chest, and the bot checks on its own side that the page's icon is what is shown
+    // there rather than the player's own item.
+    "client lower half click" to "slot 27, type left mouse button"
 )
 
 // The names the client scenario's scripts report that the map above does not declare.

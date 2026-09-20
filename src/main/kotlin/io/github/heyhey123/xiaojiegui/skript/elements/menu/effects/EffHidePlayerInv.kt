@@ -57,6 +57,18 @@ class EffHidePlayerInv : Effect() {
             return
         }
 
+        // Showing the inventory takes the rows below the container back for the player, which undoes what a
+        // player layout asks for: that page's icons for those rows are then drawn over the player's own
+        // items, and this addon builds no window that is half one and half the other. One line each time it
+        // is asked for, rather than a menu that quietly becomes that.
+        if (isNegated && menu.pages.any { it.hasPlayerLayout }) {
+            Skript.warning(
+                "\"show player inventory\" undoes the player layout of this menu: the rows below the " +
+                    "container are the player's while its inventory is shown, so the icons the page lays " +
+                    "out for them land on the player's own items."
+            )
+        }
+
         menu.properties.hidePlayerInventory = !isNegated
     }
 
