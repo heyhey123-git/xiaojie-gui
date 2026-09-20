@@ -182,10 +182,12 @@ val releaseNotes by tasks.registering {
 val serverTestDirectory = layout.projectDirectory.dir("server-test/run")
 val serverTestScripts = layout.projectDirectory.dir("server-test/skript")
 
-// The script the manual acceptance checklist drives. It lives with the checklist rather than in
-// `server-test/` because a server owner is meant to copy it into `plugins/Skript/scripts/`, and that
-// folder is the one the checklist tells them not to copy.
+// The scripts the manual acceptance checklist drives. They live with the checklist rather than in
+// `server-test/` because a server owner is meant to copy them into `plugins/Skript/scripts/`, and that
+// folder is the one the checklist tells them not to copy. The SkBee half is a file of its own: it uses
+// SkBee syntax, which a server without SkBee cannot parse, so only a server with SkBee copies it.
 val manualAcceptanceScript = layout.projectDirectory.file("docs/manual-acceptance.sk")
+val manualAcceptanceSkbeeScript = layout.projectDirectory.file("docs/manual-acceptance-skbee.sk")
 // Separate output and compile-only dependencies: the observer never enters the production shadowJar.
 val assertionBridge = sourceSets.create("assertionBridge") {
     java.srcDir("server-test/bridge/java")
@@ -394,6 +396,7 @@ val prepareServerTest by tasks.registering {
     inputs.dir(serverTestScripts)
     inputs.dir(serverTestElements)
     inputs.file(manualAcceptanceScript)
+    inputs.file(manualAcceptanceSkbeeScript)
     inputs.file("server-test/server.properties")
     doLast {
         val run = serverTestDirectory.asFile
@@ -420,6 +423,7 @@ val prepareServerTest by tasks.registering {
         // only and its listeners speak for `acc_*` menus alone, so it changes nothing about this run --
         // but a line of it that stops parsing now fails the build instead of someone's game.
         manualAcceptanceScript.asFile.copyTo(scripts.resolve("98-manual-acceptance.sk"), overwrite = true)
+        manualAcceptanceSkbeeScript.asFile.copyTo(scripts.resolve("98-manual-acceptance-skbee.sk"), overwrite = true)
         serverTestPlugins.forEach { (name, url) ->
             val jar = run.resolve("plugins/$name")
             if (jar.isFile && jar.length() > 0L) return@forEach
@@ -575,6 +579,24 @@ abstract class VerifySkriptServerTest : DefaultTask() {
         // The scripts name a branch `... FAILED ...` when it found the wrong thing, and that half of the
         // mechanism only works here: the undeclared-name check below reads the scripts, not the log.
         forbidLine("One of the scripts reported a failed check.", Regex("""XIAOJIE_SELFTEST detail: .*FAILED"""))
+
+        // The manual checklist's script is driven by one dispatcher, `/acc <x>`, which reads its argument
+        // with `arg-1`. Reading the wrong thing makes every command print the help text instead -- a
+        // failure only a player would notice -- so `17-acceptance-script.sk` runs `/acc argcheck` through
+        // the console and this line is what proves the dispatcher reached the branch.
+        requireLine(
+            "The acceptance script no longer reads its command argument.",
+            "XIAOJIE_ACC argument=argcheck"
+        )
+
+        // This addon's type names live in `lang/default.lang`, which Skript reads while the classes are
+        // registered. This run has Skript's debug on, so the moment that file stops being read, Skript
+        // says so here -- and starts naming the types `types.menu` in its own messages. That is what the
+        // manual checklist used to have to look for by hand.
+        forbidLine(
+            "Skript no longer knows this addon's type names.",
+            Regex("""Missing entry 'types\.(menu|menusession)'""")
+        )
 
         // An addon message reported at runtime comes back framed by RuntimeErrorProducer; the bare
         // `[Skript] Line N:` shape is parse time. This log runs with Skript's debug on, so the trailing

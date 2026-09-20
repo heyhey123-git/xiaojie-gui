@@ -1,0 +1,11 @@
+# The manual checklist drives `docs/manual-acceptance.sk`, and this is the one thing about it that a
+# player would otherwise have to notice by hand: whether the `/acc <x>` dispatcher reads its argument.
+#
+# Skript command arguments are `arg-1`, `arg-2`, … (`arg-<type>` for a typed one) -- not `{_name}`
+# variables. Reading the wrong thing fails silently in the worst way: every command falls through to the
+# help text and no menu ever opens, which is exactly what a first version of that script did.
+#
+# `argcheck` is a branch of the dispatcher that only writes a log line, so running it needs no player and
+# opens no window. The console runs the command here and the verifier requires the line it logs.
+on load:
+    execute console command "/acc argcheck"
