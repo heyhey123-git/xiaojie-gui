@@ -103,7 +103,7 @@ class EffInsertPage : Effect() {
         val pagesIndexes = pagesIndexesExpr?.getArray(event)?.map { it.toInt() }.orEmpty()
         val layout = layoutExpr?.getArray(event)?.toList()
         val playerLayout = playerLayoutExpr?.getArray(event)?.toList()
-        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
+        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event, this)
 
         // The rows below the container are the menu's own space only while the player's inventory is hidden,
         // so a page that lays them out is a page that needs it hidden: the keyword says so itself instead of

@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.properties
 
-import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -60,13 +59,13 @@ class ExprDefaultTitle : SimplePropertyExpression<Menu, Any>() {
         val menu = expr.getSingle(event) ?: return
         val titleArg = delta?.get(0)
         if (titleArg == null) {
-            Skript.error("Title cannot be null")
+            error("Title cannot be null")
             return
         }
 
         val title = ComponentHelper.extractComponentOrNull(titleArg)
         if (title == null) {
-            Skript.error("Valid title required.")
+            error("Valid title required.")
             return
         }
 

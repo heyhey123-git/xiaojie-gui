@@ -89,7 +89,7 @@ class EffTurnPage : Effect() {
             return
         }
 
-        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
+        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event, this)
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
             error(

@@ -74,7 +74,7 @@ class EffUpdateSessionTitle : Effect() {
             error("Menu session cannot be null when updating title.")
             return
         }
-        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
+        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event, this)
         if (title == null) {
             error("Valid title is required.")
             return

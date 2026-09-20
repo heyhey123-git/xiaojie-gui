@@ -1,11 +1,11 @@
 package io.github.heyhey123.xiaojiegui.skript.utils
 
-import ch.njol.skript.Skript
 import ch.njol.skript.lang.Expression
 import ch.njol.skript.lang.UnparsedLiteral
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.event.Event
+import org.skriptlang.skript.log.runtime.RuntimeErrorProducer
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 
@@ -74,9 +74,14 @@ object ComponentHelper {
      *
      * @param titleExpr the expression holding the title, null when the syntax has no title
      * @param event the event context
+     * @param reporter the element reporting the problem, whose runtime channel carries the message
      * @return the title as a Component, or null if there is no title or its type is unknown
      */
-    fun resolveTitleComponentOrNull(titleExpr: Expression<Any>?, event: Event?): Component? {
+    fun resolveTitleComponentOrNull(
+        titleExpr: Expression<Any>?,
+        event: Event?,
+        reporter: RuntimeErrorProducer
+    ): Component? {
         if (titleExpr == null) {
             return null
         }
@@ -85,11 +90,13 @@ object ComponentHelper {
         // Older documentation told users to write `string:"Title"` or `component:"Title"`. Those prefixes
         // are parse tags inside the registered patterns, not text a script writes, so what is left over
         // reaches this slot as an UnparsedLiteral that cannot be read. Without this guard the title is
-        // simply dropped, which is the worst kind of failure: it looks like it worked. Say what is wrong,
-        // and report no title so the caller stops instead of using something else.
+        // simply dropped, which is the worst kind of failure: it looks like it worked. Say what is wrong
+        // through the caller's own runtime channel, so the message is framed with the syntax that ran
+        // rather than the bare trigger line, and report no title so the caller stops instead of using
+        // something else.
         val text = value as? String ?: (titleExpr as? UnparsedLiteral)?.data
         if (text != null && (text.startsWith("string:") || text.startsWith("component:"))) {
-            Skript.error(
+            reporter.error(
                 "A title cannot start with `string:` or `component:`: those are parse tags in the syntax, " +
                     "not something a script writes. Write the title on its own, e.g. `to \"My Title\"`."
             )

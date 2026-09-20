@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions
 
-import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -73,7 +72,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
-                Skript.error(
+                error(
                     "Cannot determine menu: no menu was provided " +
                         "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
@@ -82,7 +81,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
         }
 
         if (page !in 1..menu.size) {
-            Skript.error(
+            error(
                 "Page index $page is out of bounds " +
                     "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
                     "with ${menu.pages.size} pages."
@@ -110,7 +109,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
-                Skript.error(
+                error(
                     "Cannot determine menu: no menu was provided " +
                         "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
@@ -119,7 +118,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
         }
 
         if (page !in 1..menu.size) {
-            Skript.error(
+            error(
                 "Page index $page is out of bounds " +
                     "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
                     "with ${menu.pages.size} pages."
@@ -154,7 +153,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
             }
 
             else -> {
-                Skript.error("Change mode $mode is not supported for slot of key expression.")
+                error("Change mode $mode is not supported for slot of key expression.")
             }
         }
     }

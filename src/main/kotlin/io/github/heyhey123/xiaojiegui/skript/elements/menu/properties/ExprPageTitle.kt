@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.properties
 
-import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -60,7 +59,7 @@ class ExprPageTitle : SimpleExpression<Any?>() {
         val menu = menu.getSingle(event) ?: return emptyArray()
         val page = page.getSingle(event)?.toInt() ?: return emptyArray()
         if (page !in 1..menu.size) {
-            Skript.error("Page number $page is out of bounds for the menu.")
+            error("Page number $page is out of bounds for the menu.")
             return emptyArray()
         }
         val title = menu.pages[page].title
@@ -78,30 +77,30 @@ class ExprPageTitle : SimpleExpression<Any?>() {
         if (mode != Changer.ChangeMode.SET) return
         val menu = menu.getSingle(event)
         if (menu == null) {
-            Skript.error("Menu cannot be null.")
+            error("Menu cannot be null.")
             return
         }
 
         val page = page.getSingle(event)?.toInt()
         if (page == null) {
-            Skript.error("Page number cannot be null.")
+            error("Page number cannot be null.")
             return
         }
 
         val newTitleInput = delta?.firstOrNull()
         if (newTitleInput == null) {
-            Skript.error("Title cannot be null.")
+            error("Title cannot be null.")
             return
         }
 
         val title = ComponentHelper.extractComponentOrNull(newTitleInput)
         if (title == null) {
-            Skript.error("Valid title is required.")
+            error("Valid title is required.")
             return
         }
 
         if (page !in 1..menu.size) {
-            Skript.error("Page number $page is out of bounds for the menu.")
+            error("Page number $page is out of bounds for the menu.")
             return
         }
 

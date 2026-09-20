@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.session.properties
 
-import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -54,19 +53,19 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
         if (mode != Changer.ChangeMode.SET) return
         val session = expr.getSingle(event)
         if (session == null) {
-            Skript.error("Menu session cannot be null.")
+            error("Menu session cannot be null.")
             return
         }
 
         val titleArg = delta?.firstOrNull()
         if (titleArg == null) {
-            Skript.error("Title cannot be null.")
+            error("Title cannot be null.")
             return
         }
 
         val title = ComponentHelper.extractComponentOrNull(titleArg)
         if (title == null) {
-            Skript.error("Valid title required.")
+            error("Valid title required.")
             return
         }
 

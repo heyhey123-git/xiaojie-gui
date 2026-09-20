@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.properties
 
-import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -69,17 +68,17 @@ class ExprDefaultLayout : SimpleExpression<String>() {
         if (mode != Changer.ChangeMode.SET) return
         val menu = menuExpr.getSingle(event)
         if (menu == null) {
-            Skript.error("Menu cannot be null: ${this.toString(event, true)}")
+            error("Menu cannot be null: ${this.toString(event, true)}")
             return
         }
 
         if (delta == null) {
-            Skript.error("Layout cannot be null")
+            error("Layout cannot be null")
             return
         }
 
         if (delta.any { it !is String }) {
-            Skript.error("All layout rows must be strings.")
+            error("All layout rows must be strings.")
             return
         }
 

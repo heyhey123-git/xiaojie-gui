@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions
 
-import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -73,7 +72,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
-                Skript.error(
+                error(
                     "Cannot determine menu: no menu was provided " +
                         "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
@@ -82,7 +81,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
         }
 
         if (page !in 1..menu.size) {
-            Skript.error(
+            error(
                 "Page index $page is out of bounds " +
                     "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
                     "with ${menu.pages.size} pages."
@@ -113,7 +112,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
-                Skript.error(
+                error(
                     "Cannot determine menu: no menu was provided " +
                         "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
@@ -122,7 +121,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
         }
 
         if (page !in 1..menu.size) {
-            Skript.error("Page index $page is out of bounds for the menu.")
+            error("Page index $page is out of bounds for the menu.")
             return
         }
 
@@ -133,7 +132,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
             Changer.ChangeMode.RESET,
             Changer.ChangeMode.DELETE -> {
                 if (entry == null) {
-                    Skript.error("Slot $slot in page $page of menu has no associated key to remove.")
+                    error("Slot $slot in page $page of menu has no associated key to remove.")
                     return
                 }
                 entry.value.remove(slot)
@@ -157,7 +156,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
                 keyToSlots.computeIfAbsent(newKey) { mutableSetOf() }.add(slot)
             }
 
-            else -> Skript.error("Change mode $mode is not supported for this expression.")
+            else -> error("Change mode $mode is not supported for this expression.")
         }
     }
 

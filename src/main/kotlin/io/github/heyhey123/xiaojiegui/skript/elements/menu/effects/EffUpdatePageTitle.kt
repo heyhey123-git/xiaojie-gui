@@ -92,7 +92,7 @@ class EffUpdatePageTitle : Effect() {
             return
         }
 
-        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
+        val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event, this)
         if (title == null) {
             error(
                 "Title cannot be null."

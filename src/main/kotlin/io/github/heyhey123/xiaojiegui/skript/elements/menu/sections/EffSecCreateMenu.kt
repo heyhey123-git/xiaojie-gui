@@ -165,7 +165,7 @@ class EffSecCreateMenu : EffectSection() {
             return walk(event, false)
         }
 
-        val defaultTitle: Component? = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event)
+        val defaultTitle: Component? = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event, this)
 
         if (defaultTitle == null) {
             error("Valid Menu title is required.")

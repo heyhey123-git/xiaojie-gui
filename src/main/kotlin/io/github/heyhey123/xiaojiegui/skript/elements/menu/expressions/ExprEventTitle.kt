@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.menu.expressions
 
-import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -64,12 +63,12 @@ class ExprEventTitle : SimpleExpression<Any>() {
         if (mode != Changer.ChangeMode.SET) return
         val titleInput = delta?.firstOrNull()
         if (titleInput == null) {
-            Skript.error("Title cannot be null")
+            error("Title cannot be null")
             return
         }
         val newTitle = ComponentHelper.extractComponentOrNull(titleInput)
         if (newTitle == null) {
-            Skript.error("Valid title required.")
+            error("Valid title required.")
             return
         }
         event.title = newTitle

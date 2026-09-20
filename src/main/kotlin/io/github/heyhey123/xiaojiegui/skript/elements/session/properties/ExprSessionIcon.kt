@@ -1,6 +1,5 @@
 package io.github.heyhey123.xiaojiegui.skript.elements.session.properties
 
-import ch.njol.skript.Skript
 import ch.njol.skript.classes.Changer
 import ch.njol.skript.doc.Description
 import ch.njol.skript.doc.Examples
@@ -92,7 +91,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
         val slots = slotsExpr.getAll(event).map { it.toInt() }
 
         if (enableAsyncCheck && !Bukkit.isPrimaryThread()) {
-            Skript.error(
+            error(
                 "Menu session icons can only be modified from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"
@@ -106,7 +105,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
                 // would clear the slot instead of reporting the mistake.
                 val item = delta?.firstOrNull() as? ItemStack
                 if (item == null) {
-                    Skript.error("Icon to set must be an item stack: ${this.toString(event, true)}")
+                    error("Icon to set must be an item stack: ${this.toString(event, true)}")
                     return
                 }
                 session.setIcons(slots.associateWith { item }, true)
