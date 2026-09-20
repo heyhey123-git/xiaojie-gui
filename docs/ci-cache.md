@@ -138,14 +138,21 @@ test server, and one category was ours to fix:
 - The refusal messages (`Player cannot be null.`, `Menu session cannot be null …`, `At least one item
   must be provided …`, `"show player inventory" cannot undo …`) come from `04-pages-keys.sk`,
   `05-titles.sk`, `14-browser-list.sk` and `16-player-layout.sk` doing the refused thing on purpose.
-  A production script sees them only by making the same mistake. Effects and sections report them
-  through the `error(…)`/`warning(…)` they inherit from `RuntimeErrorProducer`, so each one is framed
-  with the script and the syntax name and Skript's runtime-error limits apply:
-  `The script '05-titles.sk' encountered an error while executing the 'Update Page Title' effect:`.
-  What still calls `Skript.error` at runtime is what cannot inherit that API: the expressions'
-  `change`/`get` methods, and one helper in `skript/utils/ComponentHelper.kt`. Parse-time `init` calls
-  stay on `Skript.error`, which is what it is for, and a parse-time warning still prints under the bare
-  `[Skript] Line N:` header — the two remaining bare blocks in the log are exactly those.
+  A production script sees them only by making the same mistake. Every one of them is reported through
+  the `error(…)`/`warning(…)` the syntax element inherits from `RuntimeErrorProducer` (effects,
+  conditions and sections inherit it directly; `SimpleExpression` already implements it, so the
+  expressions do too, and the one helper that reports, `ComponentHelper.resolveTitleComponentOrNull`,
+  takes the calling element as its reporter). Each message therefore names the script, the syntax and
+  the type, echoes the statement's own line, and Skript's runtime-error limits apply:
+  `The script '05-titles.sk' encountered an error while executing the 'Page Title' expression:` plus
+  `Line 64: set the title of page 9 in {_menu} to "Nowhere"`.
+  `Skript.error` is left where it belongs — `init` and `parseNode`, the parse-time calls — and the one
+  bare `[Skript] Line N:` block the run still prints is that parse-time warning. Two gate checks keep
+  it that way: a bare log frame naming a runtime method (`execute`/`walk`/`change`/`get` or any helper
+  that is not `init`/`preInit`/`parseNode`) fails the run, and the log must contain the framed
+  `'Page Title' expression` message, so the channel cannot silently fall out of use. `05-titles.sk`
+  produces that message by writing to a page that does not exist and then asserting the menu was left
+  alone.
 
 ## Validation boundary
 
@@ -178,12 +185,20 @@ The final local `build serverTest clientTest --info --profile --console=plain --
 passed in 1m 41s. It re-ran the Paper server and bot: 49 server completion records and 13
 client scenario records passed, including zero bridge failures. The unit-test task was
 up-to-date; its existing XML results contain 114 tests across 18 suites, with no failures
-or errors. The scripts contain 102 native `assert` statements, not a measured execution
+or errors. The scripts contain 103 native `assert` statements, not a measured execution
 count. The assertion-log self-check is attached to `check` and rejected nine invalid log
 shapes. An offline replay of a successful server log with only its final assertion summary
 removed failed with exactly one problem: `Expected exactly one final assertion summary,
 found 0.` The production JAR was separately checked to exclude the bridge and Skript testing
 classes. This warm local duration is not a GitHub Actions performance estimate.
+
+The runtime-error channel was validated in the same style: the full `build serverTest clientTest`
+passed with 50 server completion records — the newest being the refused out-of-bounds page title —
+and 13 client records; the log carries exactly one addon `(from …)` frame, the deliberate parse-time
+warning. The new gate check was proved offline with `verifyServerTestLog`: the unmodified log passes,
+a copy whose framed `'Page Title'` block is rewritten into the old bare shape fails on the new problem,
+and a copy that adds one bare frame next to the intact framed block fails on that check alone
+(`build/bare-runtime-frame-verification.log`).
 
 No remote cold/warm run, cache hit, upload completion, or speedup is claimed. Confirm these
 on the next GitHub run, including a subsequent warm run and whether the post-step time
