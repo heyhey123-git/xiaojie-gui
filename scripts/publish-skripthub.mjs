@@ -18,9 +18,10 @@
 //
 // Every call and field below is the v1 API as its own documentation defines it, at
 // https://skripthub.net/api/docs/ (a Swagger document): GET /api/v1/addon/, GET /api/v1/syntax/?addon=,
-// PUT /api/v1/syntax/<id>/, POST /api/v1/syntax/ (a list) and GET /api/v1/syntaxexample/?syntax=. The
-// writes carry the four fields POST /syntax/ requires -- title, syntax_pattern, required_plugins and
-// addon -- plus the optional ones the generated file owns.
+// PUT /api/v1/syntax/<id>/, POST /api/v1/syntax/ (a list), GET /api/v1/syntaxexample/?syntax= and, for the
+// documentation tool's id of each row, the public GET /api/v1/addonsyntaxlist/. The writes carry the four
+// fields POST /syntax/ requires -- title, syntax_pattern, required_plugins and addon -- plus the optional
+// ones the generated file owns.
 //
 // What it deliberately does not do:
 //
@@ -208,13 +209,36 @@ const rowFor = (entry, rows) => {
 }
 
 /**
- * What the rows are matched by, as one word for the summary.
+ * The rows SkriptHub has for one addon, each with the documentation tool's id on it.
  *
- * `json_id` is what the API is asked for -- it is a field of a row on the public element list, so this is
- * expected rather than hoped for. A listing that does not carry it leaves title matching, which cannot see a
- * rename; the summary then says so, and a create refused with `Json id already exists` is the symptom.
+ * `GET /syntax/?addon=` is the listing the writes are planned from: it is the token's own view and it carries
+ * every field `bodyFor` copies back to the site. It does **not** carry `json_id`, and that is measured rather
+ * than assumed: a run with that listing planned three elements as new that the site already had -- `POST`
+ * refused them with `Json id already exists` -- while no row of it had an id to match on.
+ *
+ * The public element list does carry `json_id`, per row id, and needs no token, so the ids are read from
+ * there and merged in. A listing that arrives with ids of its own is left alone, and one that cannot be read
+ * falls back to title matching with a line in the summary: that cannot see a rename, so a create refused
+ * with `Json id already exists` is the symptom to read if it ever happens again.
  */
-const identityBasis = (rows) => (rows.length > 0 && !rows.some((row) => 'json_id' in row) ? 'title only' : 'json_id')
+const rowsFor = async (addon) => {
+  const rows = list(await request('GET', '/syntax/?addon=' + encodeURIComponent(addon)))
+  if (rows.length > 0 && rows.every((row) => row.json_id)) return { rows, idsFrom: 'the listing' }
+
+  const ids = new Map()
+  try {
+    for (const row of list(await request('GET', '/addonsyntaxlist/'))) {
+      if (row.json_id) ids.set(row.id, row.json_id)
+    }
+  } catch (error) {
+    say('> could not read the public element list for `json_id` (' + error.message + '), matching by title')
+    return { rows, idsFrom: null }
+  }
+  return {
+    rows: rows.map((row) => ({ ...row, json_id: ids.get(row.id) ?? row.json_id ?? null })),
+    idsFrom: 'the public element list'
+  }
+}
 
 const plural = (count, one) => count + ' ' + one + (count === 1 ? '' : 's')
 
@@ -293,7 +317,7 @@ if (!TOKEN) {
 try {
   const document = readDocument()
   const addon = await resolveAddon()
-  const rows = list(await request('GET', '/syntax/?addon=' + encodeURIComponent(addon)))
+  const { rows, idsFrom } = await rowsFor(addon)
   const plan = compare(document, rows)
 
   say('### SkriptHub documentation ' + document.version)
@@ -302,7 +326,7 @@ try {
   say('| --- | --- |')
   say('| Addon | `' + addon + '` |')
   say('| Elements in the generated file | ' + document.entries.size + ' |')
-  say('| Matched by | ' + identityBasis(rows) + ' |')
+  say('| Matched by | ' + (idsFrom ? 'json_id (' + idsFrom + ')' : 'title only') + ' |')
   say('| To update | ' + plan.updates.length + ' |')
   say('| To rename | ' + plan.updates.filter(({ changed }) => changed.includes('title')).length + ' |')
   say('| To create | ' + plan.creates.length + ' |')
@@ -338,7 +362,7 @@ try {
 
     // Read back rather than trust the status codes: what was written is only published once the entry
     // says so, and a field the API silently ignored would otherwise be found by a reader.
-    const after = list(await request('GET', '/syntax/?addon=' + encodeURIComponent(addon)))
+    const after = (await rowsFor(addon)).rows
     const remaining = compare(document, after)
     for (const { entry, changed } of remaining.updates) {
       failures.push(entry.title + ' still differs after the write: ' + changed.join(', '))
