@@ -6,6 +6,7 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.TimeUnit
 import java.util.jar.JarFile
+import java.util.zip.ZipFile
 
 plugins {
     java
@@ -1400,7 +1401,17 @@ val skriptHubDocsToolVersion = "1.17"
 val skriptHubDocsToolUrl =
     "https://github.com/SkriptHub/SkriptHubDocsTool/releases/download/" +
         "$skriptHubDocsToolVersion/skripthubdocstool-$skriptHubDocsToolVersion.jar"
-val skriptHubDocsToolJar = layout.buildDirectory.file("tools/skripthubdocstool-$skriptHubDocsToolVersion.jar")
+// The jar lives in the Gradle home rather than under `build/`, because it is a pinned download with no Maven
+// coordinates: the CI setup caches the Gradle home between runs and throws `build/` away, so a download that
+// resets the connection is paid once per cache lifetime instead of once per run. The file name carries the
+// version, so a copy of another version cannot be mistaken for this one.
+val skriptHubDocsToolJar = objects.fileProperty().fileValue(
+    File(gradle.gradleUserHomeDir, "caches/xiaojie-gui/skripthubdocstool-$skriptHubDocsToolVersion.jar")
+)
+
+/** Whether a file can be trusted as the tool's jar: a zip, with something in it. */
+fun isDownloadedJar(file: File): Boolean =
+    file.isFile && file.length() > 0L && runCatching { ZipFile(file).use { } }.isSuccess
 
 // The run directory the documentation server gets. It is not `server-test/run`:
 //
@@ -1435,25 +1446,46 @@ val downloadSkriptHubDocsTool by tasks.registering {
 
     doLast {
         val jar = tool.get().asFile
-        // The version is in the file name, so a file that is already here is the file the URL names.
-        if (jar.isFile && jar.length() > 0L) {
+        // The version is in the file name, so a file that is already here is the file the URL names -- as
+        // long as it is a jar. An empty, truncated or half-written file is not, and is downloaded again
+        // rather than handed to the documentation server as a plugin.
+        if (isDownloadedJar(jar)) {
             logger.lifecycle("${jar.name} is already downloaded.")
             return@doLast
         }
         jar.parentFile.mkdirs()
-        logger.lifecycle("Downloading ${jar.name}")
         // Written beside the real name and moved onto it, so an interrupted transfer is never taken
         // for the complete file by the next run. Replacing is what makes a second download work on
         // Windows, where a plain rename refuses to overwrite.
         val partial = File(jar.parentFile, jar.name + ".part")
-        URI(skriptHubDocsToolUrl).toURL().openStream().use { input ->
-            partial.outputStream().use { input.copyTo(it) }
+        // A release asset from GitHub, and `Connection reset` is a thing that happens on CI: an attempt that
+        // fails is retried rather than failing a release, and a connection that never answers is cut off
+        // instead of hanging until the job's own timeout runs out.
+        val attempts = 3
+        for (attempt in 1..attempts) {
+            try {
+                logger.lifecycle("Downloading ${jar.name} (attempt $attempt of $attempts)")
+                val connection = URI(skriptHubDocsToolUrl).toURL().openConnection().apply {
+                    connectTimeout = 15_000
+                    readTimeout = 120_000
+                }
+                connection.getInputStream().use { input ->
+                    partial.outputStream().use { input.copyTo(it) }
+                }
+                check(isDownloadedJar(partial)) { "${partial.name} is not a jar" }
+                Files.move(
+                    partial.toPath(),
+                    jar.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+                )
+                return@doLast
+            } catch (error: Exception) {
+                partial.delete()
+                if (attempt == attempts) throw error
+                logger.lifecycle("  ${error.message ?: error.javaClass.simpleName}; trying again")
+                Thread.sleep(2_000L * attempt)
+            }
         }
-        Files.move(
-            partial.toPath(),
-            jar.toPath(),
-            StandardCopyOption.REPLACE_EXISTING
-        )
     }
 }
 
