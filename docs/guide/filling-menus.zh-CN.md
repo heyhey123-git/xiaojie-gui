@@ -149,6 +149,13 @@ when slot 4 and 5 in page 1 of the menu {_menu} is clicked:
 
 ### 三、按钮：定义一次，多处复用
 
+```
+define [a] button %string%:
+    icon: <物品>
+    when clicked:
+        <代码>
+```
+
 ```skript
 define button "my_button":
     icon: stone

@@ -157,6 +157,13 @@ nothing in the slot, but clicking it does something.
 
 ### Three: buttons, defined once and reused in many places
 
+```
+define [a] button %string%:
+    icon: <item>
+    when clicked:
+        <code>
+```
+
 ```skript
 define button "my_button":
     icon: stone
