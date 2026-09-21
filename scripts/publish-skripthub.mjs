@@ -30,8 +30,10 @@
 //     the annotations cannot say whether it was renamed, dropped, or belongs to an entry somebody made by
 //     hand, and SkriptHub has `mark as removed` for the case where it was really dropped.
 //   - Touch an example a reader submitted. Examples are written, one per element and replaced whole when the
-//     text differs -- which is what keeps a `page 0` from an older release out of the page -- but only the
-//     ones the site marks as official. Somebody else's example is theirs: it is neither compared nor deleted.
+//     text differs -- which is what keeps a `page 0` from an older release out of the page -- and an element
+//     whose text is right but not official has that example marked instead of rewritten, so it keeps its id.
+//     What may be replaced or marked is an example the site marks official or one this account wrote;
+//     somebody else's example is theirs, and is neither compared nor deleted.
 //   - Set supporting plugins. The generated file does not carry them for the elements it lists here;
 //     SkriptHub's own import cannot either, and its documentation says they are set by hand.
 //
@@ -305,17 +307,26 @@ const refusedCreates = (entries, error) => {
 /** The examples of one element as SkriptHub holds them. */
 const examplesOf = async (id) => list(await request('GET', '/syntaxexample/?syntax=' + id))
 
-/**
- * The official examples of one element: the ones the dashboard's import and this script wrote.
- *
- * An example a reader submitted carries `official_example: false`. Those are the site's own business: they
- * are never deleted, and they are not part of the comparison, so one of them sitting beside ours cannot hide
- * the difference this phase is here to fix.
- */
-const officialExamplesOf = async (id) => (await examplesOf(id)).filter((example) => example.official_example)
-
 /** The name the import gives the example it writes, which is what a replaced one is written as. */
 const OFFICIAL_EXAMPLE_NAME = 'Official Example'
+
+const isOfficial = (example) => example.official_example === true
+
+/**
+ * Mark one example as the official one of its element.
+ *
+ * Creating an example does not do that: the body the API takes for a create is exactly the three fields
+ * below -- the same three the dashboard's own "add example" form sends -- and `official_example` is set by
+ * this second call, which is what the dashboard's "Mark as a official example" button posts. The addon is
+ * named by the name SkriptHub knows it by, because that is what the button sends and the token does not say
+ * which addon it may edit.
+ */
+const markExampleOfficial = (addon, exampleId) =>
+  request('POST', '/syntaxexample/officialexample/', {
+    addon,
+    example: exampleId,
+    official_example_status: true
+  })
 
 /**
  * One element's examples as the text SkriptHub stores: the lines of the one example, in order.
@@ -327,7 +338,6 @@ const OFFICIAL_EXAMPLE_NAME = 'Official Example'
  */
 const exampleText = (code) => withoutBlankEdges(String(code ?? ''))
 const ourExampleText = (entry) => exampleText(entry.examples.join('\n'))
-const siteExampleText = (examples) => exampleText(examples.map((example) => example.example_code ?? '').join('\n'))
 
 if (!TOKEN) {
   console.error('SKRIPTHUB_TOKEN is not set. The token is on the SkriptHub API documentation page.')
@@ -342,22 +352,39 @@ try {
   const { rows, idsFrom } = await rowsFor(addon)
   const plan = compare(document, rows)
 
-  // The example phase is planned before anything is written, because the summary counts it. An element whose
-  // official example differs gets it replaced, an element with none yet gets one written, and an element that
-  // is not on the site at all is given its example as soon as it is created. An element with no example in the
-  // file is left alone: there is nothing to say, and deleting what a reader already has would only lose it.
+  // The example phase is planned before anything is written, because the summary counts it. One element's
+  // examples are the text the file gives it: an element whose text is missing gets one written, one whose
+  // text is there but old gets it replaced, and one whose text is there and right but not *official* gets
+  // that example marked, which is a call of its own and moves neither text nor id.
+  //
+  // Which examples may be replaced is the part worth being careful about. An example is this script's when
+  // the site marks it official, or when the account this script writes as is its author -- and the account
+  // is learned from an example whose text is ours, which is one this script wrote on an earlier run. An
+  // example somebody else submitted is neither, so it is never compared, never replaced and never deleted.
+  let ourAuthor = null
+  // Whether the API lets this token mark an example official. Unknown until the first attempt: a refusal is
+  // reported once, and the rest of the run stops expecting the mark instead of failing 45 times over it.
+  let officialAllowed = null
+  const owned = (example) => isOfficial(example) || (ourAuthor !== null && example.example_author === ourAuthor)
+  const examplesOfEntry = (examples, entry) => ({
+    ours: examples.filter((example) => exampleText(example.example_code) === ourExampleText(entry)),
+    stale: examples.filter((example) => owned(example) && exampleText(example.example_code) !== ourExampleText(entry))
+  })
+
   const examplePlan = []
   for (const entry of document.entries.values()) {
     if (entry.examples.length === 0) continue
     const row = plan.matched.get(entry.title)
     if (!row) {
-      examplePlan.push({ entry, row: null, replacing: false })
+      examplePlan.push({ entry, row: null, action: 'written' })
       continue
     }
     try {
-      const official = await officialExamplesOf(row.id)
-      if (official.length > 0 && siteExampleText(official) === ourExampleText(entry)) continue
-      examplePlan.push({ entry, row, replacing: official.length > 0 })
+      const { ours, stale } = examplesOfEntry(await examplesOf(row.id), entry)
+      if (ourAuthor === null) ourAuthor = ours.find((example) => !isOfficial(example))?.example_author ?? null
+      if (stale.length > 0) examplePlan.push({ entry, row, action: 'replaced' })
+      else if (ours.length === 0) examplePlan.push({ entry, row, action: 'written' })
+      else if (ours.some((example) => !isOfficial(example))) examplePlan.push({ entry, row, action: 'marked official' })
     } catch (error) {
       failures.push('reading the examples of ' + entry.title + ': ' + error.message)
     }
@@ -384,8 +411,8 @@ try {
   }
   for (const entry of plan.creates) say('- `' + entry.title + '`: new, will be created')
   for (const row of plan.leftAlone) say('- `' + row.title + '` (id ' + row.id + '): not in the generated file, left as it is')
-  for (const { entry, row, replacing } of examplePlan) {
-    say('- `' + entry.title + '`' + (row ? ' (id ' + row.id + ')' : '') + ': its example is ' + (replacing ? 'replaced' : 'written'))
+  for (const { entry, row, action } of examplePlan) {
+    say('- `' + entry.title + '`' + (row ? ' (id ' + row.id + ')' : '') + ': its example is ' + action)
   }
 
   let remaining = null
@@ -425,6 +452,17 @@ try {
     // The examples, after the elements they belong to. Each one is its own request, and a refusal is about
     // the body rather than about that element, so the phase stops at the first one and says how far it got
     // instead of repeating the same message for fifty elements.
+    const markOfficialIfAllowed = async (row, exampleId) => {
+      if (officialAllowed === false) return
+      try {
+        await markExampleOfficial(addon, exampleId)
+        officialAllowed = true
+      } catch (error) {
+        officialAllowed = false
+        failures.push('marking an example official: ' + error.message)
+      }
+    }
+
     let written = 0
     for (const { entry } of examplePlan) {
       const row = remaining.matched.get(entry.title)
@@ -433,20 +471,36 @@ try {
         continue
       }
       try {
-        // Written before the old one is removed, so a refusal leaves the page with the example it had rather
-        // than with none: a run that fails here has to be less bad than a run that never happened.
-        const existing = await officialExamplesOf(row.id)
-        await request('POST', '/syntaxexample/', {
-          syntax_element: row.id,
-          example_name: OFFICIAL_EXAMPLE_NAME,
-          example_code: entry.examples.join('\n')
-        })
-        for (const example of existing) {
-          await request('DELETE', '/syntaxexample/' + example.id + '/')
+        const before = examplesOfEntry(await examplesOf(row.id), entry)
+        if (before.stale.length > 0 || before.ours.length === 0) {
+          // Written before the old ones are removed, so a refusal leaves the page with the example it had
+          // rather than with none: a run that fails here has to be less bad than a run that never happened.
+          const created = await request('POST', '/syntaxexample/', {
+            syntax_element: row.id,
+            example_name: OFFICIAL_EXAMPLE_NAME,
+            example_code: entry.examples.join('\n')
+          })
+          if (ourAuthor === null && created && typeof created === 'object') ourAuthor = created.example_author ?? null
+          if (created && typeof created === 'object' && created.id !== undefined) await markOfficialIfAllowed(row, created.id)
+          for (const example of [...before.stale, ...before.ours]) {
+            await request('DELETE', '/syntaxexample/' + example.id + '/')
+          }
+        } else {
+          // The text is right and only the mark is missing, which is a call of its own: the example keeps
+          // its id, its author and its score.
+          for (const example of before.ours.filter((candidate) => !isOfficial(candidate))) {
+            await markOfficialIfAllowed(row, example.id)
+          }
         }
-        const after = await officialExamplesOf(row.id)
-        if (siteExampleText(after) !== ourExampleText(entry)) {
-          failures.push('the examples of ' + entry.title + ' still differ after the write')
+
+        const after = examplesOfEntry(await examplesOf(row.id), entry)
+        if (after.ours.length === 0) {
+          failures.push('the example of ' + entry.title + ' is not on the site after the write')
+        } else if (officialAllowed !== false && !after.ours.some(isOfficial)) {
+          failures.push('the example of ' + entry.title + ' is not marked official after the write')
+        }
+        if (after.stale.length > 0) {
+          failures.push(entry.title + ' still has an example that is not the text of the file')
         }
         written++
       } catch (error) {
