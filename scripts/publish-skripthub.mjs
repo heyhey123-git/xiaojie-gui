@@ -105,6 +105,51 @@ const request = async (method, path, body) => {
 
 const list = (payload) => (Array.isArray(payload) ? payload : (payload.results ?? []))
 
+/**
+ * Every route this script writes to, asked which methods it takes, before anything is written.
+ *
+ * The paths and bodies here were read off the site, and this is what keeps that honest: a route that does
+ * not exist answers 404, while one that exists and wants a token answers 401 or 403 with an `Allow` header
+ * that names the methods. That is how the mark's missing slash was found -- `/syntaxexample/officialexample/`
+ * answers 404 where the form without the slash answers 403 and `POST, OPTIONS`, which is also what the
+ * site's own "Mark as a official example" button posts to.
+ *
+ * A route that is wrong or that does not take the method the script needs is reported as a failure. The run
+ * carries on, because the phases are independent and the messages say which one cannot work.
+ */
+const checkRoutes = async () => {
+  const wanted = [
+    ['GET', '/addon/'],
+    ['GET', '/syntax/?addon=xiaojie-gui'],
+    ['POST', '/syntax/'],
+    ['PUT', '/syntax/1/'],
+    ['GET', '/syntaxexample/?syntax=1'],
+    ['POST', '/syntaxexample/'],
+    ['DELETE', '/syntaxexample/1/'],
+    ['POST', '/syntaxexample/officialexample'],
+    ['GET', '/addonsyntaxlist/']
+  ]
+  const problems = []
+  for (const [method, path] of wanted) {
+    let response
+    try {
+      response = await fetch(API + path, { method: 'OPTIONS', headers: headers() })
+    } catch (error) {
+      problems.push(method + ' ' + path + ' could not be asked: ' + error.message)
+      continue
+    }
+    if (response.status === 404) {
+      problems.push('no route answers ' + path)
+      continue
+    }
+    const allowed = response.headers.get('allow')
+    if (allowed && !allowed.toUpperCase().split(/[,\s]+/).includes(method)) {
+      problems.push(method + ' is not allowed on ' + path + ' (it takes ' + allowed + ')')
+    }
+  }
+  return { problems, checked: wanted.length }
+}
+
 /** Everything the generated file says, keyed by the title SkriptHub knows the element by. */
 const readDocument = () => {
   const document = JSON.parse(readFileSync(DOCUMENT, 'utf8'))
@@ -315,14 +360,22 @@ const isOfficial = (example) => example.official_example === true
 /**
  * Mark one example as the official one of its element.
  *
- * Creating an example does not do that: the body the API takes for a create is exactly the three fields
- * below -- the same three the dashboard's own "add example" form sends -- and `official_example` is set by
- * this second call, which is what the dashboard's "Mark as a official example" button posts. The addon is
- * named by the name SkriptHub knows it by, because that is what the button sends and the token does not say
- * which addon it may edit.
+ * Creating an example does not do that: the body a create takes is the three fields the dashboard's own
+ * "add example" form sends, and the mark is a **second call**, which is what the dashboard's "Mark as a
+ * official example" button makes. Everything about it is taken from the site rather than guessed:
+ *
+ *   - the path has **no trailing slash**. `/api/v1/syntaxexample/officialexample` answers 403 to a request
+ *     without a token, which is a route that exists and wants permission, while the trailing-slash form
+ *     answers 404 -- and `/api/v1/syntaxexample/vote`, the site's other action endpoint, has the same shape.
+ *     The site's own bundle builds both the same way: `ea + "syntaxexample/officialexample"`. The collection
+ *     (`syntaxexample/`) and one example (`syntaxexample/<id>/`) do take the slash, which is where the
+ *     mistake came from;
+ *   - it takes POST and only POST;
+ *   - the body is the three fields that button sends: the addon by the name SkriptHub knows it by, the
+ *     example by id, and the status.
  */
 const markExampleOfficial = (addon, exampleId) =>
-  request('POST', '/syntaxexample/officialexample/', {
+  request('POST', '/syntaxexample/officialexample', {
     addon,
     example: exampleId,
     official_example_status: true
@@ -349,6 +402,8 @@ if (!TOKEN) {
 try {
   const document = readDocument()
   const addon = await resolveAddon()
+  const { problems: routeProblems, checked: routesChecked } = await checkRoutes()
+  for (const problem of routeProblems) failures.push('route check: ' + problem)
   const { rows, idsFrom } = await rowsFor(addon)
   const plan = compare(document, rows)
 
@@ -397,6 +452,7 @@ try {
   say('| Addon | `' + addon + '` |')
   say('| Elements in the generated file | ' + document.entries.size + ' |')
   say('| Matched by | ' + (idsFrom ? 'json_id (' + idsFrom + ')' : 'title only') + ' |')
+  say('| Routes | ' + (routeProblems.length === 0 ? 'checked, ' + routesChecked + ' of them' : '**' + routeProblems.length + ' wrong**') + ' |')
   say('| To update | ' + plan.updates.length + ' |')
   say('| To rename | ' + plan.updates.filter(({ changed }) => changed.includes('title')).length + ' |')
   say('| To create | ' + plan.creates.length + ' |')
