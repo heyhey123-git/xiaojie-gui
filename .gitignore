@@ -9,6 +9,8 @@ server-test/client/node_modules/
 # The agent tooling this repository was worked on with, not part of the plugin.
 .dsh/
 build/
+# The forum posts: written here, pasted into skUnity and MINEBBS, and not part of the plugin.
+docs/*.bbcode.txt
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

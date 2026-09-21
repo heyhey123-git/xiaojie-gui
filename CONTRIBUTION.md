@@ -227,14 +227,14 @@ Two halves, for two readers:
   export, and the wiki stays the list for those. The version in the JSON comes from `gradle.properties`,
   so it cannot disagree with the jar; a 2.0.0 run reports 58 elements, which is the 63 this addon
   registers minus its five events.
-- The **forum pages** are written down here instead of typed into an editor each time:
-  `docs/skunity-resource.bbcode.txt` (English) and `docs/minebbs-resource.bbcode.txt` (Chinese) are the
-  resource descriptions, and `docs/update-message.bbcode.txt` is the short bilingual note that goes out
-  with a version: a title, two sentences and one link, under 200 characters per half. The changelog is
-  where a change is explained, so this note only says that there is a new version and what it is for.
-  BB-code, because neither forum renders Markdown -- and the Chinese page carries no
-  syntax list on purpose: MINEBBS's firewall refuses a post that long, so it points at the wiki and
-  SkriptHub instead. A syntax or feature change belongs in all three.
+- The **forum pages** are written by hand and are not part of this repository: they are BB-code, because
+  neither forum renders Markdown, and they are pasted into the forum rather than read from the checkout, so
+  the working copy keeps them as ignored drafts under `docs/` (`docs/*.bbcode.txt`). The Chinese page
+  carries no syntax list on purpose -- MINEBBS's firewall refuses a post that long, so it points at the
+  wiki and SkriptHub instead. The note that goes out with a version is a title, two sentences and one link,
+  under 200 characters per half: the changelog is where a change is explained, so that note only says there
+  is a new version and what it is for. A syntax or feature change belongs in the pages the next time they
+  are written.
 
 A page may only describe syntax that exists: read the element's own patterns and prefer its `@Examples`
 verbatim, since those are the ones the example gate parses. A claim about a trap belongs in the page only
