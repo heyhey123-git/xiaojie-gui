@@ -2,15 +2,15 @@
 
 [English](filling-menus.md) | 简体中文
 
-布局字符串只决定**哪些格子存在**，真正放什么、点击做什么，是下面这几条语法决定的。
+布局字符串为格子指定 key；放入什么图标、点击后执行什么操作，则由本页介绍的语法决定。
 
 ## 两条语法，两种思路
 
 | | `map key` | `override slot` |
 |---|---|---|
-| 认什么 | 布局里的**字符** | 直接给**格子编号** |
-| 影响范围 | 所有出现那个字符的格子 | 你写的那几个格子 |
-| 典型用途 | 按布局批量铺物品 | 往具体位置塞一个东西 |
+| 定位方式 | 布局中的 **key** | 直接指定**槽位编号** |
+| 影响范围 | 使用该 key 的所有格子 | 指定的格子 |
+| 典型用途 | 按布局批量设置图标 | 修改具体位置的内容 |
 
 两条都可以带一段点击回调，也都可以不带。
 
@@ -30,20 +30,21 @@ map key "special_item" to item diamond named "Special Item" for menu {_menu} and
     send "你点了特殊物品。" to player
 ```
 
-- `icon` 和 `item` 是同义词，单复数也随意。
-- 给了**多个**物品时，同名的每个格子按顺序取一个（循环使用）。
-- 不写 `for …` 时，菜单来自当前事件（`create menu` 段落体、`edit menu` 段落体、任何菜单事件）。
-  事件之外必须写出来。
+- `icon` 与 `item` 含义相同，单复数形式均可使用。
+- 提供**多个物品**时，使用同一 key 的格子按顺序取用，数量不足时循环使用。
+- 省略 `for …` 时，从菜单创建、编辑段落或菜单事件中取得当前菜单；没有菜单上下文时，必须显式指定。
 - 不写 `on page …` 时，作用范围是**所有页**，包括之后用 `insert page` 加进来的页。
 - `and refresh` 立刻把改动推给正在看的玩家。不写的话，`phantom` 菜单要等下次刷新/翻页才会出现；`static`
   菜单本来就会显示，因为改动落进了真实物品栏。
 - `and when clicked` 要求你**必须**跟一段段落，否则注册时就会报
   `You must provide a section to handle the click event when using 'and when clicked'.`
 
-## 列表页：把一页填成一列物品
+<a id="列表页把一页填成一列物品"></a>
 
-浏览器要的是"这一页显示这 N 个结果，点了第几个就是第几个"。做法是**把一个列表映射给一个 key**——那个
-key 的格子就是这一页的列表格，按布局顺序：
+## 列表页：按顺序展示物品
+
+物品浏览器通常需要按顺序展示一组结果，并在点击时识别所选项。先**把物品列表映射给一个 key**，
+该 key 对应的格子便成为列表区域，按布局顺序填充：
 
 ```skript
 build a menu {_menu}:
@@ -57,16 +58,16 @@ build a menu {_menu}:
         map key "N" to icon arrow named "&e下一页" for {_menu}
 ```
 
-然后每个玩家各自填内容，**一次调用**：
+随后可为每个玩家的窗口单独设置列表，**一次调用即可**：
 
 ```skript
 set the menu list of the menu session of player to {results::*}
 ```
 
-- 多出来的物品会被丢掉，没填满的格子会被清空——所以"只剩 3 条结果"就是 3 个图标加 42 个空格，不需要额外处理。
-- **整个窗口只更新一次**：45 个格子一次调用加一次刷新，而不是 45 次。
+- 超出列表区域容量的项目不会显示，未填满的格子会被清空。例如上面的 45 格区域只有 3 条结果时，会显示 3 个图标，其余 42 格留空。
+- **整个窗口只更新一次**：45 个格子通过一次调用和一次刷新完成，无需逐格刷新。
 
-点到了第几个结果，用 `the menu list index`（1 基，和其他所有编号一致）：
+用 `the menu list index` 读取点击的是第几个结果。**列表索引从 1 开始**，与从 0 开始的槽位编号不同：
 
 ```skript
 on menu interact:
@@ -77,9 +78,9 @@ on menu interact:
     # 不是列表格：那按到的就是上一页/下一页之类的按钮
 ```
 
-`the menu list index` 在点到的不是列表格时**没有值**，所以"点按钮"和"点结果"用同一个事件就能分开。
+点击非列表格子时，`the menu list index` **没有值**，因此同一个事件中也能区分列表项目与翻页按钮。
 
-浏览器剩下的两件事——页数在创建时固定、窗口里没有文字输入——写在[尚未支持](not-supported-yet.zh-CN.md)。
+列表分页需要预先安排页面，窗口本身也不提供文字输入。这些限制见[尚未支持](not-supported-yet.zh-CN.md)。
 
 ## `override slot … to … for …`
 
@@ -97,11 +98,9 @@ override slot 10 in page 1 to diamond named "Clicked Item" for menu with id "mai
     send "You clicked the overridden slot!" to player
 ```
 
-- 格子编号是 0 起的，从容器左上角开始，一行 9 格。
-- `in page …` 可以给多个页码，也可以完全不写。**不写时默认是"页面"那一项** —— 也就是
-  `with page N` / `default page: N` 的值，默认 1。**这里有个坑**：如果那个默认页大于实际页数，
-  这条语法会在运行时报 `Page N does not exist in this menu.`。所以设了 `with page 2` 又只建了一页时，
-  请显式写 `in page 1`。
+- 槽位编号从 0 开始，按容器布局排列；箱子从左上角开始，每行 9 格。
+- `in page …` 可指定多个页码，也可省略。**省略时使用菜单的默认页码**，即 `with page N` / `default page: N` 的值，默认 1。
+  如果默认页不存在，运行时会报 `Page N does not exist in this menu.`。例如设置了 `with page 2` 却只创建一页时，应显式写 `in page 1`。
 - `to` 后面一定要有东西，`for` 一定要有菜单：`override slot 10 of diamond` 和
   `override slot 10 to diamond` 都不解析。
 - 和 `map key` 一样，`and when clicked` 必须有段落体。
@@ -143,9 +142,8 @@ when slot 4 and 5 in page 1 of the menu {_menu} is clicked:
     send "点了 4 或 5。" to player
 ```
 
-**这一段必须有段落体**，否则注册时报 `You must provide a section to handle the slot click event.`
-它的好处是给一个**没有映射任何物品**的格子挂回调 —— 也就是常说的"隐形按钮"：格子里什么都没有，
-但点上去有反应。
+**必须提供段落体**，否则注册时会报 `You must provide a section to handle the slot click event.`
+这种写法也能为**没有图标**的格子设置回调，做成“隐形按钮”：格子虽然为空，点击仍会执行操作。
 
 ### 三、按钮：定义一次，多处复用
 
@@ -178,8 +176,8 @@ on load:
 按钮的回调是**共享**的：任何菜单、任何格子只要映射了这个按钮，点击都跑同一段代码。想在回调里知道
 是哪个菜单，用菜单事件里的 `the event-menu`。
 
-**一个提醒**：`override slot … to button "x" for …:` 带段落体时，按钮会生效，段落会被**忽略并警告**
-（`Both a button ID and a section were provided …`）。二选一。
+注意：`override slot … to button "x" for …:` 同时附带段落体时，会使用按钮定义，**忽略段落并发出警告**
+（`Both a button ID and a section were provided …`）。按钮与内联回调应二选一。
 
 ## 在回调里能拿到什么
 
@@ -196,17 +194,19 @@ map key "A" to icon stone for {_menu} and when clicked:
 
 ## 动态改内容
 
-`override slot` 和 `map key` 是**当时执行、当时生效**的：在 `on menu open` 或 `on menu interact` 里
-执行，就会改动玩家看到的东西。
+`override slot` 和 `map key` 会在执行时修改页面内容，也可在 `on menu open` 或 `on menu interact` 中动态调用。
+是否立即同步到客户端，则取决于菜单模式与刷新选项。
 
 ```skript
 on menu interact:
     override slot 4 in page 1 to (the clicked icon) for the menu and refresh
 ```
 
-`phantom` 菜单里，不带 `and refresh` 时改动只进了模型，屏幕上还是旧的；`static` 菜单里改动已经落在真实
-物品栏上，屏幕两种情况都会显示。**给别人看的**和**给自己看的**区别就在这个标志上：`and refresh` 会刷新
-**所有正在看这一页的玩家**的对应格子。
+在 `phantom` 下，不带 `and refresh` 时，内容已修改，但客户端仍显示旧内容，直到下一次刷新或翻页。
+在 `static` 下，修改直接作用于真实物品栏，无论是否附带刷新选项，都会同步显示。
+
+**`and refresh` 决定何时同步显示，不决定修改影响谁。** `override slot` 和 `map key` 修改的是共享页面；
+使用 `and refresh` 会立即刷新**所有正在查看该页的玩家**的对应格子。
 
 如果只想改**某个玩家**的窗口（例如给他自己显示一个高亮），用**窗口**的图标，见
 [窗口](windows.zh-CN.md)：

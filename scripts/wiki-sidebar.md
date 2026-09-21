@@ -3,9 +3,9 @@
 - [首页](Home)
 - [快速上手](Getting-Started)
 
-**先弄懂它怎么跑**
+**基本原理**
 
-- [窗口到底是怎么工作的](How-It-Works)
+- [窗口如何工作](How-It-Works)
 - [两种模式](Modes)
 
 **开始写菜单**
@@ -19,13 +19,13 @@
 **交互**
 
 - [事件与事件值](Events)
-- [拖拽到底是怎么工作的](Dragging)
+- [拖拽如何处理](Dragging)
 - [窗口](Windows)
 - [条件](Conditions)
 
 **示例**
 
-- [菜谱](Cookbook)
+- [实用示例](Cookbook)
 
 **参考**
 
@@ -66,6 +66,6 @@
 
 ---
 
-内容以[仓库](https://github.com/heyhey123-git/xiaojie-gui)里的 `docs/` 为准，请不要在这里直接改。
+内容由[仓库](https://github.com/heyhey123-git/xiaojie-gui)中的 `docs/` 同步生成。请在仓库中修改，以免被下次同步覆盖。
 
 The content is governed by `docs/` in the [repository](https://github.com/heyhey123-git/xiaojie-gui); please do not edit it here.

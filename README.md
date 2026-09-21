@@ -116,5 +116,6 @@ This project is licensed under the AGPL-3.0 License. See the LICENSE file for de
 - [TrMenu](https://github.com/CoderKuo/TrMenu): Inspiration for menu systems in Minecraft plugins, providing us the details of underlying implementations of the operations to a GUI.
 - [Kotlin](https://github.com/JetBrains/kotlin): The programming language used for development.
 - [PaperMC](https://github.com/PaperMC/Paper): The server platform for which this framework is designed.
+- [Mineflayer](https://github.com/PrismarineJS/mineflayer): Powers automated client tests that help check menu rendering and interactions.
 
 Without these projects, this framework would not be possible. Thank you to all the contributors and maintainers of these projects!
