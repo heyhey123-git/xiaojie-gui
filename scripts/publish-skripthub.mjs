@@ -4,12 +4,13 @@
 //   ./gradlew gendocs
 //   SKRIPTHUB_TOKEN=<token> node scripts/publish-skripthub.mjs [--dry-run]
 //
-// The dashboard imports the whole JSON by hand, and that stays the way to publish examples; this script
-// is for the syntax itself, so a release does not have to wait for someone to paste a file. The API has no
-// call that replaces a whole document -- it updates one element per request, and takes a list only when the
-// elements are new -- so this is a diff: it reads what SkriptHub has, updates the elements whose title,
-// pattern, description or since version changed, creates the ones that are not there yet, and reports the
-// ones it will not touch.
+// The dashboard imports the whole JSON by hand, and that is what published this page once; from here on the
+// script keeps it in step, so a release does not have to wait for someone to paste a file. The API has no
+// call that replaces a whole document -- it updates one element per request, takes a list only when the
+// elements are new, and keeps examples in an endpoint of their own -- so this is a diff: it reads what
+// SkriptHub has, updates the elements whose title, pattern, description or since version changed, creates the
+// ones that are not there yet, gives every element the examples its annotations carry, and reports the rows it
+// will not touch.
 //
 // An element is recognised by the documentation tool's own id (`json_id` on SkriptHub) as well as by its
 // title, because a renamed element is the case that goes wrong otherwise: the annotations carry the new
@@ -18,19 +19,19 @@
 //
 // Every call and field below is the v1 API as its own documentation defines it, at
 // https://skripthub.net/api/docs/ (a Swagger document): GET /api/v1/addon/, GET /api/v1/syntax/?addon=,
-// PUT /api/v1/syntax/<id>/, POST /api/v1/syntax/ (a list), GET /api/v1/syntaxexample/?syntax= and, for the
-// documentation tool's id of each row, the public GET /api/v1/addonsyntaxlist/. The writes carry the four
-// fields POST /syntax/ requires -- title, syntax_pattern, required_plugins and addon -- plus the optional
-// ones the generated file owns.
+// PUT /api/v1/syntax/<id>/, POST /api/v1/syntax/ (a list), GET/POST /api/v1/syntaxexample/,
+// DELETE /api/v1/syntaxexample/<id>/ and, for the documentation tool's id of each row, the public
+// GET /api/v1/addonsyntaxlist/. The element writes carry the four fields POST /syntax/ requires -- title,
+// syntax_pattern, required_plugins and addon -- plus the optional ones the generated file owns.
 //
 // What it deliberately does not do:
 //
-//   - Delete. An element that is on SkriptHub and not in the generated file is reported, not removed:
+//   - Delete an element. A row that is on SkriptHub and not in the generated file is reported, not removed:
 //     the annotations cannot say whether it was renamed, dropped, or belongs to an entry somebody made by
 //     hand, and SkriptHub has `mark as removed` for the case where it was really dropped.
-//   - Write examples. They live in their own endpoint, SkriptHub joins the examples of one element with a
-//     single newline where SkriptHubDocsTool leaves a blank line, and the dashboard import handles them
-//     as a set. A difference is reported so that it is a decision instead of a surprise.
+//   - Touch an example a reader submitted. Examples are written, one per element and replaced whole when the
+//     text differs -- which is what keeps a `page 0` from an older release out of the page -- but only the
+//     ones the site marks as official. Somebody else's example is theirs: it is neither compared nor deleted.
 //   - Set supporting plugins. The generated file does not carry them for the elements it lists here;
 //     SkriptHub's own import cannot either, and its documentation says they are set by hand.
 //
@@ -301,11 +302,32 @@ const refusedCreates = (entries, error) => {
   return named.length ? named : ['creating ' + plural(entries.length, 'element') + ': ' + error.message]
 }
 
-/** The examples of one element as SkriptHub holds them, joined the way it joins them. */
-const examplesOf = async (id) => {
-  const payload = await request('GET', '/syntaxexample/?syntax=' + id)
-  return list(payload).map((example) => withoutBlankEdges(example.example_code ?? ''))
-}
+/** The examples of one element as SkriptHub holds them. */
+const examplesOf = async (id) => list(await request('GET', '/syntaxexample/?syntax=' + id))
+
+/**
+ * The official examples of one element: the ones the dashboard's import and this script wrote.
+ *
+ * An example a reader submitted carries `official_example: false`. Those are the site's own business: they
+ * are never deleted, and they are not part of the comparison, so one of them sitting beside ours cannot hide
+ * the difference this phase is here to fix.
+ */
+const officialExamplesOf = async (id) => (await examplesOf(id)).filter((example) => example.official_example)
+
+/** The name the import gives the example it writes, which is what a replaced one is written as. */
+const OFFICIAL_EXAMPLE_NAME = 'Official Example'
+
+/**
+ * One element's examples as the text SkriptHub stores: the lines of the one example, in order.
+ *
+ * The same `@Examples` entry can be a line or a whole block, and the indentation inside a block is part of
+ * the code, so the only thing normalized is blank lines at either end -- which the tool writes without. The
+ * comparison is otherwise exact, and it is exact because the site's copy of an example it was given is the
+ * text it was given: a difference here is the older syntax of a release that has moved on.
+ */
+const exampleText = (code) => withoutBlankEdges(String(code ?? ''))
+const ourExampleText = (entry) => exampleText(entry.examples.join('\n'))
+const siteExampleText = (examples) => exampleText(examples.map((example) => example.example_code ?? '').join('\n'))
 
 if (!TOKEN) {
   console.error('SKRIPTHUB_TOKEN is not set. The token is on the SkriptHub API documentation page.')
@@ -320,6 +342,27 @@ try {
   const { rows, idsFrom } = await rowsFor(addon)
   const plan = compare(document, rows)
 
+  // The example phase is planned before anything is written, because the summary counts it. An element whose
+  // official example differs gets it replaced, an element with none yet gets one written, and an element that
+  // is not on the site at all is given its example as soon as it is created. An element with no example in the
+  // file is left alone: there is nothing to say, and deleting what a reader already has would only lose it.
+  const examplePlan = []
+  for (const entry of document.entries.values()) {
+    if (entry.examples.length === 0) continue
+    const row = plan.matched.get(entry.title)
+    if (!row) {
+      examplePlan.push({ entry, row: null, replacing: false })
+      continue
+    }
+    try {
+      const official = await officialExamplesOf(row.id)
+      if (official.length > 0 && siteExampleText(official) === ourExampleText(entry)) continue
+      examplePlan.push({ entry, row, replacing: official.length > 0 })
+    } catch (error) {
+      failures.push('reading the examples of ' + entry.title + ': ' + error.message)
+    }
+  }
+
   say('### SkriptHub documentation ' + document.version)
   say()
   say('| | |')
@@ -332,6 +375,7 @@ try {
   say('| To create | ' + plan.creates.length + ' |')
   say('| Unchanged | ' + (document.entries.size - plan.updates.length - plan.creates.length) + ' |')
   say('| On SkriptHub only, left alone | ' + plan.leftAlone.length + ' |')
+  say('| Examples to write | ' + examplePlan.length + ' |')
   say('| Mode | ' + (dryRun ? 'dry run, nothing was written' : '**published**') + ' |')
   say()
 
@@ -340,7 +384,11 @@ try {
   }
   for (const entry of plan.creates) say('- `' + entry.title + '`: new, will be created')
   for (const row of plan.leftAlone) say('- `' + row.title + '` (id ' + row.id + '): not in the generated file, left as it is')
+  for (const { entry, row, replacing } of examplePlan) {
+    say('- `' + entry.title + '`' + (row ? ' (id ' + row.id + ')' : '') + ': its example is ' + (replacing ? 'replaced' : 'written'))
+  }
 
+  let remaining = null
   if (!dryRun) {
     for (const { entry, row } of plan.updates) {
       try {
@@ -363,7 +411,7 @@ try {
     // Read back rather than trust the status codes: what was written is only published once the entry
     // says so, and a field the API silently ignored would otherwise be found by a reader.
     const after = (await rowsFor(addon)).rows
-    const remaining = compare(document, after)
+    remaining = compare(document, after)
     for (const { entry, changed } of remaining.updates) {
       failures.push(entry.title + ' still differs after the write: ' + changed.join(', '))
     }
@@ -373,22 +421,42 @@ try {
           remaining.creates.map((entry) => entry.title).join(', ')
       )
     }
-  }
 
-  // Examples are compared last and loosely: SkriptHub joins several examples of one element with a single
-  // newline where the tool leaves a blank line, so only a real difference is worth reporting.
-  const join = (examples) => examples.map((example) => example.trim()).join('\n').replace(/\n\s*\n/g, '\n')
-  for (const entry of document.entries.values()) {
-    const row = plan.matched.get(entry.title)
-    if (!row) continue
-    try {
-      if (join(await examplesOf(row.id)) !== join(entry.examples)) {
-        say('- `' + entry.title + '` (id ' + row.id + '): its examples differ, which this script does not write — use the dashboard JSON import')
+    // The examples, after the elements they belong to. Each one is its own request, and a refusal is about
+    // the body rather than about that element, so the phase stops at the first one and says how far it got
+    // instead of repeating the same message for fifty elements.
+    let written = 0
+    for (const { entry } of examplePlan) {
+      const row = remaining.matched.get(entry.title)
+      if (!row) {
+        failures.push('no row to write the examples of ' + entry.title + ' to')
+        continue
       }
-    } catch (error) {
-      failures.push('reading the examples of ' + entry.title + ': ' + error.message)
+      try {
+        // Written before the old one is removed, so a refusal leaves the page with the example it had rather
+        // than with none: a run that fails here has to be less bad than a run that never happened.
+        const existing = await officialExamplesOf(row.id)
+        await request('POST', '/syntaxexample/', {
+          syntax_element: row.id,
+          example_name: OFFICIAL_EXAMPLE_NAME,
+          example_code: entry.examples.join('\n')
+        })
+        for (const example of existing) {
+          await request('DELETE', '/syntaxexample/' + example.id + '/')
+        }
+        const after = await officialExamplesOf(row.id)
+        if (siteExampleText(after) !== ourExampleText(entry)) {
+          failures.push('the examples of ' + entry.title + ' still differ after the write')
+        }
+        written++
+      } catch (error) {
+        failures.push('writing the examples of ' + entry.title + ': ' + error.message)
+        failures.push('stopped after ' + written + ' of ' + examplePlan.length + ' example(s)')
+        break
+      }
     }
   }
+
 } catch (error) {
   failures.push(error instanceof Error ? error.message : String(error))
 }
