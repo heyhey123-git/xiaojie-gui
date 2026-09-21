@@ -197,9 +197,12 @@ The release publishes the jar; the syntax on SkriptHub follows it on its own. A 
 completed successfully starts `.github/workflows/skripthub.yml`, which generates the same JSON and sends
 it to SkriptHub's API one element at a time: `scripts/publish-skripthub.mjs` is a diff, so it updates what
 changed, creates what is missing, and only reports what it will not touch (deleting an element, its
-examples and its supporting plugins stay the dashboard's job). It needs an environment named `skripthub`
-holding `SKRIPTHUB_TOKEN` from the SkriptHub API documentation page, and it finds the addon by this
-repository's URL, so the name SkriptHub shows it under can change without touching anything here.
+examples and its supporting plugins stay the dashboard's job). An element is recognised by the
+documentation tool's own id as well as by its title, and that is what makes a **rename** an update rather
+than a create: a title-only diff asks for a second row under the new name, and the API refuses the whole
+list with `Json id already exists` because the old row holds that id. It needs an environment named
+`skripthub` holding `SKRIPTHUB_TOKEN` from the SkriptHub API documentation page, and it finds the addon by
+this repository's URL, so the name SkriptHub shows it under can change without touching anything here.
 Dispatching that workflow by hand with `dry-run` reports the same thing without writing.
 
 ## 6. Documentation

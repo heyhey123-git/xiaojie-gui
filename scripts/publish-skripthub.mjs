@@ -7,9 +7,14 @@
 // The dashboard imports the whole JSON by hand, and that stays the way to publish examples; this script
 // is for the syntax itself, so a release does not have to wait for someone to paste a file. The API has no
 // call that replaces a whole document -- it updates one element per request, and takes a list only when the
-// elements are new -- so this is a diff: it reads what SkriptHub has, updates the elements whose pattern,
-// description or since version changed, creates the ones that are not there yet, and reports the ones it
-// will not touch.
+// elements are new -- so this is a diff: it reads what SkriptHub has, updates the elements whose title,
+// pattern, description or since version changed, creates the ones that are not there yet, and reports the
+// ones it will not touch.
+//
+// An element is recognised by the documentation tool's own id (`json_id` on SkriptHub) as well as by its
+// title, because a renamed element is the case that goes wrong otherwise: the annotations carry the new
+// name, the site still has the old one, and a title-only diff reads it as new and asks for a second row
+// with an id the site has already given away (`Json id already exists`, HTTP 400).
 //
 // Every call and field below is the v1 API as its own documentation defines it, at
 // https://skripthub.net/api/docs/ (a Swagger document): GET /api/v1/addon/, GET /api/v1/syntax/?addon=,
@@ -84,7 +89,12 @@ const request = async (method, path, body) => {
   const payload = await readJson(response)
   if (!response.ok) {
     const detail = typeof payload === 'object' ? JSON.stringify(payload) : String(payload)
-    throw new Error(method + ' ' + path + ' answered ' + response.status + ': ' + detail.slice(0, 400))
+    const error = new Error(method + ' ' + path + ' answered ' + response.status + ': ' + detail.slice(0, 400))
+    // The caller can do more with the body than the message does: `POST /syntax/` answers one error object
+    // per element of the list it was given, which is what lets a refused element be named.
+    error.status = response.status
+    error.payload = payload
+    throw error
   }
   return payload
 }
@@ -177,40 +187,100 @@ const bodyFor = (entry, row, addon) => {
 
 const same = (left, right) => (left ?? '').trim() === (right ?? '').trim()
 
-/** The examples of one element as SkriptHub holds them, joined the way it joins them. */
-const examplesOf = async (id) => {
-  const payload = await request('GET', '/syntaxexample/?syntax=' + id)
-  return list(payload).map((example) => withoutBlankEdges(example.example_code ?? ''))
+/**
+ * The SkriptHub row one element of the generated file is, or null while the site does not have it.
+ *
+ * Two things identify an element and both are needed. The title is what a reader sees and what this script
+ * reads back; `json_id` is the id the documentation tool wrote, which SkriptHub kept when the row was made
+ * -- by the dashboard import or by an earlier run of this script. A renamed element has one of each: the
+ * annotations carry `Player's Menu Window` while the site still says `GUI of Player`, so a title-only match
+ * reads it as new and `POST /syntax/` refuses the whole list with `Json id already exists`. The id is what
+ * survives the rename, and the title travels with the rest of the row in the update that follows.
+ *
+ * A row matching on both wins over one matching either: the site can hold the same element twice (two rows
+ * titled `Slot Key from Menu` are on it today), and the row that already carries this title is the one to
+ * keep, so the other is reported as left alone instead of being written over.
+ */
+const rowFor = (entry, rows) => {
+  const byJsonId = rows.filter((row) => entry.jsonId != null && row.json_id === entry.jsonId)
+  const byTitle = rows.filter((row) => row.title === entry.title)
+  return byTitle.find((row) => byJsonId.includes(row)) ?? byJsonId[0] ?? byTitle[0] ?? null
+}
+
+/**
+ * What the rows are matched by, as one word for the summary.
+ *
+ * `json_id` is what the API is asked for -- it is a field of a row on the public element list, so this is
+ * expected rather than hoped for. A listing that does not carry it leaves title matching, which cannot see a
+ * rename; the summary then says so, and a create refused with `Json id already exists` is the symptom.
+ */
+const identityBasis = (rows) => (rows.length > 0 && !rows.some((row) => 'json_id' in row) ? 'title only' : 'json_id')
+
+const plural = (count, one) => count + ' ' + one + (count === 1 ? '' : 's')
+
+/**
+ * The fields of a row this script owns, in the order a difference is reported.
+ *
+ * The title is one of them: a rename is written the same way any other change is, by sending the whole row.
+ */
+const differencesIn = (row, entry) => {
+  const changed = []
+  for (const [field, left, right] of [
+    ['title', row.title, entry.title],
+    ['pattern', row.syntax_pattern, entry.pattern],
+    ['description', row.description, entry.description],
+    ['since', row.compatible_addon_version, entry.since ?? row.compatible_addon_version]
+  ]) {
+    if (!same(left, right)) changed.push(field)
+  }
+  return changed
 }
 
 const compare = (document, rows) => {
   const updates = []
   const creates = []
+  /** The row each element of the generated file is, whether or not it has to be written. */
+  const matched = new Map()
+  /** The rows some element claimed, so that `left alone` means "no element of the file is this". */
+  const claimed = new Set()
   for (const entry of document.entries.values()) {
-    const row = rows.find((candidate) => candidate.title === entry.title)
+    // A row another element of the file already claimed is not a candidate: the site can hold one element
+    // twice, and writing the same row twice would lose one of the two names instead of reporting it.
+    const row = rowFor(entry, rows.filter((candidate) => !claimed.has(candidate.id)))
     if (!row) {
       creates.push(entry)
       continue
     }
-    const changed = !same(row.syntax_pattern, entry.pattern) ||
-      !same(row.description, entry.description) ||
-      (entry.since !== undefined && !same(row.compatible_addon_version, entry.since))
-    if (changed) updates.push({ entry, row })
+    matched.set(entry.title, row)
+    claimed.add(row.id)
+    const changed = differencesIn(row, entry)
+    if (changed.length) updates.push({ entry, row, changed })
   }
-  const removed = rows.filter((row) => !document.entries.has(row.title))
-  return { updates, creates, removed }
+  const leftAlone = rows.filter((row) => !claimed.has(row.id))
+  return { updates, creates, leftAlone, matched }
 }
 
-const differencesIn = (before, after) => {
-  const changed = []
-  for (const [field, left, right] of [
-    ['pattern', before.syntax_pattern, after.syntax_pattern],
-    ['description', before.description, after.description],
-    ['since', before.compatible_addon_version, after.compatible_addon_version]
-  ]) {
-    if (!same(left, right)) changed.push(field)
-  }
-  return changed
+/**
+ * The elements a refused `POST /syntax/` would not create, by title.
+ *
+ * The endpoint takes the list of new elements and answers one error object per element of it, in the same
+ * order, with an empty object where the element was accepted. Its own message for the call says only that it
+ * answered 400, and what it says per element -- `Json id already exists` -- is the thing to act on, so that
+ * is what the summary gets.
+ */
+const refusedCreates = (entries, error) => {
+  const perItem = Array.isArray(error.payload) ? error.payload : []
+  const named = entries
+    .map((entry, index) => ({ entry, errors: perItem[index] }))
+    .filter(({ errors }) => errors !== null && typeof errors === 'object' && Object.keys(errors).length > 0)
+    .map(({ entry, errors }) => 'creating `' + entry.title + '`: ' + JSON.stringify(errors))
+  return named.length ? named : ['creating ' + plural(entries.length, 'element') + ': ' + error.message]
+}
+
+/** The examples of one element as SkriptHub holds them, joined the way it joins them. */
+const examplesOf = async (id) => {
+  const payload = await request('GET', '/syntaxexample/?syntax=' + id)
+  return list(payload).map((example) => withoutBlankEdges(example.example_code ?? ''))
 }
 
 if (!TOKEN) {
@@ -232,22 +302,20 @@ try {
   say('| --- | --- |')
   say('| Addon | `' + addon + '` |')
   say('| Elements in the generated file | ' + document.entries.size + ' |')
+  say('| Matched by | ' + identityBasis(rows) + ' |')
   say('| To update | ' + plan.updates.length + ' |')
+  say('| To rename | ' + plan.updates.filter(({ changed }) => changed.includes('title')).length + ' |')
   say('| To create | ' + plan.creates.length + ' |')
   say('| Unchanged | ' + (document.entries.size - plan.updates.length - plan.creates.length) + ' |')
-  say('| On SkriptHub only, left alone | ' + plan.removed.length + ' |')
+  say('| On SkriptHub only, left alone | ' + plan.leftAlone.length + ' |')
   say('| Mode | ' + (dryRun ? 'dry run, nothing was written' : '**published**') + ' |')
   say()
 
-  for (const { entry, row } of plan.updates) {
-    say('- `' + entry.title + '` (id ' + row.id + '): ' + differencesIn(row, {
-      syntax_pattern: entry.pattern,
-      description: entry.description,
-      compatible_addon_version: entry.since ?? row.compatible_addon_version
-    }).join(', '))
+  for (const { entry, row, changed } of plan.updates) {
+    say('- `' + entry.title + '` (id ' + row.id + '): ' + changed.join(', '))
   }
   for (const entry of plan.creates) say('- `' + entry.title + '`: new, will be created')
-  for (const row of plan.removed) say('- `' + row.title + '` (id ' + row.id + '): not in the generated file, left as it is')
+  for (const row of plan.leftAlone) say('- `' + row.title + '` (id ' + row.id + '): not in the generated file, left as it is')
 
   if (!dryRun) {
     for (const { entry, row } of plan.updates) {
@@ -264,7 +332,7 @@ try {
       try {
         await request('POST', '/syntax/', body)
       } catch (error) {
-        failures.push('creating ' + plan.creates.length + ' element(s): ' + error.message)
+        failures.push(...refusedCreates(plan.creates, error))
       }
     }
 
@@ -272,12 +340,14 @@ try {
     // says so, and a field the API silently ignored would otherwise be found by a reader.
     const after = list(await request('GET', '/syntax/?addon=' + encodeURIComponent(addon)))
     const remaining = compare(document, after)
-    for (const { entry, row } of remaining.updates) {
-      failures.push(entry.title + ' still differs after the write: ' + differencesIn(row, {
-        syntax_pattern: entry.pattern,
-        description: entry.description,
-        compatible_addon_version: entry.since ?? row.compatible_addon_version
-      }).join(', '))
+    for (const { entry, changed } of remaining.updates) {
+      failures.push(entry.title + ' still differs after the write: ' + changed.join(', '))
+    }
+    if (remaining.creates.length) {
+      failures.push(
+        'still not on SkriptHub after the write: ' +
+          remaining.creates.map((entry) => entry.title).join(', ')
+      )
     }
   }
 
@@ -285,7 +355,7 @@ try {
   // newline where the tool leaves a blank line, so only a real difference is worth reporting.
   const join = (examples) => examples.map((example) => example.trim()).join('\n').replace(/\n\s*\n/g, '\n')
   for (const entry of document.entries.values()) {
-    const row = rows.find((candidate) => candidate.title === entry.title)
+    const row = plan.matched.get(entry.title)
     if (!row) continue
     try {
       if (join(await examplesOf(row.id)) !== join(entry.examples)) {
