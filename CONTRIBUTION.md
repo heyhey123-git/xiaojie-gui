@@ -230,7 +230,9 @@ Two halves, for two readers:
 - The **forum pages** are written down here instead of typed into an editor each time:
   `docs/skunity-resource.bbcode.txt` (English) and `docs/minebbs-resource.bbcode.txt` (Chinese) are the
   resource descriptions, and `docs/update-message.bbcode.txt` is the short bilingual note that goes out
-  with a version. BB-code, because neither forum renders Markdown -- and the Chinese page carries no
+  with a version: a title, two sentences and one link, under 200 characters per half. The changelog is
+  where a change is explained, so this note only says that there is a new version and what it is for.
+  BB-code, because neither forum renders Markdown -- and the Chinese page carries no
   syntax list on purpose: MINEBBS's firewall refuses a post that long, so it points at the wiki and
   SkriptHub instead. A syntax or feature change belongs in all three.
 

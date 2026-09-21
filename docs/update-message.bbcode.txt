@@ -1,122 +1,14 @@
 [B][SIZE=4]xiaojie-gui 2.0.0[/SIZE][/B]
 
-2.0.0 moves the addon to Paper 26.2 / Skript 2.16.2 / Java 25 (PacketEvents 2.13.0 is now a required
-dependency) and fixes the menu syntax that never actually worked. Most day-to-day usage is unchanged.
+Skript menus for Paper 26.2: phantom or static windows, pages, list pages, per-player slots, reusable
+buttons. The old gui syntax is gone; titles no longer crash.
 
-[B]Added[/B]
-[LIST]
-[*]Menus can be created for barrel, ender chest, dispenser, enchanting, cartography and crafter
-inventories. Before, these reported "Unsupported inventory type" because no layout existed for them.
-[*]Dragging is handled. A drag used to reach the addon only when it happened to touch exactly one slot;
-a real drag changed the window with "on menu interact" never running, so a shop could not refuse it and a
-backpack could not see it. Now one drag is one interaction, with every slot it reached in "the dragged
-slots" and -- in a static menu, the only one with a real cursor -- the carried stack in "the cursor
-item", and "cancel event" refuses all of it at once.
-[*]Locked icons: a layout's icon slots can be made the menu's own, so no click, shift click, number key,
-offhand swap, drop or double-click collect can take from them or put anything in, and a drag touching one
-is refused as a whole. It is a static menu's switch: a phantom window cannot move anything anyway. A slot
-callback still fires, which is how a shop keeps its goods in place.
-[*]A page can be a list. Map a list of items to one key and fill it for one player with a single call --
-extra items are dropped, leftover cells cleared, and the window updates once instead of once per cell.
-"the menu list index" tells you which result was clicked.
-[*]Menus that hide the player inventory can give those rows to the menu. "player layout" is what
-"player inventory layout" is called now, and in a phantom menu writing it hides that half, so the layout
-can no longer quietly do nothing; on a static menu it warns once and changes nothing.
-[/LIST]
-
-[B]Changed[/B]
-[LIST]
-[*]There is no config file any more. "enable-async-check" and "force-truecolor" are gone, along with the
-config.yml they lived in: the plugin has no commands, no permissions and no options, the main-thread check
-cannot be turned off, and the banner asks the console whether it can print colour instead of being told.
-[*]"the viewers of %menu%" is "the menu viewers of %menu%" now. Skript 2.16 registers a "viewer[s]"
-property of its own over any object and registers it first, so the old form was answered by Skript and
-returned nothing. "all players viewing %menu%" is unchanged.
-[*]The old gui syntax is removed: "create a gui ...", "%players% (has|have) a gui [open]" and
-"the player's gui". Use the menu syntax, "the menu session of player", and
-"if the menu session of player is set:".
-[/LIST]
-
-[B]Fixed[/B]
-[LIST]
-[*]Every title syntax used to crash. "create menu ... titled ...", "insert page ... with title ...",
-"update title ..." and the rest threw an internal error as soon as a script ran it, so a menu created
-that way was never created. The title is now just the value -- plain text, with "&a", "&l" and the
-usual colour codes.
-[*]A title prefix is rejected instead of rendered. Writing "string:Main Menu" or "component:Main Menu"
--- prefixes from old documentation -- made the whole text, prefix included, the title; now the addon
-says so out loud.
-[*]Page numbers start at 1 everywhere. "the page" in "on menu interact" reported the page's 0-based
-position in the menu's list, so it disagreed with every other page number a script sees.
-[*]"cancel event" works in "on menu open" and "on page turn". One of the two ignored the argument and
-cancelled regardless, the other never cancelled.
-[*]"update title of page N" retitles only the players looking at page N. It used to retitle the window
-of every viewer of the menu, so a player on another page saw the wrong title until they turned a page.
-[*]"open menu %menu% for player" for a player who already has that menu open goes to the page you asked
-for instead of failing with "already viewing this menu".
-[/LIST]
-
-Requires Paper 26.2, Skript 2.16.2, PacketEvents 2.13.0 and Java 25. The plugin declares api-version 26.2,
-so an older server refuses to load it instead of failing later. Downloads and the full English changelog
-are on the Releases page: https://github.com/heyhey123-git/xiaojie-gui/releases -- source, the wiki and
-the Chinese changelog (docs/CHANGELOG-zh.md) are in the repository:
-https://github.com/heyhey123-git/xiaojie-gui
+[URL=https://github.com/heyhey123-git/xiaojie-gui/releases]Download[/URL]
 
 [HR][/HR]
 
 [B][SIZE=4]xiaojie-gui 2.0.0 更新[/SIZE][/B]
 
-这一版把插件搬到 Paper 26.2 / Skript 2.16.2 / Java 25（PacketEvents 2.13.0 变成硬依赖），
-并修好了那些从来没能真正用起来的菜单语法。日常用法基本没变。
+Paper 26.2 上的 Skript 菜单插件：幽灵/真实窗口、分页、列表页、只对某个玩家生效的格子、定义一次多处复用的按钮。旧的 gui 语法已删除，页码从 1 开始，标题不再崩。
 
-[B]新增[/B]
-[LIST]
-[*]现在可以为 barrel、ender chest、dispenser、enchanting、cartography、crafter 这些界面创建
-菜单了。以前它们会报 "Unsupported inventory type"，因为没有对应的布局。
-[*]拖拽被真正处理了。以前只有恰好扫过一格的拖拽能被插件看到；一次真正的拖拽会在没有任何
-"on menu interact" 的情况下改变窗口，商店拦不住，背包也看不到。现在一次拖拽就是一次交互，
-"the dragged slots" 是它扫过的所有格子，"the cursor item" 是玩家带进来的那一叠（只有 static 菜单
-有真正的光标，phantom 窗口没有），"cancel event" 一次性拒绝整次拖拽。
-[*]锁定图标：可以让布局里有图标的格子变成菜单自己的，点击、Shift 点击、数字键、副手交换、丢出、
-双击收集都拿不走也放不进，碰到这些格子的拖拽整次拒绝。这是 static 菜单的开关：phantom 窗口本来
-就什么都动不了。格子回调照常触发，商店的商品因此可以原地不动。
-[*]一页可以做成列表页。把一个列表映射给一个 key，然后为某个玩家一次填好：多余物品丢掉，
-没填满的格子清空，窗口只更新一次而不是每格一次。点到第几个结果用 "the menu list index" 读。
-[*]隐藏玩家背包的菜单可以把那几行收归菜单自己。原来的 "player inventory layout" 现在叫
-"player layout"，在 phantom 菜单里写上它就会隐藏那半场，所以布局不会再悄悄不生效；在 static
-菜单上写它则会警告一句、什么也不变。
-[/LIST]
-
-[B]变更[/B]
-[LIST]
-[*]不再有配置文件。"enable-async-check" 和 "force-truecolor" 连同它们所在的 config.yml 一起删除：
-插件没有命令、没有权限、没有选项，主线程检查不能关闭，横幅改为直接问控制台能不能显示颜色。
-[*]"the viewers of %menu%" 现在写成 "the menu viewers of %menu%"。Skript 2.16 自己注册了一个
-声明在任何对象上的 "viewer[s]" 属性，而且注册在插件之前，所以旧写法会被 Skript 接走并返回空。
-"all players viewing %menu%" 不变。
-[*]旧的 gui 语法已删除："create a gui ..."、"%players% (has|have) a gui [open]"、
-"the player's gui"。请改用菜单语法、"the menu session of player"，以及
-"if the menu session of player is set:"。
-[/LIST]
-
-[B]修复[/B]
-[LIST]
-[*]所有带标题的语法以前一用就崩。"create menu ... titled ..."、"insert page ... with title ..."、
-"update title ..." 等只要脚本执行到就会抛内部异常，菜单根本没被创建出来。现在标题就是值本身：
-纯文本，颜色码 "&a"、"&l" 这些和 Skript 其它地方一样可用。
-[*]标题前缀现在是明确报错，而不是照原样渲染。写 "string:主菜单" 或 "component:主菜单"
-（来自旧文档的前缀）会让整段文字连前缀一起变成标题；现在插件会直接说清楚。
-[*]页码在所有地方都从 1 开始。"on menu interact" 里的 "the page" 以前报的是该页在菜单列表里的
-0 基下标，和脚本能看到的其它页码都对不上。
-[*]"on menu open" 和 "on page turn" 里的 "cancel event" 现在真的生效了：这两者一个忽略参数
-恒取消，一个永远不取消。
-[*]"update title of page N" 现在只改正在看第 N 页的玩家。以前它会改掉该菜单所有观众的窗口标题，
-在第 2 页的人会一直看到第 1 页的标题，直到他翻页。
-[*]对一个已经打开该菜单的玩家再执行 "open menu %menu% for player"，现在会跳到你指定的那一页，
-而不是报 "already viewing this menu"。
-[/LIST]
-
-运行环境：Paper 26.2、Skript 2.16.2、PacketEvents 2.13.0、Java 25。插件声明了 api-version 26.2，
-更旧的服务端会直接拒绝加载，而不是加载成功后再报奇怪的错。下载与完整英文更新日志在 Releases 页：
-https://github.com/heyhey123-git/xiaojie-gui/releases -- 源码、文档和中文更新日志
-（docs/CHANGELOG-zh.md）在仓库：https://github.com/heyhey123-git/xiaojie-gui
+[URL=https://github.com/heyhey123-git/xiaojie-gui/releases]下载与更新日志[/URL]
