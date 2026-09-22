@@ -107,9 +107,9 @@ clear the menu window of player and refresh
 
 | 语法 | 做什么 |
 |---|---|
-| `close [the] [menu] [(session|window)] %menusession%` | 关闭窗口，并触发 `on menu close` |
-| `refresh [the slot %-number% in] [the] [menu] [(session|window)] %menusession%` | 重新发送指定格子的内容；未指定格子时发送整个窗口 |
-| `clear [the] [menu] [(session|window)] %menusession% [and refresh]` | 清空窗口内容，但不关闭窗口 |
+| `close [the] [menu] [(session\|window)] %menusession%` | 关闭窗口，并触发 `on menu close` |
+| `refresh [the slot %-number% in] [the] [menu] [(session\|window)] %menusession%` | 重新发送指定格子的内容；未指定格子时发送整个窗口 |
+| `clear [the] [menu] [(session\|window)] %menusession% [and refresh]` | 清空窗口内容，但不关闭窗口 |
 
 `refresh` 在 `static` 模式下不执行操作，因为该模式使用服务端真实库存，由服务端同步内容。
 

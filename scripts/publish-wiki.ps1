@@ -232,6 +232,104 @@ foreach ($page in $rendered.Keys) {
         }
     }
 }
+
+# A table row is split on its pipes before anything inside it is read as Markdown, so a bare pipe in the
+# syntax a cell shows -- the alternation in `(session|window)`, say -- quietly becomes a column delimiter
+# and pushes the remainder of the row out of its cell. Writing it as `\|` is what GitHub asks for, and it
+# is easy to leave out, because the source line still reads correctly on its own. The pages are checked
+# here, beside the link checks, so that a table GitHub would lay out wrongly is reported rather than
+# published.
+#
+# A row that no longer has the width of its own separator is a table that will render wrongly, and that
+# is an error. A cell left with an odd number of backticks is a code span a pipe has cut in half, which
+# is the same mistake seen from the other side; it is reported as a warning, because a lone backtick
+# written as text would look the same and should not be able to stop the wiki from being published.
+function Split-TableRow {
+    param([string]$Line)
+
+    $cells = @([regex]::Split($Line, '(?<!\\)\|'))
+    if ($cells.Count -gt 0 -and $cells[0].Trim() -eq '') {
+        $cells = if ($cells.Count -gt 1) { @($cells[1..($cells.Count - 1)]) } else { @() }
+    }
+    if ($cells.Count -gt 0 -and $cells[-1].Trim() -eq '') {
+        $cells = if ($cells.Count -gt 1) { @($cells[0..($cells.Count - 2)]) } else { @() }
+    }
+    return $cells
+}
+
+function Get-TableProblems {
+    param([string]$Page, [string]$Text)
+
+    $found = @()
+    $expected = 0
+    $inFence = $false
+    $lines = $Text -split "`n"
+
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
+
+        # A fenced block is shown as it was written, so nothing in it is a table.
+        if ($line -match '^\s*(```|~~~)') {
+            $inFence = -not $inFence
+            $expected = 0
+            continue
+        }
+        if ($inFence) {
+            continue
+        }
+
+        # The separator row is what tells a table apart from prose that happens to hold a pipe, and every
+        # row under it is expected to have the same number of cells as it does.
+        if ($line -match '\|' -and $line -match '^\s*\|?[:\-\s|]*-[:\-\s|]*\|?\s*$') {
+            $expected = (@(Split-TableRow -Line $line)).Count
+            if ($i -gt 0) {
+                $header = @(Split-TableRow -Line $lines[$i - 1])
+                if ($header.Count -ne $expected) {
+                    $found += [pscustomobject]@{
+                        Level   = 'Error'
+                        Message = "'$Page' line ${i}: the header has $($header.Count) cells under a table of $expected."
+                    }
+                }
+            }
+            continue
+        }
+        if ($expected -eq 0) {
+            continue
+        }
+        if ($line.Trim() -eq '' -or $line -notmatch '\|') {
+            $expected = 0
+            continue
+        }
+
+        $cells = @(Split-TableRow -Line $line)
+        if ($cells.Count -ne $expected) {
+            $found += [pscustomobject]@{
+                Level   = 'Error'
+                Message = "'$Page' line $($i + 1): a row of $($cells.Count) cells under a table of $expected."
+            }
+        }
+        foreach ($cell in $cells) {
+            if ((([regex]::Matches($cell, '`')).Count % 2) -ne 0) {
+                $found += [pscustomobject]@{
+                    Level   = 'Warning'
+                    Message = "'$Page' line $($i + 1): a cell with an odd number of backticks; check that no pipe cut a code span in half."
+                }
+            }
+        }
+    }
+    return $found
+}
+
+foreach ($page in $rendered.Keys) {
+    foreach ($finding in @(Get-TableProblems -Page $page -Text $rendered[$page])) {
+        if ($finding.Level -eq 'Warning') {
+            Write-Warning $finding.Message
+        } else {
+            $problems += $finding.Message
+        }
+    }
+}
+
 if ($problems.Count -gt 0) {
     throw ($problems -join [System.Environment]::NewLine)
 }

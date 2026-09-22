@@ -117,9 +117,9 @@ clear the menu window of player and refresh
 
 | Syntax | What it does |
 |---|---|
-| `close [the] [menu] [(session|window)] %menusession%` | closes this window, it disappears, and `on menu close` fires |
-| `refresh [the slot %-number% in] [the] [menu] [(session|window)] %menusession%` | resends contents: with a slot it sends only that one slot, otherwise the whole window |
-| `clear [the] [menu] [(session|window)] %menusession% [and refresh]` | empties the window's contents without **closing** it |
+| `close [the] [menu] [(session\|window)] %menusession%` | closes this window, it disappears, and `on menu close` fires |
+| `refresh [the slot %-number% in] [the] [menu] [(session\|window)] %menusession%` | resends contents: with a slot it sends only that one slot, otherwise the whole window |
+| `clear [the] [menu] [(session\|window)] %menusession% [and refresh]` | empties the window's contents without **closing** it |
 
 `refresh` does nothing in `static` mode — there the contents are held by a real server-side inventory,
 and the client sees the latest state on its own.
