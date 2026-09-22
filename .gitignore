@@ -17,11 +17,12 @@ docs/*.bbcode.txt
 logs/
 
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-.idea/
+# The IDE's folder is one person's state, with one exception: `.idea/icon.png` is the project's own
+# icon, which IntelliJ shows in the recent-projects list, the title bar and the taskbar, so the icon
+# travels with the checkout instead of being set by hand on every machine. Written as `.idea/*`
+# rather than `.idea/`, because git cannot re-include a file under an excluded directory.
+.idea/*
+!.idea/icon.png
 *.iws
 *.iml
 *.ipr
