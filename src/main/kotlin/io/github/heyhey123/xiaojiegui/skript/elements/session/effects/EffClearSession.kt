@@ -54,7 +54,7 @@ class EffClearSession : Effect() {
     override fun execute(event: Event?) {
         val session = exprSession.getSingle(event)
         if (session == null) {
-            error(
+            this.error(
                 "Menu session cannot be null: ${this.toString(event, true)}"
             )
             return

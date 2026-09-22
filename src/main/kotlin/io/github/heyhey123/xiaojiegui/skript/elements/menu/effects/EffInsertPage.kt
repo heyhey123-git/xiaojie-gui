@@ -97,7 +97,7 @@ class EffInsertPage : Effect() {
             else -> null
         }
         if (menu == null) {
-            error("You must specify a menu to insert page to when not in a menu event.")
+            this.error("You must specify a menu to insert page to when not in a menu event.")
             return
         }
         val pagesIndexes = pagesIndexesExpr?.getArray(event)?.map { it.toInt() }.orEmpty()

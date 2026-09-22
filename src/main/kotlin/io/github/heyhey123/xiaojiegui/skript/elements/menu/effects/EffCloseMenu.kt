@@ -52,7 +52,7 @@ class EffCloseMenu : Effect() {
         val player = playerExpr.getSingle(event) ?: return
 
         if (!Bukkit.isPrimaryThread()) {
-            error(
+            this.error(
                 "Menu can only be closed from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"
@@ -60,7 +60,7 @@ class EffCloseMenu : Effect() {
             return
         }
 
-        MenuSession.querySession(player)?.close() ?: error(
+        MenuSession.querySession(player)?.close() ?: this.error(
             "Cannot close menu for player ${player.name} because they do not have an open menu."
         )
     }

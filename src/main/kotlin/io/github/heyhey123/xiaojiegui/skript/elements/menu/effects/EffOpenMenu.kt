@@ -76,7 +76,7 @@ class EffOpenMenu : Effect() {
         }
 
         if (menu == null) {
-            error("Failed to get the menu to open. Please check your code.")
+            this.error("Failed to get the menu to open. Please check your code.")
             return
         }
 
@@ -84,7 +84,7 @@ class EffOpenMenu : Effect() {
         // come from the merchant API. Saying so here is the difference between a script author reading one line
         // and reading a stack trace; it is checked before the player because no player can make it work.
         if (menu.properties.mode == Receptacle.Mode.STATIC && !menu.inventoryType.isCreatable) {
-            error(
+            this.error(
                 "Unsupported inventory type: ${menu.inventoryType}. A static menu shows a real inventory, and " +
                     "Bukkit cannot create this one, so there is nothing to open. Use phantom mode for it."
             )
@@ -92,7 +92,7 @@ class EffOpenMenu : Effect() {
         }
         val player = playerExpr.getSingle(event)
         if (player == null) {
-            error(
+            this.error(
                 "Player expression returned null. Cannot open menu."
             )
             return
@@ -101,7 +101,7 @@ class EffOpenMenu : Effect() {
         val pageNum = pageExpr?.getSingle(event)?.toInt()
 
         if (!Bukkit.isPrimaryThread()) {
-            error(
+            this.error(
                 "Menu can only be opened from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"
@@ -111,7 +111,7 @@ class EffOpenMenu : Effect() {
 
         val targetPage = pageNum ?: menu.properties.defaultPage
         if (targetPage !in 1..menu.size) {
-            error("Page $targetPage does not exist in this menu.")
+            this.error("Page $targetPage does not exist in this menu.")
             return
         }
         val session = MenuSession.querySession(player)
@@ -120,7 +120,7 @@ class EffOpenMenu : Effect() {
             session.page != targetPage &&
             menu.pages[targetPage].layout != session.receptacle?.layout
         ) {
-            error("Cannot turn to page $targetPage with a different inventory layout. The current page is unchanged.")
+            this.error("Cannot turn to page $targetPage with a different inventory layout. The current page is unchanged.")
             return
         }
         menu.open(player, targetPage)

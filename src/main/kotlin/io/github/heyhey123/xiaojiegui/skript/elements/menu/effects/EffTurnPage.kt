@@ -71,27 +71,27 @@ class EffTurnPage : Effect() {
     override fun execute(event: Event?) {
         val page = pageExpr.getSingle(event)?.toInt()
         if (page == null) {
-            error("Page number cannot be null.")
+            this.error("Page number cannot be null.")
             return
         }
 
         val player = playerExpr.getSingle(event)
         if (player == null) {
-            error("Player cannot be null.")
+            this.error("Player cannot be null.")
             return
         }
 
         val session = MenuSession.querySession(player)
         val menu = session?.menu
         if (session == null || menu == null) {
-            error("Player $player does not have an open menu session.")
+            this.error("Player $player does not have an open menu session.")
             return
         }
 
         val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event, this)
 
         if (!Bukkit.isPrimaryThread()) {
-            error(
+            this.error(
                 "Menu page can only be turned from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"
@@ -100,11 +100,11 @@ class EffTurnPage : Effect() {
         }
 
         if (page !in 1..menu.size) {
-            error("Page $page does not exist in this menu.")
+            this.error("Page $page does not exist in this menu.")
             return
         }
         if (menu.pages[page].layout != session.receptacle?.layout) {
-            error("Cannot turn to page $page with a different inventory layout. The current page is unchanged.")
+            this.error("Cannot turn to page $page with a different inventory layout. The current page is unchanged.")
             return
         }
         menu.turnPage(player, page, title)

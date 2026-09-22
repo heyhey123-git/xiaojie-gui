@@ -59,13 +59,13 @@ class ExprDefaultTitle : SimplePropertyExpression<Menu, Any>() {
         val menu = expr.getSingle(event) ?: return
         val titleArg = delta?.get(0)
         if (titleArg == null) {
-            error("Title cannot be null")
+            this.error("Title cannot be null")
             return
         }
 
         val title = ComponentHelper.extractComponentOrNull(titleArg)
         if (title == null) {
-            error("Valid title required.")
+            this.error("Valid title required.")
             return
         }
 

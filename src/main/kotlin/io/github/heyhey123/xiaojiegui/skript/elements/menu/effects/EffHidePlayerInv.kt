@@ -58,7 +58,7 @@ class EffHidePlayerInv : Effect() {
     override fun execute(event: Event?) {
         val menu = menuExpr.getSingle(event)
         if (menu == null) {
-            error("Menu to set player inventory visibility cannot be null.")
+            this.error("Menu to set player inventory visibility cannot be null.")
             return
         }
 

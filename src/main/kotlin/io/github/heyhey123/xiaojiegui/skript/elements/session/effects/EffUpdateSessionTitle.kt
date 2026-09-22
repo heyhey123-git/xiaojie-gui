@@ -70,16 +70,16 @@ class EffUpdateSessionTitle : Effect() {
     override fun execute(event: Event?) {
         val session = sessionExpr.getSingle(event)
         if (session == null) {
-            error("Menu session cannot be null when updating title.")
+            this.error("Menu session cannot be null when updating title.")
             return
         }
         val title = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event, this)
         if (title == null) {
-            error("Valid title is required.")
+            this.error("Valid title is required.")
             return
         }
         if (!Bukkit.isPrimaryThread()) {
-            error(
+            this.error(
                 "Menu session title can only be updated from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"

@@ -96,7 +96,7 @@ class EffSecSlotCallback : EffectSection() {
 
     override fun walk(event: Event?): TriggerItem? {
         if (!hasSection()) {
-            error("No section found to handle the slot callback.")
+            this.error("No section found to handle the slot callback.")
             return walk(event, false)
         }
 
@@ -105,7 +105,7 @@ class EffSecSlotCallback : EffectSection() {
             else -> null
         }
         if (menu == null) {
-            error("Failed to get the menu to set slot callback. Please check your code.")
+            this.error("Failed to get the menu to set slot callback. Please check your code.")
             return walk(event, false)
         }
 
@@ -113,12 +113,12 @@ class EffSecSlotCallback : EffectSection() {
         val pages = this.pagesExpr?.getAll(event)?.map { it.toInt() } ?: listOf(menu.properties.defaultPage)
 
         if (slots.isEmpty()) {
-            error("Slot cannot be empty.")
+            this.error("Slot cannot be empty.")
             return walk(event, false)
         }
 
         if (pages.isEmpty()) {
-            error("Page cannot be empty.")
+            this.error("Page cannot be empty.")
             return walk(event, false)
         }
 

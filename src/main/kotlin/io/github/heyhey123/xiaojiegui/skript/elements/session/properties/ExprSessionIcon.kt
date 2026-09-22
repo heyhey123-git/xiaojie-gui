@@ -90,7 +90,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
         val slots = slotsExpr.getAll(event).map { it.toInt() }
 
         if (!Bukkit.isPrimaryThread()) {
-            error(
+            this.error(
                 "Menu session icons can only be modified from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"
@@ -104,7 +104,7 @@ class ExprSessionIcon : SimpleExpression<ItemStack>() {
                 // would clear the slot instead of reporting the mistake.
                 val item = delta?.firstOrNull() as? ItemStack
                 if (item == null) {
-                    error("Icon to set must be an item stack: ${this.toString(event, true)}")
+                    this.error("Icon to set must be an item stack: ${this.toString(event, true)}")
                     return
                 }
                 session.setIcons(slots.associateWith { item }, true)

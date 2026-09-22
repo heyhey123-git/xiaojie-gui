@@ -50,14 +50,14 @@ class EffCloseSession : Effect() {
     override fun execute(event: Event?) {
         val session = sessionExpr.getSingle(event)
         if (session == null) {
-            error(
+            this.error(
                 "Menu session cannot be null: ${this.toString(event, true)}"
             )
             return
         }
 
         if (!Bukkit.isPrimaryThread()) {
-            error(
+            this.error(
                 "Menu session can only be closed from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"

@@ -214,19 +214,19 @@ class SecBuildMenu : Section() {
     override fun walk(event: Event?): TriggerItem? {
         val inventoryType = this.inventoryTypeExpr.getSingle(event)
         if (inventoryType == null) {
-            error("Inventory type cannot be null.")
+            this.error("Inventory type cannot be null.")
             return walk(event, false)
         }
 
         if (!ViewLayout.isBuildable(inventoryType)) {
-            error("Unsupported inventory type: $inventoryType. The client has no window for it, so the menu was not created.")
+            this.error("Unsupported inventory type: $inventoryType. The client has no window for it, so the menu was not created.")
             return walk(event, false)
         }
 
         val title: Component
         val titleData = titleExpr.getSingle(event)
         if (titleData == null) {
-            error("Menu title cannot be null.")
+            this.error("Menu title cannot be null.")
             return walk(event, false)
         }
 
@@ -238,7 +238,7 @@ class SecBuildMenu : Section() {
         } else {
             val convertedTitle = titleExpr.getConvertedExpression(String::class.java)?.getSingle(event)
             if (convertedTitle == null) {
-                error("The given menu title is not a textcomponent, and cannot be converted to string.")
+                this.error("The given menu title is not a textcomponent, and cannot be converted to string.")
                 return walk(event, false)
             }
             title = LegacyComponentSerializer.legacySection().deserialize(convertedTitle)

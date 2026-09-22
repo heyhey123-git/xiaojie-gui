@@ -72,7 +72,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
-                error(
+                this.error(
                     "Cannot determine menu: no menu was provided " +
                         "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
@@ -81,7 +81,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
         }
 
         if (page !in 1..menu.size) {
-            error(
+            this.error(
                 "Page index $page is out of bounds " +
                     "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
                     "with ${menu.pages.size} pages."
@@ -109,7 +109,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
-                error(
+                this.error(
                     "Cannot determine menu: no menu was provided " +
                         "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
@@ -118,7 +118,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
         }
 
         if (page !in 1..menu.size) {
-            error(
+            this.error(
                 "Page index $page is out of bounds " +
                     "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
                     "with ${menu.pages.size} pages."
@@ -153,7 +153,7 @@ class ExprKey2Slot : SimpleExpression<Number>() {
             }
 
             else -> {
-                error("Change mode $mode is not supported for slot of key expression.")
+                this.error("Change mode $mode is not supported for slot of key expression.")
             }
         }
     }

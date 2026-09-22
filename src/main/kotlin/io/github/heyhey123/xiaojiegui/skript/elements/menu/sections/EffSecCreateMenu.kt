@@ -162,7 +162,7 @@ class EffSecCreateMenu : EffectSection() {
     override fun walk(event: Event?): TriggerItem? {
         val inventoryType = this.inventoryTypeExpr.getSingle(event)
         if (inventoryType == null) {
-            error("Inventory type is required.")
+            this.error("Inventory type is required.")
             return walk(event, false)
         }
 
@@ -170,14 +170,14 @@ class EffSecCreateMenu : EffectSection() {
         // type is the author's to choose: say which window is missing and stop before anything is created,
         // rather than letting the layout lookup throw a stack trace over a one-word mistake.
         if (!ViewLayout.isBuildable(inventoryType)) {
-            error("Unsupported inventory type: $inventoryType. The client has no window for it, so the menu was not created.")
+            this.error("Unsupported inventory type: $inventoryType. The client has no window for it, so the menu was not created.")
             return walk(event, false)
         }
 
         val defaultTitle: Component? = ComponentHelper.resolveTitleComponentOrNull(titleExpr, event, this)
 
         if (defaultTitle == null) {
-            error("Valid Menu title is required.")
+            this.error("Valid Menu title is required.")
             return walk(event, false)
         } // title is required
 

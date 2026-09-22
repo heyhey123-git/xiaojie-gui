@@ -53,19 +53,19 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
         if (mode != Changer.ChangeMode.SET) return
         val session = expr.getSingle(event)
         if (session == null) {
-            error("Menu session cannot be null.")
+            this.error("Menu session cannot be null.")
             return
         }
 
         val titleArg = delta?.firstOrNull()
         if (titleArg == null) {
-            error("Title cannot be null.")
+            this.error("Title cannot be null.")
             return
         }
 
         val title = ComponentHelper.extractComponentOrNull(titleArg)
         if (title == null) {
-            error("Valid title required.")
+            this.error("Valid title required.")
             return
         }
 

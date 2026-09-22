@@ -123,7 +123,7 @@ class SecInsertPage : Section() {
             else -> null
         }
         if (menu == null) {
-            error("You must specify a menu to insert page to when not in a menu event.")
+            this.error("You must specify a menu to insert page to when not in a menu event.")
             return walk(event, false)
         }
 
@@ -144,7 +144,7 @@ class SecInsertPage : Section() {
             } else {
                 val convertedTitle = titleExpr!!.getConvertedExpression(String::class.java)?.getSingle(event)
                 if (convertedTitle == null) {
-                    error("The given menu title is not a textcomponent, and cannot be converted to string.")
+                    this.error("The given menu title is not a textcomponent, and cannot be converted to string.")
                     return walk(event, false)
                 }
                 title = LegacyComponentSerializer.legacySection().deserialize(convertedTitle)

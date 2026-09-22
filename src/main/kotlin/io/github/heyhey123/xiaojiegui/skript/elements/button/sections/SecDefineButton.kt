@@ -114,20 +114,20 @@ class SecDefineButton : Section() {
     override fun walk(event: Event?): TriggerItem? {
         val id = idExpr.getSingle(event)
         if (id == null) {
-            error("Failed to get the button ID in register button section.")
+            this.error("Failed to get the button ID in register button section.")
             return walk(event, false)
         }
 
         val icon = iconExpr.getSingle(event)
         if (icon == null) {
-            error("Failed to get the button icon in register button section.")
+            this.error("Failed to get the button icon in register button section.")
             return walk(event, false)
         }
 
         // The click callback runs in the menu's event but reads the local variables of this event, so
         // there has to be one. A button without them would fail inside Skript's own variable lookup.
         if (event == null) {
-            error("The register button section needs an event: the button's click callback copies this event's local variables.")
+            this.error("The register button section needs an event: the button's click callback copies this event's local variables.")
             return walk(event, false)
         }
 

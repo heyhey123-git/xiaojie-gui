@@ -59,7 +59,7 @@ class EffLockIcons : Effect() {
     override fun execute(event: Event?) {
         val menu = menuExpr.getSingle(event)
         if (menu == null) {
-            error("Menu whose icons to lock cannot be null.")
+            this.error("Menu whose icons to lock cannot be null.")
             return
         }
 

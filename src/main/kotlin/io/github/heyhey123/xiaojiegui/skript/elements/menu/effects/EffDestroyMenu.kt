@@ -64,7 +64,7 @@ class EffDestroyMenu : Effect() {
         val menu = menuExpr?.getSingle(event)
             ?: idExpr?.getSingle(event)?.let { Menu.menusWithId[it] }
         if (menu == null) {
-            error("Menu to destroy cannot be null.")
+            this.error("Menu to destroy cannot be null.")
             return
         }
 

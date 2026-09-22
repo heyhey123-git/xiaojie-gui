@@ -72,7 +72,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
-                error(
+                this.error(
                     "Cannot determine menu: no menu was provided " +
                         "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
@@ -81,7 +81,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
         }
 
         if (page !in 1..menu.size) {
-            error(
+            this.error(
                 "Page index $page is out of bounds " +
                     "for menu '${menuExpr?.toString(event, true) ?: "current menu"}' " +
                     "with ${menu.pages.size} pages."
@@ -112,7 +112,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
             is MenuEvent -> event.menu
             is ProvideMenuEvent -> event.menu
             else -> {
-                error(
+                this.error(
                     "Cannot determine menu: no menu was provided " +
                         "and the current event is not a MenuEvent or ProvideMenuEvent."
                 )
@@ -121,7 +121,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
         }
 
         if (page !in 1..menu.size) {
-            error("Page index $page is out of bounds for the menu.")
+            this.error("Page index $page is out of bounds for the menu.")
             return
         }
 
@@ -132,7 +132,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
             Changer.ChangeMode.RESET,
             Changer.ChangeMode.DELETE -> {
                 if (entry == null) {
-                    error("Slot $slot in page $page of menu has no associated key to remove.")
+                    this.error("Slot $slot in page $page of menu has no associated key to remove.")
                     return
                 }
                 entry.value.remove(slot)
@@ -156,7 +156,7 @@ class ExprSlot2Key : SimpleExpression<String>() {
                 keyToSlots.computeIfAbsent(newKey) { mutableSetOf() }.add(slot)
             }
 
-            else -> error("Change mode $mode is not supported for this expression.")
+            else -> this.error("Change mode $mode is not supported for this expression.")
         }
     }
 

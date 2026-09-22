@@ -136,19 +136,19 @@ class EffSecOverrideSlot : EffectSection() {
             else -> null
         }
         if (menu == null) {
-            error("Menu cannot be null.")
+            this.error("Menu cannot be null.")
             return walk(event, false)
         }
 
         val slots = slotsExpr.getAll(event).map { it.toInt() }
         if (slots.isEmpty()) {
-            error("Slot cannot be null.")
+            this.error("Slot cannot be null.")
             return walk(event, false)
         }
 
         val pages = pagesExpr?.getAll(event)?.map { it.toInt() } ?: listOf(menu.properties.defaultPage)
         if (pages.isEmpty()) {
-            error("Page cannot be empty.")
+            this.error("Page cannot be empty.")
             return walk(event, false)
         }
 
@@ -157,7 +157,7 @@ class EffSecOverrideSlot : EffectSection() {
         val item = button?.let { button.item } ?: itemExpr?.getSingle(event)
 
         if (button == null && buttonIdExpr != null) {
-            error("Button with ID '${buttonIdExpr?.getSingle(event)}' not found.")
+            this.error("Button with ID '${buttonIdExpr?.getSingle(event)}' not found.")
             return walk(event, false)
         }
 

@@ -63,12 +63,12 @@ class ExprEventTitle : SimpleExpression<Any>() {
         if (mode != Changer.ChangeMode.SET) return
         val titleInput = delta?.firstOrNull()
         if (titleInput == null) {
-            error("Title cannot be null")
+            this.error("Title cannot be null")
             return
         }
         val newTitle = ComponentHelper.extractComponentOrNull(titleInput)
         if (newTitle == null) {
-            error("Valid title required.")
+            this.error("Valid title required.")
             return
         }
         event.title = newTitle

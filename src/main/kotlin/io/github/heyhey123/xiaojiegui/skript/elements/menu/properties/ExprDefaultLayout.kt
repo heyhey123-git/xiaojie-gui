@@ -68,17 +68,17 @@ class ExprDefaultLayout : SimpleExpression<String>() {
         if (mode != Changer.ChangeMode.SET) return
         val menu = menuExpr.getSingle(event)
         if (menu == null) {
-            error("Menu cannot be null: ${this.toString(event, true)}")
+            this.error("Menu cannot be null: ${this.toString(event, true)}")
             return
         }
 
         if (delta == null) {
-            error("Layout cannot be null")
+            this.error("Layout cannot be null")
             return
         }
 
         if (delta.any { it !is String }) {
-            error("All layout rows must be strings.")
+            this.error("All layout rows must be strings.")
             return
         }
 

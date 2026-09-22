@@ -61,12 +61,12 @@ class EffSetMenuList : Effect() {
         val session = sessionExpr.getSingle(event) ?: return
         val menu = session.menu
         if (menu == null || session.page < 1) {
-            error("The menu session to fill a list in is not showing a menu.")
+            this.error("The menu session to fill a list in is not showing a menu.")
             return
         }
 
         if (!Bukkit.isPrimaryThread()) {
-            error(
+            this.error(
                 "Menu lists can only be filled from the main server thread, " +
                     "but got called from an asynchronous thread: ${Thread.currentThread().name}\n" +
                     "current statement: ${this.toString(event, true)}"
