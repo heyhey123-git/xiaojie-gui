@@ -124,6 +124,13 @@ class SecDefineButton : Section() {
             return walk(event, false)
         }
 
+        // The click callback runs in the menu's event but reads the local variables of this event, so
+        // there has to be one. A button without them would fail inside Skript's own variable lookup.
+        if (event == null) {
+            error("The register button section needs an event: the button's click callback copies this event's local variables.")
+            return walk(event, false)
+        }
+
         val executor = LocalsScopeRunner(event) { menuEvent ->
             walk(trigger, menuEvent)
         }

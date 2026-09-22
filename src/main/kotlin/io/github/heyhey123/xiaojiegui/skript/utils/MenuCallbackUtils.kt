@@ -27,7 +27,14 @@ object MenuCallbackUtils {
 
         val executor: LocalsScopeRunner? =
             if (button == null) {
-                LocalsScopeRunner(sourceEvent) { menuEvent ->
+                // The callback runs later, in the menu's own event, and reads the local variables of the
+                // event it was registered in. There are none to copy when that event is missing, and
+                // Skript holds its locals in a map that rejects a null key, so it is refused here with a
+                // sentence instead of failing inside Skript.
+                val provider = checkNotNull(sourceEvent) {
+                    "A click callback was registered without an event, so it has no local variables to copy."
+                }
+                LocalsScopeRunner(provider) { menuEvent ->
                     runTrigger(trigger, menuEvent)
                 }
             } else {
