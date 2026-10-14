@@ -25,6 +25,7 @@ on load:
     assert amount of stone in {_inventory} is 0 with "clear must empty a native inventory"
     create a phantom menu with chest inventory titled "Isolation" with layout "A" with id "syntax_isolation"
     set {_menu} to the menu with id "syntax_isolation"
+    assert {_menu}'s menu id is "syntax_isolation" with "possessive menu ID must resolve an untyped variable"
     set {_reference} to {_menu}
     clear {_reference}
     assert {_reference} is not set with "clear must delete an addon-valued variable"

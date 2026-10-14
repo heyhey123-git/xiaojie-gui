@@ -22,7 +22,7 @@ import org.skriptlang.skript.addon.SkriptAddon
 @Examples(
     "set {_menus::*} to all menus",
     "loop {_menus::*}:",
-    "    send \"Menu ID: %loop-value's id%\" to player"
+    "    send \"Menu ID: %loop-value's menu id%\" to player"
 )
 @Since("1.0.0")
 class ExprAllMenus : SimpleExpression<Menu>() {
