@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.1
+
+- Fix bare `clear {variable}` and `clear {list::*}` being parsed as a menu-window operation.
+  They keep Skript's deletion behavior, just like `delete`, even when the variable holds a menu or window.
+- Require a `menu`, `session` or `window` keyword for window `clear`, `close` and `refresh` operations.
+  Use `clear menu window {_window}` to empty a window. Existing explicit forms such as
+  `clear the menu window of player and refresh` remain supported. Bare `refresh {_chunk}` is left to
+  SkBee's chunk refresh effect.
+- Rename three properties to avoid other plugins capturing untyped variables: use
+  `the menu id of {_menu}` (SkBee bound IDs), `the menu viewer of {_window}` and
+  `the menu window title of {_window}` (Skript viewer/title properties). Update scripts using the old
+  `id`, `viewer` or `title` property names for these addon objects; their possessive forms use the same names.
+- Require `with id` for menu lookup: use `menu with id "main"` rather than `menu "main"`.
+  The shorter lookup could also swallow `menu id of {_menu}` as a lookup using SkBee's bound ID.
+- Fix the documented `when slot … of the menu {_menu} is clicked` callback to read the menu variable
+  directly, rather than accidentally relying on the removed lookup shorthand.
+- Add server regressions for native variable deletion and SkBee NBT/chunk syntax, and client checks
+  that deleting a window variable leaves its contents intact and the named window properties work.
+
 ## 2.0.0
 
 This release moves the addon to Minecraft 26.2 / Skript 2.16 and fixes the menu syntax that did not work.

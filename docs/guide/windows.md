@@ -46,10 +46,10 @@ this expression". Asking by player works too, since `player` inside an event is 
 
 | What you want | How to write it |
 |---|---|
-| which player this window belongs to | `the viewer of {_window}` |
+| which player this window belongs to | `the menu viewer of {_window}` |
 | which menu this window belongs to | `the menu of {_window}` |
 | which page this window is on | `the page of {_window}` |
-| this window's title | `the title of {_window}` |
+| this window's title | `the menu window title of {_window}` |
 | the item in a slot of the window | `icon in slot 5 of {_window}` |
 | the slots of its container that hold something | `the occupied slots of {_window}` |
 | everything its container holds, in slot order | `the menu contents of {_window}` |
@@ -57,6 +57,9 @@ this expression". Asking by player works too, since `player` inside an event is 
 
 The other way round, you can also get the page number straight from the player:
 `player's current menu page`.
+
+Use `menu viewer` and `menu window title` for window properties. Skript's generic `viewer` and `title`
+properties can capture an untyped variable before this addon gets to parse it.
 
 The last two are what saving a window is made of: `the occupied slots of {_window}` says which slots hold
 something, and `the menu contents of {_window}` is those items themselves, in slot order. Both read the
@@ -99,7 +102,7 @@ in a slot the page owns is overwritten by it; a `refresh` is not -- it re-sends 
 holds, so the icon stays. To change it for everyone, use `override slot` / `map key` (see
 [Filling Menus](filling-menus.md)).
 
-Both `set the title of {_window} to "…"` and `update title of the menu window … to "…"` change the
+Both `set the menu window title of {_window} to "…"` and `update title of the menu window … to "…"` change the
 title; the first changes the value directly, the second adds an `and refresh` switch.
 
 ## Operations on a window
@@ -117,9 +120,13 @@ clear the menu window of player and refresh
 
 | Syntax | What it does |
 |---|---|
-| `close [the] [menu] [(session\|window)] %menusession%` | closes this window, it disappears, and `on menu close` fires |
-| `refresh [the slot %-number% in] [the] [menu] [(session\|window)] %menusession%` | resends contents: with a slot it sends only that one slot, otherwise the whole window |
-| `clear [the] [menu] [(session\|window)] %menusession% [and refresh]` | empties the window's contents without **closing** it |
+| `close [the] (menu [(session\|window)]\|session\|window) %menusession%` | closes this window, it disappears, and `on menu close` fires |
+| `refresh [the slot %-number% in] [the] (menu [(session\|window)]\|session\|window) %menusession%` | resends contents: with a slot it sends only that one slot, otherwise the whole window |
+| `clear [the] (menu [(session\|window)]\|session\|window) %menusession% [and refresh]` | empties the window's contents without **closing** it |
+
+At least one of `menu`, `session` or `window` is required. `clear {_window}` deletes the variable using
+Skript's normal behavior; it does not empty the window. The player forms also remain available:
+`clear/close/refresh the menu window of player` (write one operation at a time).
 
 `refresh` does nothing in `static` mode — there the contents are held by a real server-side inventory,
 and the client sees the latest state on its own.

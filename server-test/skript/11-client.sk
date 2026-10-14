@@ -58,6 +58,15 @@ on join:
     assert "%{_n::*}%" is "3" with "client layout: N must be at slot 3 only"
     log "XIAOJIE_SELFTEST detail: client menu layout -> A at %{_a::*}%, B at %{_b::*}%, C at %{_c::*}%, N at %{_n::*}%"
     open menu {_menu} for player
+    set {_window} to the menu window of player
+    assert the menu viewer of {_window} is player with "menu viewer must resolve through an untyped window variable"
+    assert "%the menu window title of {_window}%" is "Client Page One" with "window title must avoid Skript's generic title property"
+    set the menu window title of {_window} to "Client Page One"
+    set {_reference} to {_window}
+    clear {_reference}
+    assert {_reference} is not set with "bare clear must delete a window variable"
+    assert icon in slot 0 of {_window} is stone with "clearing a variable must leave its window contents intact"
+    refresh menu window {_window}
     set {_page} to the page of the menu session of player
     # No viewer count here: at `on join` the player is not yet resolvable through Bukkit, so `viewers of`
     # answers nothing even though the menu was just opened for them. The count is asserted on the clicks

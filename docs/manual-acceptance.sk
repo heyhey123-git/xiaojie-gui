@@ -414,7 +414,7 @@ command /acctype <text>:
 # ---------------------------------------------------------------------------------------------
 on menu interact:
     set {_menu} to the event-menu
-    set {_id} to the id of {_menu}
+    set {_id} to the menu id of {_menu}
     if {_id} is "acc_phantom" or "acc_drag" or "acc_lower" or "acc_locked":
         set {_dragged::*} to the dragged slots
         if {_dragged::*} is set:

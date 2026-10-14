@@ -13,8 +13,7 @@ import org.skriptlang.skript.addon.SkriptAddon
 @Name("Menu Inventory Type")
 @Description("The inventory type of a menu.")
 @Examples(
-    // The property takes the menu expression directly: `of menu {_menu}` parses `menu {_menu}` as a
-    // lookup by id instead.
+    // The property takes the menu expression directly; a lookup must say `menu with id ...`.
     "set {_type} to the inventory type of {_menu}",
     "send \"The inventory type is %{_type}%\" to player"
 )

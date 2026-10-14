@@ -43,6 +43,9 @@ destroy the menu with id "main"
 `menu with id "main"` is an **expression** that evaluates to that menu; it can be used anywhere a menu
 is needed. When there is no menu with that id, it returns nothing.
 
+Since 2.0.1, `with id` is required: `menu "main"` is no longer a lookup expression.
+Read an ID with `the menu id of {_menu}`; the explicit property name avoids SkBee's bound IDs.
+
 `destroy` deliberately has two patterns, because a pattern that has already eaten the word `menu`
 cannot let the menu expression start at `with id` — without the second one you would have to write
 `menu` twice.
@@ -50,11 +53,11 @@ cannot let the menu expression start at `with id` — without the second one you
 ## One easy trap: do not write `menu` in a property expression
 
 ```skript
-set {_id} to the id of menu {_menu}     # wrong: read as "look a menu up by id"
-set {_id} to the id of {_menu}          # right
+set {_id} to the menu id of menu {_menu}     # wrong: menu {_menu} is not an expression
+set {_id} to the menu id of {_menu}          # right
 ```
 
-`menu {_menu}` parses as "use `{_menu}` as an id to find a menu", not as "the menu named `{_menu}`".
+`menu {_menu}` is not an expression. Use `{_menu}` directly, or `menu with id "main"` for an ID lookup.
 Every `the … of {_menu}` in [Creating Menus](menus.md) follows that rule:
 
 ```skript

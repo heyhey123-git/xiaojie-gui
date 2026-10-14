@@ -119,9 +119,12 @@ Keep the code simple, friendly and reasonable, and do not abstract ahead of the 
   `[the] viewers of %menu%` is answered by Skript and returns nothing — silently, and only for the scripts
   that pass an untyped variable or a value Skript's property accepts. `ExprMenuViewers` is called
   `menu viewers` for that reason, and `Menu.kt`'s viewer comment says the same thing from the other side.
-- A `%type%` slot preceded by the literal word of that type (`menu %menu%`) parses its argument as a lookup
-  by id, so a variable put there finds nothing. Write the slot first: `menu viewers of %menu%`, not
-  `viewers of menu %menu%`.
+- Keep distinguishing words mandatory when an untyped variable can match a competing syntax: bare
+  `clear` belongs to Skript, and bare `refresh` can belong to SkBee's chunk effect. Window operations
+  require a `menu`, `session` or `window` keyword; menu lookups require `with id` so a property such as
+  `menu id of {_menu}` cannot become a lookup through another addon's `id` expression.
+- Property slots take the expression directly: `menu viewers of %menu%`. Do not prepend another `menu`
+  literal to that slot; `menu {_menu}` is not an expression.
 - One interaction is **one** event, however many slots it touched. A drag over four slots must not run a
   handler four times: a handler that pays out or gives an item would do it four times. Per-slot callbacks
   are the exception, and only because each belongs to one slot and is handed an event whose slot and icon

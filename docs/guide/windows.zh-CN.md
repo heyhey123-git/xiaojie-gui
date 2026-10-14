@@ -41,16 +41,19 @@ if {_window} is not set:
 
 | 属性 | 写法 |
 |---|---|
-| 窗口所属玩家 | `the viewer of {_window}` |
+| 窗口所属玩家 | `the menu viewer of {_window}` |
 | 窗口对应的菜单 | `the menu of {_window}` |
 | 当前页码 | `the page of {_window}` |
-| 窗口标题 | `the title of {_window}` |
+| 窗口标题 | `the menu window title of {_window}` |
 | 指定格子的物品 | `icon in slot 5 of {_window}` |
 | 容器中有物品的格子 | `the occupied slots of {_window}` |
 | 容器中的全部物品，按格子顺序排列 | `the menu contents of {_window}` |
 | 玩家当前的窗口 | `the menu window of player` |
 
 也可以直接通过玩家读取页码：`player's current menu page`。
+
+窗口属性请使用 `menu viewer` 和 `menu window title`。Skript 的通用 `viewer`、`title` 属性可能
+抢先匹配未确定类型的变量，导致读取不到插件的窗口值。
 
 保存窗口内容时，可以用 `the occupied slots of {_window}` 获取有物品的格子，
 或用 `the menu contents of {_window}` 按格子顺序读取物品。这两个表达式只读取布局对应的容器区域，
@@ -89,7 +92,7 @@ on menu interact:
 覆盖该页格子的临时图标；`refresh` 则只重新发送窗口当前内容，不会将临时图标还原。
 要修改共享内容，请使用 `override slot` / `map key`，详见[填充菜单](filling-menus.zh-CN.md)。
 
-`set the title of {_window} to "…"` 和 `update title of the menu window … to "…"` 都能修改标题。
+`set the menu window title of {_window} to "…"` 和 `update title of the menu window … to "…"` 都能修改标题。
 前者只改值，后者可以通过 `and refresh` 立即更新显示。
 
 ## 窗口上的操作
@@ -107,9 +110,13 @@ clear the menu window of player and refresh
 
 | 语法 | 做什么 |
 |---|---|
-| `close [the] [menu] [(session\|window)] %menusession%` | 关闭窗口，并触发 `on menu close` |
-| `refresh [the slot %-number% in] [the] [menu] [(session\|window)] %menusession%` | 重新发送指定格子的内容；未指定格子时发送整个窗口 |
-| `clear [the] [menu] [(session\|window)] %menusession% [and refresh]` | 清空窗口内容，但不关闭窗口 |
+| `close [the] (menu [(session\|window)]\|session\|window) %menusession%` | 关闭窗口，并触发 `on menu close` |
+| `refresh [the slot %-number% in] [the] (menu [(session\|window)]\|session\|window) %menusession%` | 重新发送指定格子的内容；未指定格子时发送整个窗口 |
+| `clear [the] (menu [(session\|window)]\|session\|window) %menusession% [and refresh]` | 清空窗口内容，但不关闭窗口 |
+
+`menu`、`session`、`window` 至少保留一个。`clear {_window}` 按 Skript 原生语义删除变量，
+不会清空它指向的窗口。`clear the menu window of player`、`close the menu window of player`、
+`refresh the menu window of player` 这些直接指定玩家的写法仍然可用。
 
 `refresh` 在 `static` 模式下不执行操作，因为该模式使用服务端真实库存，由服务端同步内容。
 

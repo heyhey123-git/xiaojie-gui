@@ -17,7 +17,8 @@ import org.skriptlang.skript.registration.SyntaxInfo
 @Name("Get Menu by ID")
 @Description(
     "Get a menu by its ID.",
-    "The ID is the one defined when creating the menu."
+    "The ID is the one defined when creating the menu.",
+    "The 'with id' keywords are required so menu properties are not parsed as ID lookups."
 )
 @Examples(
     "set {_menu} to menu with id \"main_menu\"",
@@ -32,7 +33,7 @@ class ExprMenuById : SimpleExpression<Menu>() {
                 addon,
                 ExprMenuById::class.java,
                 Menu::class.java,
-                "[the] (menu|gui) [with [the] id] %string%",
+                "[the] (menu|gui) with [the] id %string%",
                 priority = SyntaxInfo.COMBINED
             )
         }

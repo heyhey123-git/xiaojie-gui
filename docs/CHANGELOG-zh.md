@@ -1,5 +1,23 @@
 # 更新日志
 
+## 2.0.1
+
+- 修复 `clear {变量}`、`clear {列表::*}` 被当成菜单窗口操作的问题。它们与 `delete` 一样，保留
+  Skript 原生删除语义；变量保存菜单或窗口时，也只删除变量，不清空窗口内容。
+- 窗口的 `clear`、`close`、`refresh` 操作至少需要一个 `menu`、`session` 或 `window` 关键词。
+  清空窗口请用 `clear menu window {_window}`；`clear the menu window of player and refresh`
+  等已有明确写法仍然可用。`refresh {_chunk}` 留给 SkBee 的区块刷新语法。
+- 为避免未确定类型的变量被其他插件抢先匹配，三个属性改为：`the menu id of {_menu}`（避开
+  SkBee 的区域 ID）、`the menu viewer of {_window}`、`the menu window title of {_window}`（避开
+  Skript 的通用查看者和标题属性）。读取这些插件对象的旧 `id`、`viewer`、`title` 写法需要更新，
+  所有格写法也使用新的属性名。
+- 按 ID 查找菜单必须写 `with id`：使用 `menu with id "main"`，不再使用 `menu "main"`。
+  旧的简写还会把 `menu id of {_menu}` 当成用 SkBee 区域 ID 查找菜单。
+- 修复文档中的 `when slot … of the menu {_menu} is clicked` 回调写法，使它直接读取菜单变量，
+  不再误用已移除的查找简写。
+- 补充服务端回归测试，验证原生变量清理及 SkBee 的 NBT、区块刷新语法；客户端验证删除窗口变量
+  不会清空窗口，并验证新的窗口属性。
+
 ## 2.0.0
 
 这一版把插件搬到 Minecraft 26.2 / Skript 2.16，并修好了那些**从来没能真正用起来**的菜单语法。日常

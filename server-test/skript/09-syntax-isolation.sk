@@ -1,0 +1,74 @@
+# Bare clear/delete must keep Skript's variable changer, including variables with addon values.
+# SkBee is installed in serverTest, so these checks also run with its competing patterns registered.
+on load:
+    set {_value} to "keep native clear"
+    clear {_value}
+    assert {_value} is not set with "clear must delete a local scalar"
+    set {_list::*} to "one" and "two"
+    clear {_list::*}
+    assert size of {_list::*} is 0 with "clear must delete a local list"
+    set {xiaojie_syntax_test::value} to 1
+    clear {xiaojie_syntax_test::value}
+    assert {xiaojie_syntax_test::value} is not set with "clear must delete a global scalar"
+    set {xiaojie_syntax_test::list::*} to 1 and 2
+    clear {xiaojie_syntax_test::list::*}
+    assert size of {xiaojie_syntax_test::list::*} is 0 with "clear must delete a global list"
+    set {_value} to 1
+    delete {_value}
+    assert {_value} is not set with "delete must keep native semantics"
+    set {_list::*} to 1 and 2
+    delete {_list::*}
+    assert size of {_list::*} is 0 with "delete must keep native list semantics"
+    set {_inventory} to a chest inventory with 1 row
+    set slot 0 of {_inventory} to stone
+    clear {_inventory}
+    assert amount of stone in {_inventory} is 0 with "clear must empty a native inventory"
+    create a phantom menu with chest inventory titled "Isolation" with layout "A" with id "syntax_isolation"
+    set {_menu} to the menu with id "syntax_isolation"
+    set {_reference} to {_menu}
+    clear {_reference}
+    assert {_reference} is not set with "clear must delete an addon-valued variable"
+    assert {_menu} is not destroyed with "clear must leave the referenced menu alive"
+    destroy the menu {_menu}
+    log "XIAOJIE_SELFTEST detail: native variable cleanup -> clear and delete preserved"
+
+on load:
+    set {_nbt} to nbt from "{}"
+    set int tag "count" of {_nbt} to 7
+    clear int tag "count" of {_nbt}
+    assert int tag "count" of {_nbt} is not set with "clear must keep SkBee's NBT tag changer"
+    set {_chunk} to chunk at spawn of world "world"
+    refresh {_chunk}
+    refresh chunk {_chunk}
+    clear {_nbt}
+    assert {_nbt} is not set with "clear must delete a SkBee-valued variable"
+    log "XIAOJIE_SELFTEST detail: skbee syntax isolation -> NBT and chunk refresh preserved"
+
+# Parse every previously explicit window form without needing an online player.
+function syntax_window_forms(window: menusession):
+    clear menu {_window}
+    clear menu session {_window} and refresh
+    clear the menu window {_window}
+    clear session {_window}
+    clear window {_window}
+    close menu {_window}
+    close menu session {_window}
+    close the menu window {_window}
+    close session {_window}
+    close window {_window}
+    refresh menu {_window}
+    refresh menu session {_window}
+    refresh the menu window {_window}
+    refresh session {_window}
+    refresh window {_window}
+    refresh the slot 5 in menu window {_window}
+    update title of menu window {_window} to "Title"
+    update title of session {_window} to "Title" and refresh
+
+function syntax_player_window_forms(p: player):
+    clear the menu window of {_p}
+    clear menu session of {_p} and refresh
+    close the menu window of {_p}
+    close menu session of {_p}
+    refresh the menu window of {_p}
+    refresh the slot 5 in menu session of {_p}

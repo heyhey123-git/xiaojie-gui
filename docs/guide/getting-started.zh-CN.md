@@ -55,8 +55,8 @@ map key "A" to icon stone for menu {_menu}     # 也可以
 override slot 2 in page 1 to diamond for {_menu}
 ```
 
-属性表达式里则**不能**多写 `menu`：`the id of menu {_menu}` 会被解析为“按 id 查找菜单”。
-要读取菜单的 id，请写 `the id of {_menu}`。
+属性表达式直接使用变量：要读取菜单的 ID，请写 `the menu id of {_menu}`。
+`menu {_menu}` 不是表达式；按 ID 查找必须写 `menu with id "main"`。
 
 **二、不再有 `page 0`。** 页码从 1 开始，创建菜单时给的布局永远是第 1 页。
 

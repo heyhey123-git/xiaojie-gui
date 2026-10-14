@@ -39,16 +39,19 @@ destroy the menu with id "main"
 
 `menu with id "main"` 是一个返回菜单的**表达式**，可以用在需要菜单值的位置；找不到对应 id 时没有值。
 
+2.0.1 起必须写 `with id`，`menu "main"` 不再是查找表达式。读取 ID 请使用
+`the menu id of {_menu}`，明确的属性名可以避开 SkBee 的区域 ID。
+
 `destroy` 提供两套匹配规则，分别支持变量与按 id 查找的写法，避免在 `destroy the menu with id "main"` 中重复写 `menu`。
 
 ## 一个容易踩的坑：属性表达式里不要再写 `menu`
 
 ```skript
-set {_id} to the id of menu {_menu}     # 错：被读成"按 id 查找菜单"
-set {_id} to the id of {_menu}          # 对
+set {_id} to the menu id of menu {_menu}     # 错：menu {_menu} 不是表达式
+set {_id} to the menu id of {_menu}          # 对
 ```
 
-`menu {_menu}` 会被解析为“将 `{_menu}` 的值当作 id 查找菜单”，而不是直接引用变量中的菜单对象。
+`menu {_menu}` 不是表达式；请直接使用 `{_menu}`，或使用 `menu with id "main"` 按 ID 查找。
 读取或修改属性时，通常直接写 `the … of {_menu}`，如[创建菜单](menus.zh-CN.md)中的用法：
 
 ```skript

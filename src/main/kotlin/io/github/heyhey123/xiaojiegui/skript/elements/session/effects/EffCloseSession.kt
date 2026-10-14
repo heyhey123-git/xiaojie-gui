@@ -11,6 +11,7 @@ import ch.njol.util.Kleenean
 import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
+import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.skriptlang.skript.addon.SkriptAddon
 
@@ -29,12 +30,15 @@ class EffCloseSession : Effect() {
             SkriptSyntax.effect(
                 addon,
                 EffCloseSession::class.java,
-                "close [the] [menu] [(session|window)] %menusession%"
+                "close [the] (menu [(session|window)]|session|window) %menusession%",
+                "close [the] menu (session|window) of %player%"
             )
         }
     }
 
-    private lateinit var sessionExpr: Expression<MenuSession>
+    private var sessionExpr: Expression<MenuSession>? = null
+
+    private var playerExpr: Expression<Player>? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -43,12 +47,17 @@ class EffCloseSession : Effect() {
         isDelayed: Kleenean?,
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
-        sessionExpr = expressions?.get(0) as Expression<MenuSession>
+        if (matchedPattern == 0) {
+            sessionExpr = expressions?.get(0) as Expression<MenuSession>
+        } else {
+            playerExpr = expressions?.get(0) as Expression<Player>
+        }
         return true
     }
 
     override fun execute(event: Event?) {
-        val session = sessionExpr.getSingle(event)
+        val session = sessionExpr?.getSingle(event)
+            ?: playerExpr?.getSingle(event)?.let(MenuSession::querySession)
         if (session == null) {
             this.error(
                 "Menu session cannot be null: ${this.toString(event, true)}"
@@ -69,5 +78,5 @@ class EffCloseSession : Effect() {
     }
 
     override fun toString(event: Event?, debug: Boolean) =
-        "close ${sessionExpr.toString(event, debug)}"
+        "close menu session ${sessionExpr?.toString(event, debug) ?: "of ${playerExpr?.toString(event, debug)}"}"
 }

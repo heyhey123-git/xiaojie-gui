@@ -14,8 +14,7 @@ import org.skriptlang.skript.addon.SkriptAddon
 @Name("Default Page")
 @Description("The default page to show a menu when opened.")
 @Examples(
-    // The property takes the menu expression directly: `of menu {_menu}` parses `menu {_menu}` as a
-    // lookup by id instead.
+    // The property takes the menu expression directly; a lookup must say `menu with id ...`.
     "set {_page} to the default page of {_menu}",
     "set the default page of {_menu} to 2"
 )

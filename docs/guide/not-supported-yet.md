@@ -211,6 +211,5 @@ These are not bugs, but they are surprising the first time:
   property of its own, declared on any object, and registers it before the plugin, so this form is
   answered by Skript and returns empty. For a menu's viewers write `the menu viewers of {_menu}` (or
   `all players viewing {_menu}`).
-- **With SkBee installed, `the id of {_menu}` can be taken by SkBee's `id of %bounds%`** (a variable of
-  undecided type matches it too). If you want a menu id and have SkBee, use the **look a menu up by
-  id** side, or store the menu in a variable and keep the id yourself.
+- **Use `the menu id of {_menu}` for a menu ID.** Since 2.0.1 the property has an explicit name to
+  avoid SkBee's `id of %bounds%`, which also accepts variables of undecided type.

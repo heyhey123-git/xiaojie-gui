@@ -155,5 +155,5 @@ map key "A" to icon stone for {_menu}
 - **`the viewers of …` 在 Skript 2.16 中会匹配自带属性。** Skript 的 `viewer[s]` 属性适用于任何对象，
   且先于插件注册，因此该写法不会返回菜单查看者。请使用 `the menu viewers of {_menu}`
   或 `all players viewing {_menu}`。
-- **安装 SkBee 后，`the id of {_menu}` 可能匹配到 SkBee 的 `id of %bounds%`**，因为未确定类型的变量也能匹配该语法。
-  可以自行保存菜单 id，再用 id 查找菜单，或将菜单对象与 id 分别存入变量。
+- **菜单 ID 请使用 `the menu id of {_menu}`。** 2.0.1 起采用明确的属性名，避开 SkBee 的
+  `id of %bounds%` 对未确定类型变量的抢先匹配。

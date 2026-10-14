@@ -39,7 +39,7 @@ class EffSecSlotCallback : EffectSection() {
                 EffSecSlotCallback::class.java,
                 "(when|on) slot %numbers% " +
                     "[in page [(number|index)] %-numbers%] " +
-                    "[of [(menu|gui)] %-menu%] " +
+                    "[of [the] [(menu|gui)] %-menu%] " +
                     "[is] (clicked|interacted|pressed)"
             )
         }

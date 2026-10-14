@@ -331,7 +331,9 @@ val serverTestExpectedDetails = mapOf(
     "page contract" to "the layout became page 1",
     "page contract default page" to "2",
     // Only reachable with SkBee installed: a title written as a text component, read back as text.
-    "skbee component title" to "Selftest Component Title"
+    "skbee component title" to "Selftest Component Title",
+    "native variable cleanup" to "clear and delete preserved",
+    "skbee syntax isolation" to "NBT and chunk refresh preserved"
 )
 
 // Names a script reports that the map above does not mention, so adding a name to a script is a test

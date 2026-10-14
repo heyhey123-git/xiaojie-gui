@@ -13,11 +13,12 @@ import org.skriptlang.skript.addon.SkriptAddon
 @Name("Menu Session's Viewer")
 @Description(
     "Get the viewer (player) of a menu session.",
-    "Returns null if the session is invalid."
+    "Returns null if the session is invalid.",
+    "Use 'menu viewer' to avoid Skript's generic viewer property."
 )
 @Examples(
     // The session slot is an expression: `menu session {_session}` is not one, `{_session}` is.
-    "set {_viewer} to the viewer of {_session}",
+    "set {_viewer} to the menu viewer of {_session}",
     "send \"You are viewing a menu\" to {_viewer}"
 )
 @Since("1.0.0")
@@ -29,7 +30,7 @@ class ExprSessionViewer : SimplePropertyExpression<MenuSession, Player>() {
                 addon,
                 ExprSessionViewer::class.java,
                 Player::class.java,
-                "viewer",
+                "menu viewer",
                 "menusession"
             )
         }
@@ -37,7 +38,7 @@ class ExprSessionViewer : SimplePropertyExpression<MenuSession, Player>() {
 
     override fun convert(from: MenuSession?): Player? = from?.viewer
 
-    override fun getPropertyName() = "viewer"
+    override fun getPropertyName() = "menu viewer"
 
     override fun getReturnType() = Player::class.java
 }

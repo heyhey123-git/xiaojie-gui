@@ -18,8 +18,7 @@ import org.skriptlang.skript.addon.SkriptAddon
     "It can be a string or a text component in skbee(if exists)."
 )
 @Examples(
-    // The property takes the menu expression directly: `of menu {_menu}` parses `menu {_menu}` as a
-    // lookup by id instead; `default title` is its own pattern, so SkBee's `id` cannot shadow it.
+    // The property takes the menu expression directly; a lookup must say `menu with id ...`.
     "set {_title} to the default title of {_menu}",
     "set the default title of {_menu} to \"&aMy Menu\""
 )

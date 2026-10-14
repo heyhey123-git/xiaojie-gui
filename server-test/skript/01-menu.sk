@@ -12,8 +12,8 @@ on load:
     set {_menu} to the menu with id "selftest"
     assert {_menu} is set with "lookup menu by id: menu must exist"
     assert {_menu} is not destroyed with "fresh menu must not be destroyed"
-    # Keep the menu-typed id expression: SkBee's bound-id expression can capture an untyped variable.
-    set {_id} to the id of the menu with id "selftest"
+    # An untyped variable must read this addon's ID even with SkBee's bound ID property installed.
+    set {_id} to the menu id of {_menu}
     set {_mode} to the mode of {_menu}
     set {_type} to the inventory type of {_menu}
     assert {_id} is "selftest" with "lookup menu by id: expected selftest"

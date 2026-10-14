@@ -12,6 +12,7 @@ import io.github.heyhey123.xiaojiegui.gui.menu.MenuSession
 import io.github.heyhey123.xiaojiegui.gui.receptacle.Receptacle
 import io.github.heyhey123.xiaojiegui.skript.utils.SkriptSyntax
 import org.bukkit.Bukkit
+import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.skriptlang.skript.addon.SkriptAddon
 
@@ -34,14 +35,18 @@ class EffRefreshSession : Effect() {
             SkriptSyntax.effect(
                 addon,
                 EffRefreshSession::class.java,
-                "refresh [the slot %-number% in] [the] [menu] [(session|window)] %menusession%"
+                // SkBee registers `refresh [chunks] %chunks%`; keep the window operation explicit.
+                "refresh [the slot %-number% in] [the] (menu [(session|window)]|session|window) %menusession%",
+                "refresh [the slot %-number% in] [the] menu (session|window) of %player%"
             )
         }
     }
 
     private var slotExpr: Expression<Number>? = null
 
-    private lateinit var sessionExpr: Expression<MenuSession>
+    private var sessionExpr: Expression<MenuSession>? = null
+
+    private var playerExpr: Expression<Player>? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun init(
@@ -51,12 +56,18 @@ class EffRefreshSession : Effect() {
         parseResult: SkriptParser.ParseResult?
     ): Boolean {
         slotExpr = expressions?.get(0) as Expression<Number>?
-        sessionExpr = expressions?.get(1) as Expression<MenuSession>
+        if (matchedPattern == 0) {
+            sessionExpr = expressions?.get(1) as Expression<MenuSession>
+        } else {
+            playerExpr = expressions?.get(1) as Expression<Player>
+        }
         return true
     }
 
     override fun execute(event: Event?) {
-        val session = sessionExpr.getSingle(event) ?: return
+        val session = sessionExpr?.getSingle(event)
+            ?: playerExpr?.getSingle(event)?.let(MenuSession::querySession)
+            ?: return
         if (session.receptacle?.mode != Receptacle.Mode.PHANTOM) return
 
         val slot = slotExpr?.getSingle(event)?.toInt() ?: -1
@@ -75,9 +86,6 @@ class EffRefreshSession : Effect() {
 
     override fun toString(event: Event?, debug: Boolean) =
         "refresh ${if (slotExpr != null) "the slot ${slotExpr!!.toString(event, debug)} in " else ""}${
-            sessionExpr.toString(
-                event,
-                debug
-            )
+            sessionExpr?.toString(event, debug) ?: "menu session of ${playerExpr?.toString(event, debug)}"
         }"
 }

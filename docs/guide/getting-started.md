@@ -58,8 +58,8 @@ map key "A" to icon stone for menu {_menu}     # also fine
 override slot 2 in page 1 to diamond for {_menu}
 ```
 
-But inside a property expression you must **not** add `menu`: `the id of menu {_menu}` is read as "look a
-menu up by id". Write `the id of {_menu}`.
+Inside a property expression, pass the variable directly: write `the menu id of {_menu}`.
+`menu {_menu}` is not an expression; an ID lookup must say `menu with id "main"`.
 
 **Two: there is no `page 0` any more.** Page numbers start at 1, and the layout given when the menu is
 created is always page 1.

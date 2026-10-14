@@ -15,11 +15,12 @@ import org.skriptlang.skript.addon.SkriptAddon
 @Name("Menu Session Title")
 @Description(
     "Get or set the title of a menu session.",
-    "Returns null if the session is invalid."
+    "Returns null if the session is invalid.",
+    "Use 'menu window title' to avoid Skript's generic title property."
 )
 @Examples(
-    "set {_title} to the title of {_session}",
-    "set the title of {_session} to \"&aNew Title\""
+    "set {_title} to the menu window title of {_session}",
+    "set the menu window title of {_session} to \"&aNew Title\""
 )
 @Since("1.0.0")
 class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
@@ -31,7 +32,7 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
                 addon,
                 ExprSessionTitle::class.java,
                 ComponentHelper.titleReturnType as Class<Any?>,
-                "title",
+                "menu window title",
                 "menusession"
             )
         }
@@ -72,7 +73,7 @@ class ExprSessionTitle : SimplePropertyExpression<MenuSession, Any?>() {
         session.title(title, true)
     }
 
-    override fun getPropertyName() = "title"
+    override fun getPropertyName() = "menu window title"
 
     override fun getReturnType() = ComponentHelper.titleReturnType
 }
